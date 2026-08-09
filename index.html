@@ -6,11 +6,13 @@
   Estrutura:
     - index.html        -> a página (estrutura das telas)
     - css/style.css     -> o visual (design system, temas)
+    - js/data.js        -> camada de dados (perguntas, quizzes, conquistas)
     - js/script.js      -> a lógica (motor do quiz e da plataforma)
 
   O site é de página única: as "telas" (Home, Quiz, Resultado,
   Ranking, Conquistas e Perfil) ficam todas neste arquivo e o
-  JavaScript mostra/esconde uma por vez.
+  JavaScript mostra/esconde uma por vez. Fase 2: busca, filtros,
+  favoritos, XP/níveis, streak, desafio do dia e explicações.
   ============================================================
 -->
 <html lang="pt-BR" data-theme="system">
@@ -71,7 +73,7 @@
           <h1 id="hero-title">Teste seus <span class="texto-gradiente">conhecimentos.</span></h1>
           <p class="hero-sub">
             O <strong>Quiz AKE</strong> é a sua plataforma de quizzes: responda no tempo,
-            monte combos, descubra perguntas prêmio e suba no ranking.
+            monte combos, descubra perguntas prêmio, ganhe XP e suba de nível.
           </p>
           <div class="hero-acoes">
             <button class="btn btn-primary" id="botao-jogar-hero">▶ Jogar agora</button>
@@ -96,21 +98,35 @@
         </div>
       </section>
 
-      <!-- ---------- DESTAQUES (quiz do dia, populares, recomendados) ---------- -->
+      <!-- ---------- DESAFIO DO DIA (Fase 2) ---------- -->
+      <section class="bloco" aria-labelledby="titulo-desafio">
+        <div id="desafio-card" class="desafio-card" aria-live="polite"></div>
+      </section>
+
+      <!-- ---------- DESTAQUES ---------- -->
       <section class="bloco" aria-labelledby="titulo-destaques">
         <div class="bloco-cabecalho">
-          <h2 id="titulo-destaques">Em destaque</h2>
+          <h2 class="titulo-bloco">🔥 Mais jogados</h2>
           <button class="link-mais" data-navegar="quizzes">Ver todas as categorias →</button>
         </div>
-        <div id="destaques-grade" class="grade-destaques"></div>
+        <div id="destaques-grade" class="grade-quizzes"></div>
       </section>
 
       <!-- ---------- CATEGORIAS ---------- -->
       <section class="bloco" id="area-categorias" aria-labelledby="titulo-categorias">
         <div class="bloco-cabecalho">
-          <h2 id="titulo-categorias">Categorias</h2>
+          <h2 class="titulo-bloco">Categorias</h2>
         </div>
         <div id="categorias-grade" class="grade-categorias"></div>
+      </section>
+
+      <!-- ---------- MEUS FAVORITOS (Fase 2) ---------- -->
+      <section class="bloco" id="area-favoritos" aria-labelledby="titulo-favoritos">
+        <div class="bloco-cabecalho">
+          <h2 class="titulo-bloco">❤️ Meus favoritos</h2>
+          <p class="descricao-bloco">Toque no coração de um quiz para guardá-lo aqui.</p>
+        </div>
+        <div id="favoritos-grade" class="grade-quizzes"></div>
       </section>
 
       <!-- ---------- ESTATÍSTICAS + RANKING (lado a lado) ---------- -->
@@ -135,14 +151,55 @@
     </div>
   </main>
 
-  <!-- ==================== TELA: QUIZZES ==================== -->
+  <!-- ==================== TELA: QUIZZES (Fase 2) ==================== -->
   <main class="tela hidden" id="tela-quizzes">
     <div class="container">
       <div class="bloco-cabecalho">
-        <h2>Escolha um quiz</h2>
-        <p class="descricao-bloco">Selecione uma categoria para começar o desafio.</p>
+        <h2 class="titulo-bloco">Escolha um quiz</h2>
+        <p class="descricao-bloco">Pesquise, filtre e comece o seu desafio.</p>
       </div>
-      <div id="categorias-grade-full" class="grade-categorias"></div>
+
+      <!-- Barra de busca e filtros -->
+      <div class="quiz-filtros">
+        <input type="search" id="busca-quizzes" class="busca-input" placeholder="🔍 Buscar por título, categoria ou tag..." aria-label="Buscar quizzes">
+        <div class="filtros-linha">
+          <select id="filtro-categoria" aria-label="Filtrar por categoria">
+            <option value="">Todas as categorias</option>
+          </select>
+          <select id="filtro-dificuldade" aria-label="Filtrar por dificuldade">
+            <option value="">Todas as dificuldades</option>
+          </select>
+          <select id="ordem-quizzes" aria-label="Ordenar">
+            <option value="padrao">Ordenar: padrão</option>
+            <option value="titulo">Ordenar: título A-Z</option>
+            <option value="populares">Ordenar: mais jogados</option>
+            <option value="recentes">Ordenar: recém jogados</option>
+            <option value="duracao">Ordenar: duração</option>
+          </select>
+          <label class="favoritos-chk">
+            <input type="checkbox" id="so-favoritos"> ❤️ Só favoritos
+          </label>
+        </div>
+        <div class="contagem-quizzes" id="contagem-quizzes"></div>
+      </div>
+
+      <!-- Sugestões: populares, recentes e recomendados -->
+      <div class="bloco">
+        <h3 class="titulo-bloco">🔥 Populares</h3>
+        <div id="grade-populares" class="grade-quizzes"></div>
+      </div>
+      <div class="bloco">
+        <h3 class="titulo-bloco">🕒 Recentes</h3>
+        <div id="grade-recentes" class="grade-quizzes"></div>
+      </div>
+      <div class="bloco">
+        <h3 class="titulo-bloco">✨ Recomendados</h3>
+        <div id="grade-recomendados" class="grade-quizzes"></div>
+      </div>
+      <div class="bloco">
+        <h3 class="titulo-bloco">📚 Todos os quizzes</h3>
+        <div id="grade-todos" class="grade-quizzes"></div>
+      </div>
     </div>
   </main>
 
@@ -177,10 +234,16 @@
 
       <div class="selo-bonus hidden" id="selo-bonus">⭐ PERGUNTA PRÊMIO</div>
 
-      <div class="question-number" id="numero-pergunta">Pergunta 1</div>
+      <div class="question-number">
+        <span id="numero-pergunta">Pergunta 1</span>
+        <span id="tipo-pergunta"></span>
+      </div>
       <div class="question-text" id="texto-pergunta">...</div>
 
       <div class="answers" id="area-respostas" aria-live="polite"></div>
+
+      <!-- Explicação da resposta (Fase 2) -->
+      <div class="area-explicacao hidden" id="area-explicacao" aria-live="polite"></div>
 
       <div class="scoreboard">
         <span>⭐ Pontos: <strong id="pontuacao">0</strong></span>
@@ -190,7 +253,7 @@
     </div>
   </main>
 
-  <!-- ==================== TELA: RESULTADO ==================== -->
+  <!-- ==================== TELA: RESULTADO (Fase 2) ==================== -->
   <main class="tela hidden" id="tela-resultado">
     <div class="container">
       <div class="result-emoji" id="emoji-resultado">🏆</div>
@@ -228,6 +291,23 @@
         </div>
       </div>
 
+      <!-- Progresso de nível (Fase 2) -->
+      <div class="resultado-nivel card">
+        <div class="resultado-nivel-linha">
+          <strong id="resultado-nivel">Nível 1</strong>
+          <span id="resultado-progresso">0 / 100 XP</span>
+        </div>
+        <div class="barra-xp">
+          <div class="barra-xp-fill" id="resultado-barra-xp"></div>
+        </div>
+      </div>
+
+      <!-- Conquistas ganhas na partida (Fase 2) -->
+      <div class="resultado-conquistas" id="resultado-conquistas"></div>
+
+      <!-- Streak (Fase 2) -->
+      <div class="resultado-streak" id="resultado-streak"></div>
+
       <div class="result-acoes">
         <button class="btn btn-primary" id="botao-reiniciar">Jogar novamente</button>
         <button class="btn btn-ghost" data-navegar="quizzes">Escolher outro quiz</button>
@@ -247,29 +327,33 @@
     </div>
   </main>
 
-  <!-- ==================== TELA: CONQUISTAS ==================== -->
+  <!-- ==================== TELA: CONQUISTAS (Fase 2) ==================== -->
   <main class="tela hidden" id="tela-conquistas">
     <div class="container">
       <div class="bloco-cabecalho">
         <h2>🏅 Conquistas</h2>
-        <p class="descricao-bloco">Medalhas que você desbloqueia jogando.</p>
+        <p class="descricao-bloco" id="conquistas-progresso">Medalhas que você desbloqueia jogando.</p>
       </div>
       <div id="conquistas-grade" class="grade-conquistas"></div>
     </div>
   </main>
 
-  <!-- ==================== TELA: PERFIL ==================== -->
+  <!-- ==================== TELA: PERFIL (Fase 2) ==================== -->
   <main class="tela hidden" id="tela-perfil">
     <div class="container">
       <div class="bloco-cabecalho">
         <h2>👤 Perfil</h2>
-        <p class="descricao-bloco">Seu progresso e nível de XP.</p>
+        <p class="descricao-bloco">Seu progresso, histórico e sequência diária.</p>
       </div>
       <div class="card suave perfil">
         <div class="perfil-topo">
           <div class="avatar" id="avatar-perfil">🧑‍🚀</div>
-          <div>
-            <div class="perfil-nome">Jogador AKE</div>
+          <div class="perfil-dados">
+            <div class="perfil-nome" id="perfil-nome">Jogador AKE</div>
+            <label class="perfil-edicao">
+              <span>Nome</span>
+              <input type="text" id="input-nome" value="Jogador AKE" maxlength="24">
+            </label>
             <div class="perfil-nivel">Nível <strong id="perfil-nivel">1</strong> · <span id="perfil-xp">0 XP</span></div>
           </div>
         </div>
@@ -278,8 +362,30 @@
         </div>
         <div class="grade-stats" id="perfil-stats"></div>
       </div>
+
+      <!-- Sequência diária (Fase 2) -->
+      <div class="bloco">
+        <h3 class="titulo-bloco">🔥 Sequência diária</h3>
+        <div class="card suave" id="perfil-streak"></div>
+      </div>
+
+      <!-- Histórico (Fase 2) -->
+      <div class="bloco">
+        <h3 class="titulo-bloco">🕒 Histórico de partidas</h3>
+        <div class="card suave">
+          <ul id="perfil-historico" class="lista-historico"></ul>
+        </div>
+      </div>
     </div>
   </main>
+
+  <!-- Overlay de subida de nível (Fase 2) -->
+  <div class="overlay-nivel hidden" id="overlay-nivel" aria-live="assertive">
+    <div class="overlay-nivel-bolha">
+      <div class="overlay-nivel-emoji">🎉</div>
+      <div class="overlay-nivel-texto" id="overlay-nivel-texto">Você subiu de nível!</div>
+    </div>
+  </div>
 
   <!-- Rodapé -->
   <footer class="rodape">
@@ -288,7 +394,8 @@
     </div>
   </footer>
 
-  <!-- Arquivo JavaScript com toda a lógica -->
+  <!-- Arquivos JavaScript: dados primeiro, lógica depois -->
+  <script src="js/data.js"></script>
   <script src="js/script.js"></script>
 </body>
 </html>

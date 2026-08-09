@@ -1153,6 +1153,634 @@ button {
   }
 }
 
+/* ----------------------------------------------------------
+   17) FASE 2 - PLATAFORMA (quizzes, favoritos, conquistas com
+   progresso, streak, desafio do dia e explicações)
+   ---------------------------------------------------------- */
+
+/* Grade de cards de quiz (Fase 2) */
+.grade-quizzes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+/* ---------- Cards de quiz (busca/favoritos/populares) ---------- */
+.quiz-card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+
+.quiz-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--acento);
+  box-shadow: var(--sombra);
+}
+
+/* Capa colorida (cor da categoria via --capa) */
+.quiz-capa {
+  position: relative;
+  height: 96px;
+  background: var(--capa, var(--gradiente));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quiz-capa-emoji {
+  font-size: 2.6rem;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+}
+
+/* Botão de favoritar (coração) no canto da capa */
+.quiz-fav {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.quiz-fav:hover {
+  transform: scale(1.15);
+}
+
+.quiz-fav.ativo {
+  background: #ff4b6a;
+}
+
+.quiz-corpo {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.quiz-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chip-dificuldade {
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--acento-2);
+  text-transform: capitalize;
+}
+
+.quiz-data {
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+}
+
+.quiz-titulo {
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.quiz-desc {
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.quiz-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.quiz-tag {
+  background: var(--card-2);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+}
+
+.quiz-meta-row {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--borda);
+  padding-top: 10px;
+  color: var(--texto-suave);
+  font-size: 0.72rem;
+}
+
+/* ---------- Card de categoria (clique leva ao quiz) ---------- */
+.card-cat {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 16px;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.card-cat::before {
+  content: '';
+  height: 4px;
+  width: 42px;
+  border-radius: 999px;
+  background: var(--cat-cor, var(--acento));
+}
+
+.card-cat:hover {
+  transform: translateY(-4px);
+  border-color: var(--cat-cor, var(--acento));
+  box-shadow: var(--sombra);
+}
+
+.cat-icone {
+  font-size: 1.7rem;
+}
+
+.cat-nome {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.cat-meta {
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+}
+
+/* ---------- Desafio do Dia ---------- */
+.desafio-card {
+  background: var(--gradiente);
+  border-radius: var(--raio);
+  padding: 26px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 14px 40px rgba(124, 108, 240, 0.3);
+}
+
+.desafio-card::after {
+  content: '🎯';
+  position: absolute;
+  right: 18px;
+  bottom: -16px;
+  font-size: 6rem;
+  opacity: 0.18;
+}
+
+.desafio-card h3 {
+  font-size: 1.35rem;
+  margin: 8px 0 6px;
+  text-transform: capitalize;
+}
+
+.desafio-card p {
+  opacity: 0.94;
+  margin-bottom: 14px;
+  max-width: 560px;
+}
+
+.destaque-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.5px;
+}
+
+.destaque-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 14px;
+}
+
+.desafio-card .btn-primary {
+  background: #fff;
+  color: var(--acento);
+  box-shadow: none;
+}
+
+/* ---------- Barra de busca e filtros da página de quizzes ---------- */
+.quiz-filtros {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-bottom: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.busca-input {
+  width: 100%;
+  background: var(--bg-suave);
+  color: var(--texto);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.98rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.busca-input:focus {
+  outline: none;
+  border-color: var(--acento);
+}
+
+.filtros-linha {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filtros-linha select {
+  flex: 1;
+  min-width: 150px;
+  background: var(--bg-suave);
+  color: var(--texto);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.favoritos-chk {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.contagem-quizzes {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+/* ---------- Progresso das conquistas ---------- */
+.conq-prog {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.conq-bar {
+  flex: 1;
+  background: var(--card-2);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.conq-fill {
+  background: var(--gradiente);
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.conq-count {
+  font-size: 0.72rem;
+  color: var(--texto-suave);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---------- Explicação da resposta (Fase 2) ---------- */
+.area-explicacao {
+  margin-top: 16px;
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-left: 4px solid var(--borda);
+  border-radius: 14px;
+  padding: 16px;
+  animation: pop 0.3s;
+}
+
+.area-explicacao.certo {
+  border-left-color: var(--ok);
+}
+
+.area-explicacao.erro {
+  border-left-color: var(--erro);
+}
+
+.explicacao-status {
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.area-explicacao.certo .explicacao-status {
+  color: var(--ok);
+}
+
+.area-explicacao.erro .explicacao-status {
+  color: var(--erro);
+}
+
+.explicacao-resposta {
+  margin-bottom: 4px;
+}
+
+.explicacao-texto {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+/* Tipo da pergunta (múltipla escolha / V ou F) */
+#tela-quiz .question-number {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+#tipo-pergunta {
+  color: var(--acento-2);
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ---------- Resultado enriquecido (Fase 2) ---------- */
+.resultado-nivel {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.resultado-nivel-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.resultado-nivel-linha strong {
+  color: var(--texto);
+}
+
+.resultado-conquistas {
+  margin: 6px 0 14px;
+}
+
+.resultado-conq {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.resultado-medalha {
+  background: var(--card);
+  border: 1px solid var(--aviso);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--aviso);
+}
+
+.resultado-streak {
+  margin: 14px 0 22px;
+  color: var(--texto-suave);
+}
+
+.resultado-streak strong {
+  color: var(--texto);
+}
+
+/* ---------- Perfil (nome, história, streak) ---------- */
+.perfil-dados {
+  flex: 1;
+}
+
+.perfil-edicao {
+  display: block;
+  margin: 4px 0;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+
+.perfil-edicao input {
+  width: 100%;
+  max-width: 280px;
+  background: var(--card-2);
+  color: var(--texto);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  margin-top: 4px;
+}
+
+.lista-historico {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.hist-icon {
+  font-size: 1.3rem;
+}
+
+.hist-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hist-info strong {
+  font-size: 0.92rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hist-info small {
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+}
+
+.hist-pct {
+  font-weight: 800;
+  color: var(--ok);
+}
+
+.lista-historico .pts {
+  color: var(--acento-2);
+  font-weight: 800;
+}
+
+/* ---------- Sequência diária (calendário da semana) ---------- */
+.streak-topo {
+  margin-bottom: 14px;
+  color: var(--texto-suave);
+}
+
+.streak-topo strong {
+  color: var(--texto);
+}
+
+.streak-semana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.streak-dia {
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  text-align: center;
+  padding: 10px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.streak-dia small {
+  color: var(--texto-suave);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.streak-dia.ativo {
+  border-color: var(--aviso);
+  background: color-mix(in srgb, var(--aviso) 14%, var(--card));
+}
+
+.streak-dia.hoje {
+  box-shadow: 0 0 0 2px var(--aviso);
+}
+
+/* ---------- Overlay de subida de nível (Fase 2) ---------- */
+.overlay-nivel {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: aparecerFade 0.3s ease;
+}
+
+.overlay-nivel-bolha {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 24px;
+  padding: 34px 44px;
+  text-align: center;
+  box-shadow: var(--sombra);
+  animation: pop 0.5s;
+}
+
+.overlay-nivel-emoji {
+  font-size: 3.2rem;
+}
+
+.overlay-nivel-texto {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-top: 10px;
+  background: var(--gradiente);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes aparecerFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Grade de quizzes vira colunas menores no celular/tablet */
+@media (max-width: 860px) {
+  .grade-quizzes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .grade-quizzes {
+    grid-template-columns: 1fr;
+  }
+
+  .streak-semana {
+    gap: 4px;
+  }
+}
+
 /* Respeita usuários que preferem menos animação */
 @media (prefers-reduced-motion: reduce) {
   *,

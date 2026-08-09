@@ -1,122 +1,48 @@
 /* ==========================================================
    QUIZ AKE - LÓGICA DO SITE (JavaScript)
-   Este arquivo faz tudo funcionar. Está organizado em seções
-   numeradas, cada uma com uma função clara.
+   Fase 2: XP/níveis progressivos, favoritos, histórico,
+   streak diário, desafio do dia, busca/filtros em quizzes,
+   conquistas com progresso, explicações e suporte a V/F.
    ========================================================== */
 
-/* ------------------------------------------------------------
-   1) CATEGORIAS DE QUIZZES
-   Cada categoria tem: id, nome, emoji e uma cor de destaque.
-   ------------------------------------------------------------ */
-const CATEGORIAS = [
-  { id: 'geral',      nome: 'Conhecimentos Gerais', emoji: '🧠', cor: '#7c6cf0' },
-  { id: 'geografia',  nome: 'Geografia',            emoji: '🌎', cor: '#2aa1d9' },
-  { id: 'historia',   nome: 'História',             emoji: '📜', cor: '#e0a33a' },
-  { id: 'ciencia',    nome: 'Ciência',              emoji: '🔬', cor: '#35c08a' },
-  { id: 'esportes',   nome: 'Esportes',             emoji: '⚽', cor: '#e05a4f' },
-  { id: 'games',      nome: 'Games',                emoji: '🎮', cor: '#9b6cf0' },
-  { id: 'filmes',     nome: 'Filmes e Séries',      emoji: '🎬', cor: '#d94b6f' },
-  { id: 'musica',     nome: 'Música',               emoji: '🎵', cor: '#e04b9b' },
-  { id: 'tecnologia', nome: 'Tecnologia',           emoji: '💻', cor: '#4aa8ff' },
-  { id: 'portugues',  nome: 'Português',            emoji: '📚', cor: '#8fa83c' },
-  { id: 'matematica', nome: 'Matemática',           emoji: '➗', cor: '#e0a33a' },
-  { id: 'brasil',     nome: 'Brasil',               emoji: '🇧🇷', cor: '#2fc05f' },
-  { id: 'logica',     nome: 'Lógica',               emoji: '🧩', cor: '#6366f1' }
-];
+/* ---------- 1) CONFIGURAÇÕES DO JOGO ---------- */
+const TEMPO_POR_DIFICULDADE = { facil: 25, medio: 20, dificil: 15, insano: 12 };
+const QUANTAS_PERGUNTAS = 10;
+const PONTOS_CERTA = 10;
+const BONUS_COMBO = 5;
+const LIMITE_HISTORICO = 12;
+const LIMITE_RANKING = 5;
+const PERGUNTAS_DESAFIO = 6;
 
-/* ============================================================
-   2) BANCO DE PERGUNTAS
-   Cada pergunta tem:
-   - categoria     : a categoria a que pertence
-   - pergunta      : o texto
-   - alternativas  : opções de resposta
-   - correta       : posição (índice) da resposta certa
-   - valor         : peso de pontos (1 = normal, 2/3 = prêmio)
-   ============================================================ */
-const BANCO_DE_PERGUNTAS = [
-  // --- Ciência / Natureza ---
-  { categoria: 'ciencia', pergunta: "Qual é o maior planeta do Sistema Solar?", alternativas: ["Terra", "Júpiter", "Saturno", "Marte"], correta: 1, valor: 1 },
-  { categoria: 'ciencia', pergunta: "Qual é o símbolo químico do ouro?", alternativas: ["Au", "Ag", "Fe", "O"], correta: 0, valor: 1 },
-  { categoria: 'ciencia', pergunta: "Qual gás os seres humanos respiram para sobreviver?", alternativas: ["Oxigênio", "Hidrogênio", "Gás carbônico", "Hélio"], correta: 0, valor: 1 },
-  { categoria: 'ciencia', pergunta: "Qual destes animais é um mamífero?", alternativas: ["Tubarão", "Golfinho", "Polvo", "Tartaruga"], correta: 1, valor: 2 },
-  { categoria: 'ciencia', pergunta: "Quantos ossos tem (aprox.) o corpo humano adulto?", alternativas: ["106", "206", "306", "406"], correta: 1, valor: 1 },
-  { categoria: 'ciencia', pergunta: "O que a fotossíntese produz nas plantas?", alternativas: ["Oxigênio", "Carbono", "Nitrogênio", "Hidrogênio"], correta: 0, valor: 1 },
-  { categoria: 'ciencia', pergunta: "Quantos estados físicos básicos da matéria existem?", alternativas: ["2", "3", "4", "5"], correta: 1, valor: 3 },
+const XP_ACERTO = 10;
+const XP_COMBO = 5;
+const XP_COMPLETAR = 25;
+const XP_PERFEITO = 40;
+const XP_CONQUISTA = 15;
+const XP_DESAFIO = 30;
 
-  // --- Geografia ---
-  { categoria: 'geografia', pergunta: "Qual é o maior oceano do mundo?", alternativas: ["Atlântico", "Índico", "Pacífico", "Ártico"], correta: 2, valor: 1 },
-  { categoria: 'geografia', pergunta: "Qual é a capital da França?", alternativas: ["Londres", "Paris", "Roma", "Berlim"], correta: 1, valor: 1 },
-  { categoria: 'geografia', pergunta: "Qual é o maior país do mundo em território?", alternativas: ["China", "EUA", "Brasil", "Rússia"], correta: 3, valor: 1 },
-  { categoria: 'geografia', pergunta: "Quantos continentes existem no planeta?", alternativas: ["5", "6", "7", "8"], correta: 2, valor: 1 },
-  { categoria: 'geografia', pergunta: "Em que continente fica o Egito?", alternativas: ["Ásia", "África", "Europa", "América"], correta: 1, valor: 1 },
-  { categoria: 'geografia', pergunta: "Qual o maior deserto (não polar) do mundo?", alternativas: ["Saara", "Gobi", "Kalahari", "Atacama"], correta: 0, valor: 2 },
-  { categoria: 'geografia', pergunta: "Qual planeta é conhecido como 'Planeta Vermelho'?", alternativas: ["Vênus", "Marte", "Mercúrio", "Netuno"], correta: 1, valor: 1 },
+/* ---------- 2) NÍVEIS E XP ---------- */
+function limiarNivel(numero) {
+  var predef = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000, 4900, 5900, 7100, 8500, 10000];
+  if (numero <= predef.length) return predef[numero - 1];
+  return predef[predef.length - 1] + (numero - predef.length) * 600;
+}
 
-  // --- História ---
-  { categoria: 'historia', pergunta: "Quando o homem pisou na Lua pela primeira vez?", alternativas: ["1965", "1969", "1972", "1979"], correta: 1, valor: 2 },
-  { categoria: 'historia', pergunta: "Em qual ano o Brasil comemorou 500 anos de descobrimento?", alternativas: ["1998", "2000", "2002", "2005"], correta: 1, valor: 3 },
-  { categoria: 'historia', pergunta: "Quem pintou a Mona Lisa?", alternativas: ["Van Gogh", "Picasso", "Leonardo da Vinci", "Michelangelo"], correta: 2, valor: 2 },
-  { categoria: 'historia', pergunta: "Qual país conquistou a primeira Copa do Mundo de futebol?", alternativas: ["Brasil", "Itália", "Uruguai", "Argentina"], correta: 2, valor: 1 },
+function calcularNivel(xp) {
+  var nivel = 1;
+  while (xp >= limiarNivel(nivel + 1)) nivel++;
+  var atual = limiarNivel(nivel);
+  var proximo = limiarNivel(nivel + 1);
+  return {
+    nivel: nivel,
+    xpNoNivel: xp - atual,
+    xpNecessario: proximo - atual,
+    progresso: Math.min(100, Math.round(((xp - atual) / (proximo - atual)) * 100))
+  };
+}
 
-  // --- Esportes ---
-  { categoria: 'esportes', pergunta: "Quantos jogadores compõem um time de futebol em campo?", alternativas: ["9", "10", "11", "12"], correta: 2, valor: 1 },
-  { categoria: 'esportes', pergunta: "Em que país surgiram as Olimpíadas da era moderna?", alternativas: ["França", "Grécia", "Itália", "EUA"], correta: 1, valor: 2 },
-  { categoria: 'esportes', pergunta: "Qual piloto tem mais títulos de Fórmula 1?", alternativas: ["Schumacher", "Hamilton", "Senna", "Verstappen"], correta: 1, valor: 3 },
-
-  // --- Games ---
-  { categoria: 'games', pergunta: "Quem é o criador do Super Mario?", alternativas: ["Shigeru Miyamoto", "Hideo Kojima", "Gabe Newell", "John Carmack"], correta: 0, valor: 2 },
-  { categoria: 'games', pergunta: "Qual jogo é famoso por construir com blocos?", alternativas: ["Tetris", "Pac-Man", "Minecraft", "Angry Birds"], correta: 2, valor: 1 },
-  { categoria: 'games', pergunta: "Qual é o protagonista do Resident Evil 1?", alternativas: ["Chris Redfield", "Jill Valentine", "Albert Wesker", "Barry Burton"], correta: 0, valor: 3 },
-
-  // --- Filmes e Séries ---
-  { categoria: 'filmes', pergunta: "Qual saga de filmes tem o personagem Darth Vader?", alternativas: ["Senhor dos Anéis", "Star Wars", "Harry Potter", "Jurassic Park"], correta: 1, valor: 1 },
-  { categoria: 'filmes', pergunta: "Quem interpretou Tony Stark no cinema?", alternativas: ["Chris Evans", "Robert Downey Jr.", "Chris Hemsworth", "Scarlett Johansson"], correta: 1, valor: 2 },
-  { categoria: 'filmes', pergunta: "Qual filme tem a frase 'Que a força esteja com você'?", alternativas: ["Star Trek", "Star Wars", "Guardiões da Galáxia", "Matrix"], correta: 1, valor: 1 },
-
-  // --- Música ---
-  { categoria: 'musica', pergunta: "Qual artista é conhecido como o 'Rei do Pop'?", alternativas: ["Elvis Presley", "Freddie Mercury", "Michael Jackson", "Bob Dylan"], correta: 2, valor: 1 },
-  { categoria: 'musica', pergunta: "Qual é a nacionalidade de Beethoven?", alternativas: ["Francês", "Alemão", "Italiano", "Austríaco"], correta: 1, valor: 1 },
-
-  // --- Tecnologia ---
-  { categoria: 'tecnologia', pergunta: "Qual destes é um navegador de internet?", alternativas: ["Photoshop", "Chrome", "Windows", "Word"], correta: 1, valor: 1 },
-  { categoria: 'tecnologia', pergunta: "O que significa HTML?", alternativas: ["Hiper Texto de Marcas", "Linguagem de Marcação de Hipertexto", "Linguagem de Máquina Total", "Hora de Melhorar os Textos"], correta: 1, valor: 3 },
-  { categoria: 'tecnologia', pergunta: "Qual destes é um sistema operacional?", alternativas: ["Linux", "Intel", "NVIDIA", "RAM"], correta: 0, valor: 2 },
-
-  // --- Português ---
-  { categoria: 'portugues', pergunta: "Qual é o plural de 'pão'?", alternativas: ["pãos", "pães", "painçes", "pãis"], correta: 1, valor: 1 },
-  { categoria: 'portugues', pergunta: "Qual é o correto: 'eles ...'?", alternativas: ["fizero", "fizeram", "fazem", "fez"], correta: 1, valor: 2 },
-  { categoria: 'portugues', pergunta: "Quantas letras tem a palavra 'paralelepípedo'?", alternativas: ["11", "12", "13", "14"], correta: 2, valor: 1 },
-
-  // --- Matemática ---
-  { categoria: 'matematica', pergunta: "Quantos lados tem um hexágono?", alternativas: ["4", "5", "6", "7"], correta: 2, valor: 1 },
-  { categoria: 'matematica', pergunta: "Qual é o resultado de 7 x 8?", alternativas: ["48", "54", "56", "64"], correta: 2, valor: 1 },
-  { categoria: 'matematica', pergunta: "Qual é o único número primo par?", alternativas: ["0", "1", "2", "4"], correta: 2, valor: 2 },
-  { categoria: 'matematica', pergunta: "Quanto é a raiz quadrada de 144?", alternativas: ["10", "11", "12", "14"], correta: 2, valor: 1 },
-
-  // --- Brasil ---
-  { categoria: 'brasil', pergunta: "Qual é a capital do Brasil?", alternativas: ["São Paulo", "Rio de Janeiro", "Brasília", "Salvador"], correta: 2, valor: 1 },
-  { categoria: 'brasil', pergunta: "Quem foi o primeiro presidente do Brasil?", alternativas: ["Getúlio Vargas", "Deodoro da Fonseca", "Juscelino Kubitschek", "Washington Luís"], correta: 1, valor: 1 },
-  { categoria: 'brasil', pergunta: "Qual cidade foi a primeira capital do Brasil (1500)?", alternativas: ["Salvador", "Rio de Janeiro", "Recife", "São Paulo"], correta: 0, valor: 2 },
-
-  // --- Lógica ---
-  { categoria: 'logica', pergunta: "Qual número completa a sequência: 2, 4, 6, ...?", alternativas: ["7", "8", "9", "10"], correta: 1, valor: 1 },
-  { categoria: 'logica', pergunta: "Se A > B e B > C, então:", alternativas: ["A < C", "A > C", "A = C", "Impossível saber"], correta: 1, valor: 2 },
-  { categoria: 'logica', pergunta: "Quantas pernas têm 2 cachorros e 3 gatos?", alternativas: ["16", "18", "20", "24"], correta: 2, valor: 3 }
-];
-
-/* ============================================================
-   3) CONFIGURAÇÕES DO JOGO
-   ============================================================ */
-const TEMPO_POR_PERGUNTA = 20;   // segundos por pergunta
-const QUANTAS_PERGUNTAS = 10;    // total de perguntas por partida
-const PONTOS_CERTA = 10;         // pontos base ao acertar
-const BONUS_COMBO = 5;           // bônus por acerto em sequência
-const META_XP = 100;             // XP necessária para subir de nível
-
-/* ============================================================
-   4) MAPA DE TELAS (cada <main> da página)
-   ============================================================ */
-const TELAS = {
+/* ---------- 3) TELAS ---------- */
+var TELAS = {
   inicio: 'tela-inicio',
   quizzes: 'tela-quizzes',
   quiz: 'tela-quiz',
@@ -126,529 +52,718 @@ const TELAS = {
   perfil: 'tela-perfil'
 };
 
-/* ============================================================
-   5) VARIÁVEIS DE ESTADO DO JOGO
-   ============================================================ */
-let perguntasSorteio = [];   // perguntas da partida atual
-let indiceAtual = 0;         // qual pergunta estamos
-let pontuacao = 0;           // total de pontos
-let sequenciaCerta = 0;      // acertos seguidos (combo)
-let maiorCombo = 0;          // maior combo da partida
-let acertos = 0;             // total de acertos
-let erros = 0;               // total de erros
-let respondeu = false;       // evita clicar 2x na mesma pergunta
-let categoriaAtual = 'geral';// categoria em jogo
-let tempoRestante = 0;       // segundos que faltam
-let cronometro = null;       // guarda o setInterval do cronômetro
-let tempoTotalUsado = 0;     // soma do tempo usado nas perguntas
+/* ---------- 4) ESTADO DO JOGO ---------- */
+var perguntasSorteio = [];
+var indiceAtual = 0;
+var pontuacao = 0;
+var sequenciaCerta = 0;
+var maiorCombo = 0;
+var acertos = 0;
+var erros = 0;
+var rapidas = 0;
+var respondeu = false;
+var quizAtual = null;
+var modoDesafio = false;
+var categoriaAtual = 'geral';
+var tempoRestante = 0;
+var cronometro = null;
+var tempoTotalUsado = 0;
+var segundosPorPergunta = 20;
+var nomeAnterior = '';
 
-/* ============================================================
-   6) REFERÊNCIA AOS ELEMENTOS DA PÁGINA
-   ============================================================ */
-const el = {
-  // Home / hero
-  heroTotalQuiz: document.getElementById('hero-total-perguntas'),
-  heroTotalCat: document.getElementById('hero-total-categorias'),
-  destaques: document.getElementById('destaques-grade'),
-  categorias: document.getElementById('categorias-grade'),
-  categoriasFull: document.getElementById('categorias-grade-full'),
-  statsVazio: document.getElementById('stats-estado-vazio'),
-  gradeStats: document.getElementById('grade-stats'),
-  rankingResumo: document.getElementById('ranking-resumo'),
-  rankingCompleto: document.getElementById('ranking-completo'),
-  conquistas: document.getElementById('conquistas-grade'),
-  perfilStats: document.getElementById('perfil-stats'),
-  perfilNivel: document.getElementById('perfil-nivel'),
-  perfilXp: document.getElementById('perfil-xp'),
-  barraXp: document.getElementById('barra-xp'),
+/* ---------- 5) REFERÊNCIAS DE ELEMENTOS ---------- */
+function q(sel) { return document.getElementById(sel); }
 
-  // Quiz
-  textoProgresso: document.getElementById('texto-progresso'),
-  barraProgresso: document.getElementById('barra-progresso'),
-  chipCombo: document.getElementById('chip-combo'),
-  numeroSeq: document.getElementById('sequencia'),
-  chipPremio: document.getElementById('chip-premio'),
-  numTimer: document.getElementById('numero-timer'),
-  barraTimer: document.getElementById('barra-timer'),
-  seloBonus: document.getElementById('selo-bonus'),
-  numeroPergunta: document.getElementById('numero-pergunta'),
-  textoPergunta: document.getElementById('texto-pergunta'),
-  areaRespostas: document.getElementById('area-respostas'),
-  pontuacao: document.getElementById('pontuacao'),
-  acertosTela: document.getElementById('acertos'),
-  errosTela: document.getElementById('erros'),
+var el = {
+  heroTotalPerguntas: q('hero-total-perguntas'),
+  heroTotalCats: q('hero-total-categorias'),
+  destaques: q('destaques-grade'),
+  categorias: q('categorias-grade'),
+  statsVazio: q('stats-estado-vazio'),
+  gradeStats: q('grade-stats'),
+  rankingResumo: q('ranking-resumo'),
+  rankingCompleto: q('ranking-completo'),
+  favoritosGrade: q('favoritos-grade'),
+  desafioCard: q('desafio-card'),
 
-  // Resultado
-  emojiResultado: document.getElementById('emoji-resultado'),
-  tituloResultado: document.getElementById('titulo-resultado'),
-  subtituloResultado: document.getElementById('subtitulo-resultado'),
-  pontuacaoFinal: document.getElementById('pontuacao-final'),
-  melhorPontuacao: document.getElementById('melhor-pontuacao'),
-  rAcertos: document.getElementById('resultado-acertos'),
-  rErros: document.getElementById('resultado-erros'),
-  rPercentual: document.getElementById('resultado-percentual'),
-  rCombo: document.getElementById('resultado-combo'),
-  rTempo: document.getElementById('resultado-tempo'),
-  rXp: document.getElementById('resultado-xp')
+  busca: q('busca-quizzes'),
+  filtroCat: q('filtro-categoria'),
+  filtroDif: q('filtro-dificuldade'),
+  ordem: q('ordem-quizzes'),
+  soFavoritos: q('so-favoritos'),
+  contagem: q('contagem-quizzes'),
+  gradePopulares: q('grade-populares'),
+  gradeRecentes: q('grade-recentes'),
+  gradeRecomendados: q('grade-recomendados'),
+  gradeTodos: q('grade-todos'),
+
+  textoProgresso: q('texto-progresso'),
+  barraProgresso: q('barra-progresso'),
+  chipCombo: q('chip-combo'),
+  numeroSeq: q('sequencia'),
+  chipPremio: q('chip-premio'),
+  numTimer: q('numero-timer'),
+  barraTimer: q('barra-timer'),
+  seloBonus: q('selo-bonus'),
+  numeroPergunta: q('numero-pergunta'),
+  tipoPergunta: q('tipo-pergunta'),
+  textoPergunta: q('texto-pergunta'),
+  areaRespostas: q('area-respostas'),
+  areaExplicacao: q('area-explicacao'),
+  pontuacao: q('pontuacao'),
+  acertosTela: q('acertos'),
+  errosTela: q('erros'),
+
+  emojiResultado: q('emoji-resultado'),
+  tituloResultado: q('titulo-resultado'),
+  subtituloResultado: q('subtitulo-resultado'),
+  pontuacaoFinal: q('pontuacao-final'),
+  melhorPontuacao: q('melhor-pontuacao'),
+  rAcertos: q('resultado-acertos'),
+  rErros: q('resultado-erros'),
+  rPercentual: q('resultado-percentual'),
+  rCombo: q('resultado-combo'),
+  rTempo: q('resultado-tempo'),
+  rXp: q('resultado-xp'),
+  rNivel: q('resultado-nivel'),
+  rBarraXp: q('resultado-barra-xp'),
+  rProgresso: q('resultado-progresso'),
+  rConquistas: q('resultado-conquistas'),
+  rStreak: q('resultado-streak'),
+
+  conquistas: q('conquistas-grade'),
+  conquistasProgresso: q('conquistas-progresso'),
+
+  perfilNome: q('perfil-nome'),
+  perfilNivel: q('perfil-nivel'),
+  perfilXp: q('perfil-xp'),
+  barraXp: q('barra-xp'),
+  perfilStats: q('perfil-stats'),
+  perfilHistorico: q('perfil-historico'),
+  perfilStreak: q('perfil-streak'),
+
+  overlayNivel: q('overlay-nivel'),
+  overlayNivelTexto: q('overlay-nivel-texto')
 };
 
-/* ============================================================
-   7) ARMAZENAMENTO LOCAL (localStorage)
-   Guarda: recorde, XP, estatísticas, ranking, conquistas e tema.
-   ============================================================ */
-const CHAVE = {
+/* ---------- 6) ARMAZENAMENTO ---------- */
+var CHAVE = {
   recorde: 'quizAKE_recorde',
   xp: 'quizAKE_xp',
   stats: 'quizAKE_stats',
+  favoritos: 'quizAKE_favoritos',
+  historico: 'quizAKE_historico',
   ranking: 'quizAKE_ranking',
   conquistas: 'quizAKE_conquistas',
-  tema: 'quizAKE_tema'
+  streak: 'quizAKE_streak',
+  desafio: 'quizAKE_desafio',
+  tema: 'quizAKE_tema',
+  nome: 'quizAKE_nome'
 };
 
-function lerTexto(chave) {
-  try { return localStorage.getItem(chave); } catch (e) { return null; }
+function lerTexto(chave) { try { return localStorage.getItem(chave); } catch (e) { return null; } }
+function gravarTexto(chave, valor) { try { localStorage.setItem(chave, valor); } catch (e) {} }
+function lerNumero(chave) { var v = lerTexto(chave); return v === null ? 0 : Number(v); }
+function lerLista(chave) { var v = lerTexto(chave); if (v === null) return []; try { return JSON.parse(v); } catch (e) { return []; } }
+function lerObjeto(chave, padrao) {
+  var v = lerTexto(chave);
+  if (v === null) return padrao;
+  try { var o = JSON.parse(v); return o && typeof o === 'object' ? o : padrao; } catch (e) { return padrao; }
+}
+function lerStats() {
+  return lerObjeto(CHAVE.stats, { jogos: 0, acertos: 0, erros: 0, rapidas: 0, maiorCombo: 0, perfeitos: 0, desafios: 0, maiorPontos: 0 });
+}
+function salvarStats(s) { gravarTexto(CHAVE.stats, JSON.stringify(s)); }
+function lerNome() { var n = lerTexto(CHAVE.nome); return (n && n.trim()) ? n : 'Jogador AKE'; }
+
+function lerRecorde() { return lerNumero(CHAVE.recorde); }
+
+function iso(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function hojeISO() { return iso(new Date()); }
+function dataComOffset(offset) {
+  var d = new Date();
+  d.setDate(d.getDate() + offset);
+  return iso(d);
 }
 
-function gravarTexto(chave, valor) {
-  try { localStorage.setItem(chave, valor); } catch (e) {}
-}
-
-function lerNumero(chave) {
-  const v = lerTexto(chave);
-  return v === null ? 0 : Number(v);
-}
-
-function lerLista(chave) {
-  const v = lerTexto(chave);
-  if (v === null) return [];
-  try { return JSON.parse(v); } catch (e) { return []; }
-}
-
-function lerRecorde() {
-  return lerNumero(CHAVE.recorde);
-}
-
-/* ============================================================
-   8) SISTEMA DE TEMAS (escuro, claro e sistema)
-   ============================================================ */
-const TEMAS = ['dark', 'light', 'system'];
-const ICONES_TEMA = { dark: '🌙', light: '☀️', system: '🖥️' };
-
-function temaAtual() {
-  const t = lerTexto(CHAVE.tema);
-  return TEMAS.includes(t) ? t : 'system';
-}
-
+/* ---------- 7) TEMA ---------- */
+var TEMAS = ['dark', 'light', 'system'];
+var ICONES_TEMA = { dark: '🌙', light: '☀️', system: '🖥️' };
+function temaAtual() { var t = lerTexto(CHAVE.tema); return TEMAS.indexOf(t) >= 0 ? t : 'system'; }
 function aplicarTema() {
-  const t = temaAtual();
+  var t = temaAtual();
   document.documentElement.setAttribute('data-theme', t);
-  const botao = document.getElementById('botao-tema');
-  botao.textContent = ICONES_TEMA[t];
-  botao.setAttribute('aria-label', 'Tema atual: ' + t + '. Clique para alternar');
+  var b = q('botao-tema');
+  if (b) { b.textContent = ICONES_TEMA[t]; b.setAttribute('aria-label', 'Tema: ' + t); }
 }
-
 function alternarTema() {
-  const ordem = ['dark', 'light', 'system'];
-  const atual = temaAtual();
-  const proximo = ordem[(ordem.indexOf(atual) + 1) % ordem.length];
+  var ordem = ['dark', 'light', 'system'];
+  var proximo = ordem[(ordem.indexOf(temaAtual()) + 1) % ordem.length];
   gravarTexto(CHAVE.tema, proximo);
   aplicarTema();
 }
 
-/* ============================================================
-   9) NAVEGAÇÃO ENTRE TELAS
-   ============================================================ */
+/* ---------- 8) NAVEGAÇÃO ---------- */
 function mostrarTela(nomeTela) {
-  const id = TELAS[nomeTela] || TELAS.inicio;
-
-  // Esconde todos os <main> (telas)
-  document.querySelectorAll('main.tela').forEach(function (main) {
-    main.classList.add('hidden');
-  });
-
-  // Mostra a tela pedida
-  const alvo = document.getElementById(id);
+  var id = TELAS[nomeTela] || TELAS.inicio;
+  document.querySelectorAll('main.tela').forEach(function (m) { m.classList.add('hidden'); });
+  var alvo = document.getElementById(id);
   if (alvo) alvo.classList.remove('hidden');
 
-  // Atualiza o link ativo do menu
-  document.querySelectorAll('.nav-link').forEach(function (link) {
-    const alvoLink = link.getAttribute('data-navegar');
-    link.classList.toggle('active', alvoLink === nomeTela);
+  document.querySelectorAll('.nav-link').forEach(function (l) {
+    l.classList.toggle('active', l.getAttribute('data-navegar') === nomeTela);
   });
 
-  // Fecha o menu mobile e sobe ao topo
+  if (nomeTela === 'quizzes') renderizarPaginaQuizzes();
+  if (nomeTela === 'ranking') renderizarRanking();
+  if (nomeTela === 'conquistas') renderizarConquistas();
+  if (nomeTela === 'perfil') renderizarPerfil();
+  if (nomeTela === 'inicio') renderizarHome();
+
   fecharMenu();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function iniciarNavegacao() {
-  // Links do menu e botões com data-navegar
   document.querySelectorAll('[data-navegar]').forEach(function (elem) {
     elem.addEventListener('click', function (ev) {
       ev.preventDefault();
-      const alvo = this.getAttribute('data-navegar');
-      if (alvo === 'quiz-dia') { entrarQuiz('geral'); return; }
+      var alvo = this.getAttribute('data-navegar');
+      if (alvo === 'quiz-dia') { iniciarDesafioDoDia(); return; }
       mostrarTela(alvo);
-      if (alvo === 'quizzes') renderizarCategorias();
-      if (alvo === 'ranking') renderizarRanking();
-      if (alvo === 'conquistas') renderizarConquistas();
-      if (alvo === 'perfil') renderizarPerfil();
     });
   });
 
-  // Botões "Começar" (navbar e hero) iniciam um quiz geral
-  document.getElementById('botao-comecar').addEventListener('click', function () {
-    entrarQuiz('geral');
+  q('botao-comecar').addEventListener('click', function () { entrarNoQuiz('quiz-geral'); });
+  q('botao-jogar-hero').addEventListener('click', function () { entrarNoQuiz('quiz-geral'); });
+  q('botao-reiniciar').addEventListener('click', function () {
+    entrarNoQuiz(quizAtual ? quizAtual.id : 'quiz-geral');
   });
-  document.getElementById('botao-jogar-hero').addEventListener('click', function () {
-    entrarQuiz('geral');
-  });
+  q('botao-tema').addEventListener('click', alternarTema);
 
-  // Botão "Jogar novamente" na tela de resultado
-  document.getElementById('botao-reiniciar').addEventListener('click', function () {
-    entrarQuiz(categoriaAtual);
-  });
+  if (el.busca) el.busca.addEventListener('input', debounce(renderizarTodos, 180));
+  if (el.filtroCat) el.filtroCat.addEventListener('change', renderizarTodos);
+  if (el.filtroDif) el.filtroDif.addEventListener('change', renderizarTodos);
+  if (el.ordem) el.ordem.addEventListener('change', renderizarTodos);
+  if (el.soFavoritos) el.soFavoritos.addEventListener('change', renderizarTodos);
 
-  // Botão do tema
-  document.getElementById('botao-tema').addEventListener('click', alternarTema);
+  // Perfil: nome editável
+  var inputNome = q('input-nome');
+  if (inputNome) inputNome.addEventListener('change', function () {
+    var nome = inputNome.value.trim();
+    if (nome) { gravarTexto(CHAVE.nome, nome); inputNome.value = nome; }
+  });
 }
 
-/* ============================================================
-   10) MENU MOBILE (hambúrguer)
-   ============================================================ */
+function debounce(fn, ms) {
+  var timer = null;
+  return function () { clearTimeout(timer); timer = setTimeout(fn, ms); };
+}
+
+/* ---------- 9) MENU MOBILE ---------- */
 function iniciarMenuMobile() {
-  const botao = document.getElementById('menu-toggle');
-  const nav = document.getElementById('nav-links');
-
-  botao.addEventListener('click', function () {
-    const abrir = nav.classList.toggle('aberto');
-    botao.setAttribute('aria-expanded', abrir);
+  var b = q('menu-toggle'), nav = q('nav-links');
+  if (!b || !nav) return;
+  b.addEventListener('click', function () {
+    var aberto = nav.classList.toggle('aberto');
+    b.setAttribute('aria-expanded', aberto);
   });
 }
-
 function fecharMenu() {
-  const nav = document.getElementById('nav-links');
-  nav.classList.remove('aberto');
-  document.getElementById('menu-toggle').setAttribute('aria-expanded', 'false');
+  var nav = q('nav-links');
+  if (nav) nav.classList.remove('aberto');
+  var b = q('menu-toggle');
+  if (b) b.setAttribute('aria-expanded', 'false');
 }
 
-/* ============================================================
-   11) RENDERIZAR CATEGORIAS
-   ============================================================ */
-function contarPerguntas(categoriaId) {
-  if (categoriaId === 'geral') return BANCO_DE_PERGUNTAS.length;
-  return BANCO_DE_PERGUNTAS.filter(function (p) {
-    return p.categoria === categoriaId;
-  }).length;
+/* ---------- 10) FAVORITOS ---------- */
+function ehFavorito(id) { return lerLista(CHAVE.favoritos).indexOf(id) >= 0; }
+function alternarFavorito(id) {
+  var lista = lerLista(CHAVE.favoritos);
+  var i = lista.indexOf(id);
+  if (i >= 0) { lista.splice(i, 1); gravarTexto(CHAVE.favoritos, JSON.stringify(lista)); return false; }
+  lista.push(id); gravarTexto(CHAVE.favoritos, JSON.stringify(lista)); return true;
 }
 
-function criarCardCategoria(cat) {
-  const div = document.createElement('div');
-  const total = contarPerguntas(cat.id);
-  const disponivel = total > 0;
+/* ---------- 11) HISTÓRICO ---------- */
+function lerHistorico() { return lerLista(CHAVE.historico); }
+function registrarHistorico(reg) {
+  var lista = lerHistorico();
+  lista.unshift(reg);
+  gravarTexto(CHAVE.historico, JSON.stringify(lista.slice(0, 12)));
+}
+function vezesJogado(id) { return lerHistorico().filter(function (h) { return h.quiz === id; }).length; }
+function ultimoJogoData(id) {
+  var lista = lerHistorico();
+  for (var i = 0; i < lista.length; i++) if (lista[i].quiz === id) return lista[i].quando;
+  return '';
+}
 
-  div.className = 'card-quiz';
-  div.style.setProperty('--cor-categoria', cat.cor);
-  div.setAttribute('role', 'button');
-  div.setAttribute('tabindex', '0');
-  div.setAttribute('aria-label', 'Categoria ' + cat.nome + (disponivel ? ' com ' + total + ' perguntas' : ' em breve'));
-
-  div.innerHTML =
-    '<span class="icone">' + (disponivel ? cat.emoji : '🔒') + '</span>' +
-    '<span class="nome">' + cat.nome + '</span>' +
-    '<span class="meta">' + (disponivel ? total + ' perguntas' : 'Em breve') + '</span>';
-
-  if (!disponivel) {
-    div.style.opacity = '0.5';
-    div.style.cursor = 'not-allowed';
-    return div;
+/* ---------- 12) STREAK ---------- */
+function lerStreak() { return lerObjeto(CHAVE.streak, { dias: [] }); }
+function calcularStreak() {
+  var obj = lerStreak();
+  var dias = obj.dias || [];
+  var agora = 0, cursor = hojeISO();
+  while (dias.indexOf(cursor) >= 0) { agora++; cursor = dataComOffset(-agora); }
+  var maior = Math.max(obj.maior || 0, agora);
+  return { atual: agora, maior: maior, dias: dias };
+}
+function registrarAtividade() {
+  var obj = lerStreak();
+  var dias = obj.dias || [];
+  var hoje = hojeISO();
+  if (dias.indexOf(hoje) < 0) {
+    dias.push(hoje);
+    if (dias.length > 120) dias = dias.slice(-120);
+    obj.dias = dias;
+    gravarTexto(CHAVE.streak, JSON.stringify(obj));
   }
-
-  // Só permite abrir se houver perguntas
-  function abrir() { entrarQuiz(cat.id); }
-  div.addEventListener('click', abrir);
-  div.addEventListener('keydown', function (ev) {
-    if (ev.key === 'Enter' || ev.key === ' ') {
-      ev.preventDefault();
-      abrir();
-    }
-  });
-
-  return div;
+  return calcularStreak();
 }
 
-function renderizarCategorias() {
-  el.categorias.innerHTML = '';
-  el.categoriasFull.innerHTML = '';
-  CATEGORIAS.forEach(function (cat) {
-    el.categorias.appendChild(criarCardCategoria(cat));
-    el.categoriasFull.appendChild(criarCardCategoria(cat));
-  });
+/* ---------- 13) DESAFIO DO DIA ---------- */
+function sementeDia(texto) {
+  var h = 0;
+  for (var i = 0; i < texto.length; i++) h = (h * 31 + texto.charCodeAt(i)) >>> 0;
+  return h;
+}
+function perguntasDesafioHoje() {
+  var semente = sementeDia(hojeISO());
+  var pool = PERGUNTAS.slice();
+  for (var i = pool.length - 1; i > 0; i--) {
+    semente = (semente * 1103515245 + 12345) >>> 0;
+    var j = semente % (i + 1);
+    var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+  }
+  return pool.slice(0, PERGUNTAS_DESAFIO);
+}
+function iniciarDesafioDoDia() {
+  perguntasSorteio = perguntasDesafioHoje();
+  iniciarPartidaPerguntas(perguntasSorteio, 'desafio');
+}
+function renderizarDesafio() {
+  if (!el.desafioCard) return;
+  var desafio = lerObjeto(CHAVE.desafio, { hoje: '', melhor: 0 });
+  var jogouHoje = desafio.hoje === hojeISO();
+  el.desafioCard.innerHTML =
+    '<div class="destaque-badge">🎯 Desafio do Dia</div>' +
+    '<h3>' + new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) + '</h3>' +
+    '<p>' + PERGUNTAS_DESAFIO + ' perguntas sorteadas de toda a biblioteca. Todo mundo recebe o mesmo desafio.</p>' +
+    '<div class="destaque-meta"><span>❓ ' + PERGUNTAS_DESAFIO + ' perguntas</span>' +
+    (jogouHoje ? '<span>⭐ Melhor hoje: ' + desafio.melhor + ' pts</span>' : '<span>Você ainda não jogou hoje</span>') + '</div>' +
+    '<button class="btn btn-primary" id="btn-desafio-card">Jogar Desafio</button>';
+  var b = q('btn-desafio-card');
+  if (b) b.addEventListener('click', iniciarDesafioDoDia);
 }
 
-/* ============================================================
-   12) RENDERIZAR DESTAQUES (quiz do dia, populares, recomendados)
-   ============================================================ */
-function renderizarDestaques() {
-  const grade = el.destaques;
-  grade.innerHTML = '';
+/* ---------- 14) CARDS DE QUIZ ---------- */
+function htmlCard(quiz) {
+  var dif = buscarDif(quiz.dificuldade) || DIFICULDADES[0];
+  var fav = ehFavorito(quiz.id);
+  var minutos = Math.max(1, Math.round(quiz.duracao / 60));
+  var tags = (quiz.tags || []).slice(0, 2).map(function (t) {
+    return '<span class="quiz-tag">#' + t.replace(/\s/g, '') + '</span>';
+  }).join('');
+  return '<article class="quiz-card" data-quiz="' + quiz.id + '">' +
+    '<div class="quiz-capa" style="--capa:' + quiz.capa.cor + '">' +
+      '<span class="quiz-capa-emoji">' + quiz.capa.emoji + '</span>' +
+      '<button class="quiz-fav' + (fav ? ' ativo' : '') + '" data-fav="' + quiz.id + '" aria-label="Favoritar">♥</button>' +
+    '</div>' +
+    '<div class="quiz-corpo">' +
+      '<div class="quiz-linha"><span class="chip-dificuldade">' + dif.icone + ' ' + dif.nome + '</span>' +
+      '<span class="quiz-data">' + (quiz.dataCriacao || '').slice(0, 4) + '</span></div>' +
+      '<h3 class="quiz-titulo">' + quiz.titulo + '</h3>' +
+      '<p class="quiz-desc">' + quiz.descricao + '</p>' +
+      '<div class="quiz-tags">' + tags + '</div>' +
+      '<div class="quiz-meta-row">' +
+        '<span>❓ ' + quiz.quantidade + ' questões</span>' +
+        '<span>⏱ ' + minutos + ' min</span>' +
+        '<span>👤 ' + quiz.autor + '</span>' +
+      '</div>' +
+    '</div>' +
+  '</article>';
+}
 
-  const destaques = [
-    { cat: 'geral',     rotulo: '⭐ Quiz do dia',     desc: 'Perguntas variadas de todas as áreas.' },
-    { cat: 'geografia', rotulo: '🔥 Populares',      desc: 'A categoria mais jogada por aqui.' },
-    { cat: 'ciencia',   rotulo: '✨ Recomendados',   desc: 'Ideal para quem ama descobertas.' }
-  ];
+function anexarAcoes(card) {
+  card.addEventListener('click', function () {
+    entrarNoQuizCard(card);
+  });
+  var fav = card.querySelector('[data-fav]');
+  if (fav) fav.addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    var ativo = alternarFavorito(fav.getAttribute('data-fav'));
+    fav.classList.toggle('ativo', ativo);
+  });
+}
+function entrarNoQuizCard(card) {
+  var id = card.getAttribute('data-quiz');
+  if (id) entrarNoQuiz(id);
+}
+function renderizarCards(container, quizzes) {
+  if (!container) return;
+  container.innerHTML = quizzes.map(htmlCard).join('');
+  container.querySelectorAll('.quiz-card').forEach(anexarAcoes);
+}
 
-  destaques.forEach(function (d) {
-    const cat = CATEGORIAS.find(function (c) { return c.id === d.cat; });
-    if (!cat) return;
-
-    const div = document.createElement('div');
-    div.className = 'card-quiz';
-    div.style.setProperty('--cor-categoria', cat.cor);
-    div.setAttribute('role', 'button');
-    div.setAttribute('tabindex', '0');
-    div.innerHTML =
-      '<span class="icone">' + cat.emoji + '</span>' +
-      '<span class="nome">' + cat.nome + '</span>' +
-      '<span class="meta">' + d.rotulo + ' · ' + d.desc + '</span>';
-
-    function abrir() { entrarQuiz(d.cat); }
-    div.addEventListener('click', abrir);
-    div.addEventListener('keydown', function (ev) {
-      if (ev.key === 'Enter' || ev.key === ' ') {
-        ev.preventDefault();
-        abrir();
-      }
+/* ---------- 15) PÁGINA DE QUIZZES ---------- */
+function filtrosAtuais() {
+  var busca = el.busca ? el.busca.value.trim().toLowerCase() : '';
+  var cat = el.filtroCat ? el.filtroCat.value : '';
+  var dif = el.filtroDif ? el.filtroDif.value : '';
+  var fav = el.soFavoritos ? el.soFavoritos.checked : false;
+  return { busca: busca, cat: cat, dif: dif, fav: fav };
+}
+function ordenarLista(lista, chave) {
+  var copia = lista.slice();
+  if (chave === 'titulo')
+    copia.sort(function (a, b) { return a.titulo.localeCompare(b.titulo); });
+  else if (chave === 'populares')
+    copia.sort(function (a, b) { return vezesJogado(b.id) - vezesJogado(a.id); });
+  else if (chave === 'recentes') {
+    copia.sort(function (a, b) {
+      var da = ultimoJogoData(a.id), db = ultimoJogoData(b.id);
+      if (da === '' || db === '') return da === '' ? 1 : -1;
+      return da < db ? 1 : -1;
     });
-
-    grade.appendChild(div);
+  } else if (chave === 'duracao')
+    copia.sort(function (a, b) { return a.duracao - b.duracao; });
+  return copia;
+}
+function filtrarQuizzes() {
+  var f = filtrosAtuais();
+  return QUIZZES.filter(function (q) {
+    if (f.cat && q.categoria !== f.cat) return false;
+    if (f.dif && q.dificuldade !== f.dif) return false;
+    if (f.fav && !ehFavorito(q.id)) return false;
+    if (f.busca) {
+      var catNome = (buscarCategoria(q.categoria) || { nome: '' }).nome.toLowerCase();
+      var alvo = (q.titulo + ' ' + catNome + ' ' + (q.tags || []).join(' ')).toLowerCase();
+      if (alvo.indexOf(f.busca) < 0) return false;
+    }
+    return true;
   });
 }
-
-/* ============================================================
-   13) ESTATÍSTICAS (home + perfil)
-   ============================================================ */
-function carregarStats() {
-  return lerLista(CHAVE.stats);
+function renderizarTodos() {
+  var ordem = el.ordem ? el.ordem.value : '';
+  var lista = ordenarLista(filtrarQuizzes(), ordem);
+  if (el.contagem) el.contagem.textContent = lista.length + ' quiz(es)';
+  renderizarCards(el.gradeTodos, lista);
+}
+function renderizarSugestoes() {
+  if (el.gradePopulares) {
+    var pop = QUIZZES.slice().sort(function (a, b) { return vezesJogado(b.id) - vezesJogado(a.id); }).slice(0, 3);
+    renderizarCards(el.gradePopulares, pop);
+  }
+  if (el.gradeRecentes) {
+    var rec = QUIZZES.slice().sort(function (a, b) {
+      var da = ultimoJogoData(a.id), db = ultimoJogoData(b.id);
+      if (da === '' || db === '') return da === '' ? 1 : -1;
+      return da < db ? 1 : -1;
+    }).slice(0, 3);
+    renderizarCards(el.gradeRecentes, rec);
+  }
+  if (el.gradeRecomendados) {
+    var rec_ = QUIZZES.slice().sort(function (a, b) { return vezesJogado(a.id) - vezesJogado(b.id); }).slice(0, 3);
+    renderizarCards(el.gradeRecomendados, rec_);
+  }
+}
+function popularFiltros() {
+  if (el.filtroCat && el.filtroCat.options.length <= 1) {
+    var h1 = '<option value="">Todas as categorias</option>';
+    CATEGORIAS.forEach(function (c) { h1 += '<option value="' + c.id + '">' + c.emoji + ' ' + c.nome + '</option>'; });
+    el.filtroCat.innerHTML = h1;
+  }
+  if (el.filtroDif && el.filtroDif.options.length <= 1) {
+    var h2 = '<option value="">Todas as dificuldades</option>';
+    DIFICULDADES.forEach(function (d) { h2 += '<option value="' + d.id + '">' + d.icone + ' ' + d.nome + '</option>'; });
+    el.filtroDif.innerHTML = h2;
+  }
+}
+function renderizarPaginaQuizzes() {
+  popularFiltros();
+  renderizarSugestoes();
+  renderizarTodos();
 }
 
-function salvarStats(stats) {
-  gravarTexto(CHAVE.stats, JSON.stringify(stats));
+/* ---------- 16) HOME ---------- */
+function renderizarHome() {
+  renderizarDescricao();
+  renderizarCategorias();
+  renderizarDesafio();
+  renderizarFavoritosHome();
+  renderizarEstatisticas();
+  renderizarRankingResumo();
 }
-
 function renderizarEstatisticas() {
-  const stats = carregarStats();
-  el.statsVazio.innerHTML = '';
+  if (!el.gradeStats) return;
+  var s = lerStats();
+  if (el.statsVazio) el.statsVazio.innerHTML = '';
   el.gradeStats.innerHTML = '';
 
-  const jogos = stats.jogos || 0;
-
-  if (jogos === 0) {
-    el.statsVazio.innerHTML =
-      '<span class="emoji">🎯</span>' +
-      '<p><strong>Você ainda não jogou!</strong><br>Complete um quiz para ver suas estatísticas por aqui.</p>';
+  if (!s.jogos) {
+    if (el.statsVazio) {
+      el.statsVazio.innerHTML =
+        '<span class="emoji">🎯</span>' +
+        '<p><strong>Você ainda não jogou!</strong><br>Complete um quiz para ver suas estatísticas por aqui.</p>';
+    }
     return;
   }
 
-  const acertosTotal = stats.acertos || 0;
-  const errosTotal = stats.erros || 0;
-  const respondidas = acertosTotal + errosTotal;
-  const taxa = respondidas > 0 ? Math.round((acertosTotal / respondidas) * 100) : 0;
+  var respondidas = (s.acertos || 0) + (s.erros || 0);
+  var taxa = respondidas ? Math.round(((s.acertos || 0) / respondidas) * 100) : 0;
+  var sequencia = calcularStreak();
 
-  const cards = [
-    { valor: jogos, rotulo: 'Quizzes realizados' },
-    { valor: respondidas, rotulo: 'Perguntas respondidas' },
-    { valor: taxa + '%', rotulo: 'Taxa de acerto' },
-    { valor: lerRecorde(), rotulo: 'Melhor pontuação' }
-  ];
-
-  cards.forEach(function (c) {
-    const div = document.createElement('div');
-    div.className = 'stat-card';
-    div.innerHTML = '<span class="stat-valor">' + c.valor + '</span><span class="stat-rotulo">' + c.rotulo + '</span>';
-    el.gradeStats.appendChild(div);
-  });
-}
-
-function renderizarPerfil() {
-  const stats = carregarStats();
-  const jogos = stats.jogos || 0;
-  const xpTotal = lerNumero(CHAVE.xp);
-  const nivel = Math.floor(xpTotal / META_XP) + 1;
-  const xpNoNivel = xpTotal % META_XP;
-
-  el.perfilNivel.textContent = nivel;
-  el.perfilXp.textContent = xpTotal + ' XP';
-  el.barraXp.style.width = (xpNoNivel / META_XP) * 100 + '%';
-  el.barraXp.setAttribute('aria-label', 'XP do nível: ' + xpNoNivel + ' de ' + META_XP);
-
-  el.perfilStats.innerHTML = '';
-
-  const acertosTotal = stats.acertos || 0;
-  const errosTotal = stats.erros || 0;
-  const respondidas = acertosTotal + errosTotal;
-  const taxa = respondidas > 0 ? Math.round((acertosTotal / respondidas) * 100) : 0;
-
-  const cards = [
-    ['🎮', jogos, 'Jogos'],
+  var cards = [
+    ['🎮', s.jogos, 'Quizzes realizados'],
     ['❓', respondidas, 'Perguntas'],
-    ['✅', taxa + '%', 'Acerto'],
-    ['🏆', lerRecorde(), 'Recorde']
+    ['✅', taxa + '%', 'Taxa de acerto'],
+    ['🏆', lerRecorde(), 'Melhor pontuação'],
+    ['🌈', s.maiorCombo || 0, 'Maior combo'],
+    ['📅', sequencia.atual, 'Dias seguidos']
   ];
 
   cards.forEach(function (c) {
-    const div = document.createElement('div');
-    div.className = 'stat-card';
-    div.innerHTML = '<span class="stat-valor">' + c[1] + '</span><span class="stat-rotulo">' + c[2] + '</span>';
-    el.perfilStats.appendChild(div);
+    var d = document.createElement('div');
+    d.className = 'stat-card';
+    d.innerHTML = '<span class="stat-valor">' + c[1] + '</span><span class="stat-rotulo">' + c[2] + '</span>';
+    el.gradeStats.appendChild(d);
   });
 }
-
-/* ============================================================
-   14) RANKING (resumo na home + página completa)
-   ============================================================ */
-function renderizarRanking() {
-  const lista = lerLista(CHAVE.ranking);
-  const resumo = el.rankingResumo;
-  const completo = el.rankingCompleto;
-
-  resumo.innerHTML = '';
-  completo.innerHTML = '';
-
-  if (lista.length === 0) {
-    const vazio =
-      '<div class="estado-vazio"><span class="emoji">🏆</span>' +
-      '<p><strong>Nenhum registro ainda.</strong><br>Jogue uma partida para entrar no ranking.</p></div>';
-    resumo.innerHTML = vazio;
-    completo.innerHTML = vazio;
+function renderizarDescricao() {
+  if (!el.destaques) return;
+  var quest = QUIZZES.slice().sort(function (a, b) { return vezesJogado(b.id) - vezesJogado(a.id); });
+  renderizarCards(el.destaques, quest.slice(0, 3));
+}
+function renderizarCategorias() {
+  if (!el.categorias) return;
+  el.categorias.innerHTML = CATEGORIAS.map(function (c) {
+    var qz = buscarQuiz('quiz-' + c.id);
+    var total = qz ? qz.quantidade : 0;
+    return '<article class="card-cat" data-cat="' + c.id + '" style="--cat-cor:' + c.cor + '">' +
+      '<span class="cat-icone">' + c.emoji + '</span>' +
+      '<span class="cat-nome">' + c.nome + '</span>' +
+      '<span class="cat-meta">' + total + ' perguntas</span></article>';
+  }).join('');
+  el.categorias.querySelectorAll('[data-cat]').forEach(function (card) {
+    card.addEventListener('click', function () { entrarNoQuiz('quiz-' + card.getAttribute('data-cat')); });
+  });
+}
+function renderizarFavoritosHome() {
+  if (!el.favoritosGrade) return;
+  var favs = lerLista(CHAVE.favoritos);
+  var quizes = QUIZZES.filter(function (q) { return favs.indexOf(q.id) >= 0; }).slice(0, 3);
+  if (quizes.length === 0) {
+    el.favoritosGrade.innerHTML = '<div class="estado-vazio"><span class="emoji">❤️</span><p>Nenhum favorito ainda. Toque no coração de um quiz!</p></div>';
     return;
   }
-
-  const medalhas = ['🥇', '🥈', '🥉'];
-  const itens = lista.map(function (entry, i) {
-    const medalha = medalhas[i] || (i + 1) + 'º';
-    return '<li><span class="pos">' + medalha + '</span>' +
-      '<span class="nome">' + entry.data + '</span>' +
-      '<span class="pts">' + entry.pontos + ' pts</span></li>';
+  renderizarCards(el.favoritosGrade, quizes);
+}
+function renderizarRankingResumo() {
+  if (!el.rankingResumo) return;
+  var lista = lerLista(CHAVE.ranking);
+  if (lista.length === 0) {
+    el.rankingResumo.innerHTML = '<div class="estado-vazio"><span class="emoji">🏆</span><p><strong>Nenhum registro ainda.</strong><br>Jogue para entrar no ranking.</p></div>';
+    return;
+  }
+  var itens = lista.slice(0, 3).map(function (r, i) {
+    return '<li><span class="pos">' + (i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉') + '</span><span class="nome">' + r.nome + '</span><span class="pts">' + r.pontos + ' pts</span></li>';
   });
-
-  resumo.innerHTML = '<ul class="lista-ranking">' + itens.slice(0, 3).join('') + '</ul>';
-  completo.innerHTML = '<ul class="lista-ranking">' + itens.slice(0, 10).join('') + '</ul>';
+  el.rankingResumo.innerHTML = '<ul class="lista-ranking">' + itens.join('') + '</ul>';
 }
 
-/* ============================================================
-   15) CONQUISTAS
-   ============================================================ */
-const CONQUISTAS_DEF = [
-  { id: 'primeiro',  nome: 'Primeira partida', desc: 'Complete seu primeiro quiz', icone: '🎯' },
-  { id: 'pontos100', nome: 'Centenário',       desc: 'Faça 100 pontos em uma partida', icone: '💯' },
-  { id: 'combo5',    nome: 'Fogoso',           desc: 'Atinga 5 acertos seguidos', icone: '🔥' },
-  { id: 'acertoTotal', nome: 'Perfeição',      desc: 'Conclua com 100% de acerto', icone: '⭐' },
-  { id: 'recorde',   nome: 'Recordista',       desc: 'Bata seu próprio recorde', icone: '🏅' },
-  { id: 'cincoJogos', nome: 'Veterano',        desc: 'Jogue pelo menos 5 partidas', icone: '🎮' }
-];
+/* ---------- 17) RANKING COMPLETO ---------- */
+function renderizarRanking() {
+  if (!el.rankingCompleto) return;
+  var lista = lerLista(CHAVE.ranking);
+  if (lista.length === 0) {
+    el.rankingCompleto.innerHTML = '<div class="estado-vazio"><span class="emoji">🏆</span><p>Nenhum registro ainda. Jogue para entrar no ranking.</p></div>';
+    return;
+  }
+  el.rankingCompleto.innerHTML = '<ul class="lista-ranking">' + lista.map(function (r, i) {
+    return '<li><span class="pos">' + (i + 1) + 'º</span><span class="nome">' + r.nome + '</span><span class="pts">' + r.pontos + ' pts</span></li>';
+  }).join('') + '</ul>';
+}
 
+/* ---------- 18) CONQUISTAS ---------- */
+function lerConquistas() { return lerLista(CHAVE.conquistas); }
+function desbloquear(id) {
+  var lista = lerConquistas();
+  if (lista.indexOf(id) >= 0) return false;
+  lista.push(id); gravarTexto(CHAVE.conquistas, JSON.stringify(lista)); return true;
+}
+function progressoConquista(def) {
+  var s = lerStats(), xp = lerXpValido(), seq = calcularStreak();
+  var v = 0;
+  switch (def.tipo) {
+    case 'jogos': v = s.jogos; break;
+    case 'maiorCombo': v = s.maiorCombo; break;
+    case 'rapidas': v = s.rapidas; break;
+    case 'perfeitos': v = s.perfeitos; break;
+    case 'nivel': v = calcularNivel(xp).nivel; break;
+    case 'pontos': v = s.maiorPontos; break;
+    case 'recorde': v = lerRecorde() > 0 ? 1 : 0; break;
+    case 'desafios': v = s.desafios; break;
+    case 'streak': v = seq.maior; break;
+  }
+  return { valor: v, alvo: def.alvo };
+}
+function lerXpValido() { return lerNumero(CHAVE.xp); }
 function renderizarConquistas() {
-  const grade = el.conquistas;
-  const ganhas = lerLista(CHAVE.conquistas);
-  grade.innerHTML = '';
-
-  CONQUISTAS_DEF.forEach(function (conq) {
-    const desbloqueada = ganhas.includes(conq.id);
-    const div = document.createElement('div');
-    div.className = 'conquista' + (desbloqueada ? '' : ' bloqueada');
-    div.innerHTML =
-      '<div class="icone">' + (desbloqueada ? conq.icone : '🔒') + '</div>' +
-      '<div class="nome">' + conq.nome + '</div>' +
-      '<div class="desc">' + conq.desc + '</div>' +
-      '<div class="desc">' + (desbloqueada ? '✅ Desbloqueada' : 'Bloqueada') + '</div>';
-    grade.appendChild(div);
+  if (!el.conquistas) return;
+  var ganhas = lerConquistas();
+  el.conquistas.innerHTML = '';
+  CONQUISTAS_DEF.forEach(function (def) {
+    var ok = ganhas.indexOf(def.id) >= 0;
+    var p = progressoConquista(def);
+    var pct = ok ? 100 : Math.min(100, Math.round((p.valor / p.alvo) * 100));
+    var d = document.createElement('div');
+    d.className = 'conquista' + (ok ? '' : ' bloqueada');
+    d.innerHTML =
+      '<div class="icone">' + (ok ? def.icone : '🔒') + '</div>' +
+      '<div class="nome">' + def.nome + '</div>' +
+      '<div class="desc">' + def.desc + '</div>' +
+      '<div class="conq-prog"><div class="conq-bar"><div class="conq-fill" style="width:' + pct + '%"></div></div>' +
+      '<span class="conq-count">' + (ok ? '✅' : p.valor + '/' + p.alvo) + '</span></div>';
+    el.conquistas.appendChild(d);
   });
+  if (el.conquistasProgresso)
+    el.conquistasProgresso.textContent = ganhas.length + ' de ' + CONQUISTAS_DEF.length + ' conquistas';
+}
+function checarConquistas() {
+  var novas = [];
+  CONQUISTAS_DEF.forEach(function (def) {
+    var p = progressoConquista(def);
+    if (p.valor >= p.alvo && desbloquear(def.id)) novas.push(def.id);
+  });
+  return novas;
 }
 
-function desbloquearConquista(id) {
-  const lista = lerLista(CHAVE.conquistas);
-  if (!lista.includes(id)) {
-    lista.push(id);
-    gravarTexto(CHAVE.conquistas, JSON.stringify(lista));
-  }
+/* ---------- 19) PERFIL ---------- */
+function renderizarPerfil() {
+  var s = lerStats();
+  var xp = lerXpValido();
+  var nv = calcularNivel(xp);
+  var seq = calcularStreak();
+
+  el.perfilNome.textContent = lerNome();
+  el.perfilNivel.textContent = nv.nivel;
+  el.perfilXp.textContent = xp + ' XP (' + nv.xpNoNivel + ' para o nível ' + (nv.nivel + 1) + ')';
+  el.barraXp.style.width = nv.progresso + '%';
+
+  var respondidas = (s.acertos || 0) + (s.erros || 0);
+  var taxa = respondidas ? Math.round(((s.acertos || 0) / respondidas) * 100) : 0;
+  var divStats = [
+    ['🎮', s.jogos, 'Quizzes'],
+    ['❓', respondidas, 'Perguntas'],
+    ['✅', s.acertos, 'Acertos'],
+    ['❌', s.erros, 'Erros'],
+    ['🎯', taxa + '%', 'Taxa de acerto'],
+    ['🌈', s.maiorCombo, 'Maior combo'],
+    ['🏆', lerRecorde(), 'Melhor'],
+    ['📅', seq.atual, 'Streak']
+  ];
+  el.perfilStats.innerHTML = '';
+  divStats.forEach(function (c) {
+    var d = document.createElement('div');
+    d.className = 'stat-card';
+    d.innerHTML = '<span class="stat-valor">' + c[1] + '</span><span class="stat-rotulo">' + c[2] + '</span>';
+    el.perfilStats.appendChild(d);
+  });
+  renderizarHistorico();
+  renderizarCalendarioStreak();
 }
 
-function checarConquistas(dados) {
-  desbloquearConquista('primeiro');
-  if (dados.pontos >= 100) desbloquearConquista('pontos100');
-  if (dados.maiorCombo >= 5) desbloquearConquista('combo5');
-  if (dados.percentual === 100) desbloquearConquista('acertoTotal');
-  if (dados.novoRecorde) desbloquearConquista('recorde');
-  if ((carregarStats().jogos || 0) >= 5) desbloquearConquista('cincoJogos');
+function renderizarHistorico() {
+  if (!el.perfilHistorico) return;
+  var lista = lerHistorico();
+  if (lista.length === 0) {
+    el.perfilHistorico.innerHTML = '<div class="estado-vazio"><p>Nenhuma partida ainda. Vá jogar!</p></div>';
+    return;
+  }
+  el.perfilHistorico.innerHTML = lista.slice(0, 8).map(function (h, i) {
+    return '<li class="hist-item"><span class="hist-icon">' + (h.icon || '🧠') + '</span>' +
+      '<span class="hist-info"><strong>' + h.titulo + '</strong><small>' + h.quando + '</small></span>' +
+      '<span class="hist-pct">' + h.pct + '%</span>' +
+      '<span class="pts">' + h.pontos + ' pts</span></li>';
+  }).join('');
 }
 
-/* ============================================================
-   16) MOTOR DO QUIZ
-
-   Fluxo:
-     entrarQuiz()     -> sorteia e inicia
-     mostrarPergunta() -> mostra pergunta + timer
-     responder()      -> valida o clique
-     tempoEsgotado()  -> quando o cronômetro chega a 0
-     proximaPergunta() -> avança com pequena pausa
-     finalizarQuiz()  -> calcula tudo e mostra o resultado
-   ============================================================ */
-
-/* Filtra as perguntas da categoria e embaralha */
-function entrarQuiz(categoriaId) {
-  categoriaAtual = categoriaId;
-
-  let pool = BANCO_DE_PERGUNTAS;
-  if (categoriaId !== 'geral') {
-    pool = BANCO_DE_PERGUNTAS.filter(function (q) { return q.categoria === categoriaId; });
+function renderizarCalendarioStreak() {
+  if (!el.perfilStreak) return;
+  var seq = calcularStreak();
+  var dias = [];
+  for (var i = 6; i >= 0; i--) {
+    var d = new Date();
+    d.setDate(d.getDate() - i);
+    var dIso = iso(d);
+    dias.push({
+      rotulo: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][d.getDay()],
+      iso: dIso,
+      ativo: seq.dias.indexOf(dIso) >= 0,
+      hoje: dIso === hojeISO()
+    });
   }
-  if (pool.length === 0) return; // categoria indisponível
+  el.perfilStreak.innerHTML =
+    '<div class="streak-topo">🔥 Desde ontem: <strong>' + seq.atual + '</strong> dias · Recorde: <strong>' + seq.maior + '</strong></div>' +
+    '<div class="streak-semana">' + dias.map(function (d) {
+      return '<div class="streak-dia' + (d.ativo ? ' ativo' : '') + (d.hoje ? ' hoje' : '') + '">' +
+        '<small>' + d.rotulo + '</small><b>' + (d.ativo ? '🔥' : d.iso.slice(8)) + '</b></div>';
+    }).join('') + '</div>';
+}
 
-  // Embaralha (Fisher-Yates)
-  const embaralhadas = pool.slice();
-  for (let i = embaralhadas.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const troca = embaralhadas[i];
-    embaralhadas[i] = embaralhadas[j];
-    embaralhadas[j] = troca;
+/* ---------- 20) MOTOR DO QUIZ ---------- */
+function entrarNoQuiz(id) {
+  var quiz = buscarQuiz(id) || QUIZZES[0];
+  var pool = perguntasDoQuiz(quiz);
+  if (!pool.length) return;
+  pararTimer();
+  quizAtual = quiz;
+  modoDesafio = false;
+  prepararPartida(pool);
+}
+function iniciarPartidaPerguntas(pool, tipo) {
+  pararTimer();
+  modoDesafio = tipo === 'desafio';
+  prepararPartida(pool);
+}
+function prepararPartida(pool) {
+  var copia = pool.slice();
+  for (var i = copia.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = copia[i]; copia[i] = copia[j]; copia[j] = t;
   }
+  perguntasSorteio = copia.slice(0, QUANTAS_PERGUNTAS);
+  if (modoDesafio) perguntasSorteio = copia.slice(0, PERGUNTAS_DESAFIO);
 
-  perguntasSorteio = embaralhadas.slice(0, QUANTAS_PERGUNTAS);
+  indiceAtual = 0; pontuacao = 0; sequenciaCerta = 0; maiorCombo = 0;
+  acertos = 0; erros = 0; rapidas = 0; respondeu = false; tempoTotalUsado = 0;
 
-  // Zera contadores
-  indiceAtual = 0;
-  pontuacao = 0;
-  sequenciaCerta = 0;
-  maiorCombo = 0;
-  acertos = 0;
-  erros = 0;
-  tempoTotalUsado = 0;
+  var dif = quizAtual ? quizAtual.dificuldade : 'medio';
+  segundosPorPergunta = TEMPO_POR_DIFICULDADE[dif] || 20;
 
   el.pontuacao.textContent = '0';
   el.acertosTela.textContent = '0';
   el.errosTela.textContent = '0';
-  el.chipCombo.style.display = 'none';
 
   mostrarTela('quiz');
   mostrarPergunta();
 }
 
-/* Mostra a pergunta atual e inicia o cronômetro */
 function mostrarPergunta() {
   pararTimer();
-
-  const pergunta = perguntasSorteio[indiceAtual];
-  const total = perguntasSorteio.length;
+  var pergunta = perguntasSorteio[indiceAtual];
+  var total = perguntasSorteio.length;
 
   el.textoProgresso.textContent = 'Pergunta ' + (indiceAtual + 1) + ' de ' + total;
   el.numeroPergunta.textContent = 'Pergunta ' + (indiceAtual + 1);
+  el.barraProgresso.style.width = (indiceAtual / total) * 100 + '%';
 
-  const concluido = (indiceAtual / total) * 100;
-  el.barraProgresso.style.width = concluido + '%';
+  var tipo = buscarTipo(pergunta.tipo || 'multipla');
+  el.tipoPergunta.textContent = '· ' + tipo.nome;
 
-  // Selo de pergunta prêmio
   if (pergunta.valor > 1) {
     el.seloBonus.classList.remove('hidden');
     el.chipPremio.classList.remove('hidden');
@@ -659,28 +774,26 @@ function mostrarPergunta() {
   }
 
   el.textoPergunta.textContent = pergunta.pergunta;
-
-  // Cria os botões de resposta
   el.areaRespostas.innerHTML = '';
-  for (let i = 0; i < pergunta.alternativas.length; i++) {
-    const botao = document.createElement('button');
-    botao.className = 'answer-btn';
-    botao.textContent = pergunta.alternativas[i];
-    botao.addEventListener('click', function () { responder(i, botao, pergunta.valor); });
-    el.areaRespostas.appendChild(botao);
-  }
+  pergunta.alternativas.forEach(function (alt, i) {
+    var b = document.createElement('button');
+    b.className = 'answer-btn';
+    b.textContent = alt;
+    b.addEventListener('click', function () { responder(i, b, pergunta.valor); });
+    el.areaRespostas.appendChild(b);
+  });
+
+  el.areaExplicacao.innerHTML = '';
+  el.areaExplicacao.classList.add('hidden');
 
   respondeu = false;
-  iniciarTimer();
+  contarPergunta();
 }
 
-/* Cronômetro: conta de 20 até 0, atualizando a cada segundo */
-function iniciarTimer() {
-  pararTimer();
-
-  tempoRestante = TEMPO_POR_PERGUNTA;
+function contarPergunta() {
+  segundosPorPergunta = TEMPO_POR_DIFICULDADE[quizAtual ? quizAtual.dificuldade : 'medio'] || 20;
+  tempoRestante = segundosPorPergunta;
   el.numTimer.textContent = tempoRestante;
-
   el.barraTimer.style.width = '100%';
   el.numTimer.classList.remove('warning', 'danger');
   el.barraTimer.style.background = 'var(--ok)';
@@ -688,280 +801,271 @@ function iniciarTimer() {
   cronometro = setInterval(function () {
     tempoRestante--;
     el.numTimer.textContent = tempoRestante;
-
-    const porcentagem = (tempoRestante / TEMPO_POR_PERGUNTA) * 100;
-    el.barraTimer.style.width = porcentagem + '%';
-
-    if (tempoRestante <= 5) {
-      el.numTimer.classList.add('danger');
-      el.barraTimer.style.background = 'var(--erro)';
-    } else if (tempoRestante <= 9) {
-      el.numTimer.classList.add('warning');
-      el.barraTimer.style.background = 'var(--aviso)';
-    } else {
-      el.barraTimer.style.background = 'var(--ok)';
-    }
-
-    if (tempoRestante <= 0) {
-      pararTimer();
-      tempoEsgotado();
-    }
+    var porc = Math.max(0, (tempoRestante / segundosPorPergunta) * 100);
+    el.barraTimer.style.width = porc + '%';
+    if (tempoRestante <= 5) { el.numTimer.classList.add('danger'); el.barraTimer.style.background = 'var(--erro)'; }
+    else if (tempoRestante <= 9) { el.numTimer.classList.add('warning'); el.barraTimer.style.background = 'var(--aviso)'; }
+    if (tempoRestante <= 0) { pararTimer(); tempoEsgotado(); }
   }, 1000);
 }
 
 function pararTimer() {
-  if (cronometro !== null) {
-    clearInterval(cronometro);
-    cronometro = null;
-  }
+  if (cronometro !== null) { clearInterval(cronometro); cronometro = null; }
 }
 
-/* Quando o tempo acaba, conta como erro */
 function tempoEsgotado() {
   if (respondeu) return;
   respondeu = true;
-
   erros++;
   el.errosTela.textContent = erros;
+  tempoTotalUsado += segundosPorPergunta;
 
-  // tempo usado = todo o tempo da pergunta
-  tempoTotalUsado += TEMPO_POR_PERGUNTA;
-
-  // Desabilita botões e marca a resposta certa
-  const botoes = el.areaRespostas.querySelectorAll('.answer-btn');
+  var botoes = el.areaRespostas.querySelectorAll('.answer-btn');
   botoes.forEach(function (b) { b.disabled = true; });
-  const indiceOk = perguntasSorteio[indiceAtual].correta;
-  botoes[indiceOk].classList.add('correct');
+  var pergunta = perguntasSorteio[indiceAtual];
+  var okIdx = pergunta.correta;
+  if (botoes[okIdx]) botoes[okIdx].classList.add('correct');
 
-  sequenciaCerta = 0;   // quebra combo
+  sequenciaCerta = 0;
   el.chipCombo.style.display = 'none';
   el.numeroSeq.textContent = '0';
 
   tocarSom(false);
   mostrarMensagem('⏰ Tempo esgotado!', 'var(--erro)');
-
+  mostrarExplicacao(false, pergunta);
   proximaPergunta();
 }
 
-/* Quando o usuário clica em uma alternativa */
-function responder(indiceClicado, botaoClicado, valorPergunta) {
+function responder(idx, botao, valor) {
   if (respondeu) return;
   respondeu = true;
-
   pararTimer();
 
-  // tempo usado nesta pergunta
-  const tempoUsado = TEMPO_POR_PERGUNTA - tempoRestante;
+  var tempoUsado = segundosPorPergunta - tempoRestante;
   tempoTotalUsado += tempoUsado;
 
-  // Desabilita todos os botões
-  const todosBotoes = el.areaRespostas.querySelectorAll('.answer-btn');
-  todosBotoes.forEach(function (b) { b.disabled = true; });
+  var todos = el.areaRespostas.querySelectorAll('.answer-btn');
+  todos.forEach(function (b) { b.disabled = true; });
 
-  const pergunta = perguntasSorteio[indiceAtual];
-  const certa = pergunta.correta;
+  var pergunta = perguntasSorteio[indiceAtual];
+  var certa = pergunta.correta;
 
-  if (indiceClicado === certa) {
-    // ---------- ACERTOU ----------
-    botaoClicado.classList.add('correct');
-    acertos++;
-    el.acertosTela.textContent = acertos;
-
+  if (idx === certa) {
+    acertos++; el.acertosTela.textContent = acertos;
     sequenciaCerta++;
     if (sequenciaCerta > maiorCombo) maiorCombo = sequenciaCerta;
     el.chipCombo.style.display = 'inline-flex';
     el.numeroSeq.textContent = sequenciaCerta;
+    if (tempoUsado <= 4) rapidas++;
 
-    // pontos = base + bônus do combo, multiplicado pelo valor
-    const pontosBase = PONTOS_CERTA + (BONUS_COMBO * (sequenciaCerta - 1));
-    const pontosGanhos = pontosBase * valorPergunta;
-    pontuacao += pontosGanhos;
+    var pontosBase = PONTOS_CERTA + BONUS_COMBO * (sequenciaCerta - 1);
+    var ganho = pontosBase * (valor || 1);
+    pontuacao += ganho;
     el.pontuacao.textContent = pontuacao;
 
+    botao.classList.add('correct');
     tocarSom(true);
     criarConfete();
-
-    const msg = valorPergunta > 1
-      ? '+ ' + pontosGanhos + ' pts (x' + valorPergunta + ')'
-      : '+ ' + pontosGanhos + ' pts';
-    mostrarMensagem(msg, 'var(--ok)');
-
+    mostrarMensagem(valor > 1 ? '+ ' + ganho + ' pts (x' + valor + ')' : '+ ' + ganho + ' pts', 'var(--ok)');
+    mostrarExplicacao(true, pergunta);
   } else {
-    // ---------- ERROU ----------
-    botaoClicado.classList.add('wrong');
-    todosBotoes[certa].classList.add('correct'); // mostra a certa
+    botao.classList.add('wrong');
+    if (todos[certa]) todos[certa].classList.add('correct');
     erros++;
     el.errosTela.textContent = erros;
-
-    sequenciaCerta = 0; // quebra combo
+    sequenciaCerta = 0;
     el.numeroSeq.textContent = '0';
     el.chipCombo.style.display = 'none';
-
     tocarSom(false);
     mostrarMensagem('✖ Errou', 'var(--erro)');
+    mostrarExplicacao(false, pergunta);
   }
-
   proximaPergunta();
 }
 
-/* Passa para a próxima pergunta ou finaliza o quiz */
+function mostrarExplicacao(acertou, pergunta) {
+  el.areaExplicacao.innerHTML = '';
+  el.areaExplicacao.classList.remove('hidden');
+  el.areaExplicacao.className = 'area-explicacao ' + (acertou ? 'certo' : 'erro');
+  el.areaExplicacao.innerHTML =
+    '<div class="explicacao-status">' + (acertou ? '✅ Resposta correta!' : '❌ Você errou.') + '</div>' +
+    '<div class="explicacao-resposta">Resposta certa: <strong>' + pergunta.alternativas[pergunta.correta] + '</strong></div>' +
+    (pergunta.explicacao ? '<div class="explicacao-texto">💡 ' + pergunta.explicacao + '</div>' : '');
+}
+
 function proximaPergunta() {
   setTimeout(function () {
     indiceAtual++;
-    if (indiceAtual < perguntasSorteio.length) {
-      mostrarPergunta();
-    } else {
-      finalizarQuiz();
-    }
-  }, 1500);
+    if (indiceAtual < perguntasSorteio.length) mostrarPergunta();
+    else finalizarPartida();
+  }, 2600);
 }
 
-/* ============================================================
-   17) FINAL DO QUIZ: calcula tudo e mostra o resultado
-   ============================================================ */
-function finalizarQuiz() {
+/* ---------- 21) FINAL DA PARTIDA ---------- */
+function finalizarPartida() {
   pararTimer();
+  var total = perguntasSorteio.length || 1;
+  var percentual = Math.round((acertos / total) * 100);
+  var tempoMedio = Math.round(tempoTotalUsado / total);
 
-  const total = perguntasSorteio.length;
-  const percentual = Math.round((acertos / total) * 100);
-  const tempoMedio = total > 0 ? Math.round(tempoTotalUsado / total) : 0;
-
-  // Recorde
-  const antes = lerRecorde();
-  const novoRecorde = pontuacao > antes;
+  var novoRecorde = pontuacao > lerRecorde();
   if (novoRecorde) gravarTexto(CHAVE.recorde, pontuacao);
 
-  // XP: acertos * 10 + maior combo * 6
-  const xpGanho = acertos * 10 + maiorCombo * 6;
-  const xpTotal = lerNumero(CHAVE.xp) + xpGanho;
-  gravarTexto(CHAVE.xp, xpTotal);
+  var xpGanho = acertos * XP_ACERTO + maiorCombo * XP_COMBO + XP_COMPLETAR;
+  if (percentual === 100) xpGanho += XP_PERFEITO;
+  if (modoDesafio) xpGanho += XP_DESAFIO;
 
-  // Estatísticas gerais
-  const stats = carregarStats();
-  stats.jogos = (stats.jogos || 0) + 1;
-  stats.acertos = (stats.acertos || 0) + acertos;
-  stats.erros = (stats.erros || 0) + erros;
-  salvarStats(stats);
+  var s = lerStats();
+  s.jogos++; s.acertos += acertos; s.erros += erros; s.rapidas += rapidas;
+  if (maiorCombo > s.maiorCombo) s.maiorCombo = maiorCombo;
+  if (percentual === 100) s.perfeitos++;
+  if (pontuacao > s.maiorPontos) s.maiorPontos = pontuacao;
+  if (modoDesafio) s.desafios++;
+  salvarStats(s);
 
-  // Ranking (guarda as 5 melhores)
-  const ranking = lerLista(CHAVE.ranking);
-  ranking.push({ pontos: pontuacao, data: new Date().toLocaleDateString('pt-BR') });
+  var xpAntes = lerXpValido();
+  var novas = checarConquistas();
+  xpGanho += novas.length * XP_CONQUISTA;
+  gravarTexto(CHAVE.xp, xpAntes + xpGanho);
+
+  var nivelAntes = calcularNivel(xpAntes);
+  var nivelDepois = calcularNivel(xpAntes + xpGanho);
+  if (nivelDepois.nivel > nivelAntes.nivel)
+    setTimeout(function () { mostrarNivelUp(nivelDepois.nivel); }, 400);
+
+  var seq = registrarAtividade();
+
+  registrarHistorico({
+    quiz: quizAtual ? quizAtual.id : 'desafio-dia',
+    titulo: quizAtual ? quizAtual.titulo : 'Desafio do Dia',
+    icon: quizAtual ? quizAtual.capa.emoji : '🎯',
+    quando: new Date().toLocaleDateString('pt-BR'),
+    pontos: pontuacao,
+    pct: percentual
+  });
+
+  var ranking = lerLista(CHAVE.ranking);
+  ranking.push({ nome: lerNome() + ' · ' + (quizAtual ? quizAtual.titulo : 'Desafio'), pontos: pontuacao });
   ranking.sort(function (a, b) { return b.pontos - a.pontos; });
-  gravarTexto(CHAVE.ranking, JSON.stringify(ranking.slice(0, 5)));
+  gravarTexto(CHAVE.ranking, JSON.stringify(ranking.slice(0, LIMITE_RANKING)));
 
-  // Conquistas
-  checarConquistas({ pontos: pontuacao, maiorCombo: maiorCombo, percentual: percentual, novoRecorde: novoRecorde });
+  if (modoDesafio) {
+    var d = lerObjeto(CHAVE.desafio, { hoje: '', melhor: -1 });
+    var venceuRecorde = d.hoje === hojeISO() ? (pontuacao >= d.melhor) : true;
+    if (venceuRecorde) {
+      gravarTexto(CHAVE.desafio, JSON.stringify({ hoje: hojeISO(), melhor: pontuacao, acertos: acertos, total: total }));
+    }
+  }
 
-  // Preenche a tela de resultado
+  montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecorde);
+}
+
+function montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecorde) {
   el.pontuacaoFinal.textContent = pontuacao + ' pontos';
   el.rAcertos.textContent = acertos;
   el.rErros.textContent = erros;
   el.rPercentual.textContent = percentual + '%';
   el.rCombo.textContent = 'x' + maiorCombo;
   el.rTempo.textContent = tempoMedio + 's';
-  el.rXp.textContent = '+ ' + xpGanho;
+  el.rXp.textContent = '+' + xpGanho + ' XP';
   el.melhorPontuacao.textContent = '🏅 Melhor pontuação: ' + lerRecorde();
 
-  // Perfil (emoji + título + subtítulo)
-  let emoji, titulo, subtitulo;
-  if (percentual === 100) {
-    emoji = '🏆'; titulo = 'Perfeito!'; subtitulo = '100% de acerto, que gênio!' + (novoRecorde ? ' Novo recorde!' : '');
-  } else if (acertos >= 8) {
-    emoji = '🎉'; titulo = 'Excelente!'; subtitulo = 'Você arrasou!' + (novoRecorde ? ' Novo recorde!' : '');
-  } else if (acertos >= 6) {
-    emoji = '😄'; titulo = 'Muito bom!'; subtitulo = 'Continue treinando, você vai longe!';
-  } else if (acertos >= 3) {
-    emoji = '🙂'; titulo = 'Bom começo'; subtitulo = 'Esforço sempre ajuda!';
-  } else {
-    emoji = '💪'; titulo = 'Não desista'; subtitulo = 'Todo mestre já foi iniciante. Tente de novo!';
+  var nv = calcularNivel(lerXpValido());
+  el.rNivel.textContent = 'Nível ' + nv.nivel;
+  el.rBarraXp.style.width = nv.progresso + '%';
+  el.rProgresso.textContent = nv.xpNoNivel + ' / ' + nv.xpNecessario + ' XP';
+
+  if (el.rConquistas) {
+    if (novas.length) {
+      el.rConquistas.innerHTML = '<h3>🏅 Novas conquistas!</h3><div class="resultado-conq">' +
+        novas.map(function (id) {
+          var def = CONQUISTAS_DEF.find(function (x) { return x.id === id; });
+          return '<span class="resultado-medalha">' + def.icone + ' ' + def.nome + '</span>';
+        }).join('') + '</div>';
+    } else {
+      el.rConquistas.innerHTML = '<h3>🏅 Conquistas</h3><p class="descricao-bloco">Complete objetivos para desbloquear medalhas.</p>';
+    }
   }
+
+  if (el.rStreak) el.rStreak.innerHTML = '<span>🔥 Sequência atual: <strong>' + seq.atual + '</strong> · Recorde: <strong>' + seq.maior + '</strong></span>';
+
+  var emoji = '🏆', titulo = 'Perfeito!', sub = '100% de acerto, que gênio!';
+  if (percentual >= 80) { emoji = '🎉'; titulo = 'Excelente!'; sub = 'Você arrasou!'; }
+  else if (percentual >= 60) { emoji = '😄'; titulo = 'Muito bom!'; sub = 'Continue treinando!'; }
+  else if (percentual >= 40) { emoji = '🙂'; titulo = 'Bom começo'; sub = 'Esforço sempre ajuda!'; }
+  else if (percentual >= 20) { emoji = '💪'; titulo = 'Não desista'; sub = 'Todo mestre já foi iniciante.'; }
+  else { emoji = '🔁'; titulo = 'Tente de novo'; sub = 'Você consegue evoluir!'; }
+  if (novoRecorde) sub += ' 🎊 Novo recorde!';
 
   el.emojiResultado.textContent = emoji;
   el.tituloResultado.textContent = titulo;
-  el.subtituloResultado.textContent = subtitulo;
+  el.subtituloResultado.textContent = sub;
 
-  if (percentual >= 70) criarConfete();
-
+  if (percentual >= 60) criarConfete();
   mostrarTela('resultado');
   renderizarEstatisticas();
   renderizarRanking();
   renderizarConquistas();
 }
 
-/* ============================================================
-   18) MENSAGENS FLUTUANTES E CONFETE
-   ============================================================ */
-function mostrarMensagem(texto, cor) {
-  const msg = document.createElement('div');
-  msg.className = 'floating-msg';
-  msg.textContent = texto;
-  msg.style.color = cor;
-  document.body.appendChild(msg);
+function mostrarNivelUp(nivel) {
+  if (!el.overlayNivel) return;
+  el.overlayNivelTexto.textContent = 'Você subiu para o nível ' + nivel + '!';
+  el.overlayNivel.classList.remove('hidden');
+  criarConfete();
+  setTimeout(function () { el.overlayNivel.classList.add('hidden'); }, 3500);
+}
 
-  setTimeout(function () {
-    if (msg.parentNode) msg.parentNode.removeChild(msg);
-  }, 900);
+/* ---------- 22) MENSAGENS, CONFETE, SOM ---------- */
+function mostrarMensagem(texto, cor) {
+  var m = document.createElement('div');
+  m.className = 'floating-msg';
+  m.textContent = texto;
+  m.style.color = cor;
+  document.body.appendChild(m);
+  setTimeout(function () { if (m.parentNode) m.parentNode.removeChild(m); }, 900);
 }
 
 function criarConfete() {
-  const emojis = ['🎉', '💥', '✨', '🎊', '🌟'];
-  for (let i = 0; i < 24; i++) {
-    const pedaco = document.createElement('div');
-    pedaco.className = 'confetti-piece';
-    pedaco.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-    pedaco.style.left = Math.random() * 100 + 'vw';
-    pedaco.style.animationDuration = (1.5 + Math.random()) + 's';
-    pedaco.style.fontSize = (16 + Math.random() * 22) + 'px';
-
-    document.body.appendChild(pedaco);
-
-    setTimeout(function (p) {
-      return function () {
-        if (p.parentNode) p.parentNode.removeChild(p);
-      };
-    }(pedaco), 2800);
+  var emojis = ['🎉', '💥', '✨', '🎊', '🌟'];
+  for (var i = 0; i < 24; i++) {
+    var ped = document.createElement('div');
+    ped.className = 'confetti-piece';
+    ped.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    ped.style.left = Math.random() * 100 + 'vw';
+    ped.style.animationDuration = (1.5 + Math.random()) + 's';
+    ped.style.fontSize = (16 + Math.random() * 22) + 'px';
+    document.body.appendChild(ped);
+    (function (p) {
+      setTimeout(function () { if (p.parentNode) p.parentNode.removeChild(p); }, 2800);
+    })(ped);
   }
 }
 
-/* ============================================================
-   19) SOM (beeps simples via Web Audio API)
-   ============================================================ */
 function tocarSom(acertou) {
   try {
-    const contexto = new (window.AudioContext || window.webkitAudioContext)();
-    const oscilador = contexto.createOscillator();
-    const ganho = contexto.createGain();
-
-    oscilador.connect(ganho);
-    ganho.connect(contexto.destination);
-
-    oscilador.frequency.value = acertou ? 760 : 220;
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = ctx.createOscillator();
+    var ganho = ctx.createGain();
+    osc.connect(ganho); ganho.connect(ctx.destination);
+    osc.frequency.value = acertou ? 760 : 220;
     ganho.gain.value = 0.15;
-    oscilador.start();
-    oscilador.stop(contexto.currentTime + 0.22);
-  } catch (e) {
-    // se o navegador não suportar áudio, ignora silenciosamente
-  }
+    osc.start(); osc.stop(ctx.currentTime + 0.22);
+  } catch (e) {}
 }
 
-/* ============================================================
-   20) INICIALIZAÇÃO DA PÁGINA
-   ============================================================ */
+/* ---------- 23) INICIAR ---------- */
 function iniciar() {
   aplicarTema();
   iniciarNavegacao();
   iniciarMenuMobile();
 
-  el.heroTotalQuiz.textContent = BANCO_DE_PERGUNTAS.length;
-  el.heroTotalCat.textContent = CATEGORIAS.length;
+  if (el.heroTotalPerguntas) el.heroTotalPerguntas.textContent = PERGUNTAS.length;
+  if (el.heroTotalCats) el.heroTotalCats.textContent = CATEGORIAS.length;
 
-  renderizarCategorias();
-  renderizarDestaques();
-  renderizarEstatisticas();
-  renderizarRanking();
+  renderizarHome();
   renderizarConquistas();
-  renderizarPerfil();
-
+  renderizarPaginaQuizzes();
   mostrarTela('inicio');
 }
 
