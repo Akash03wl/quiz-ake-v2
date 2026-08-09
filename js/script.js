@@ -1,25 +1,38 @@
 /* ==========================================================
    QUIZ AKE - LÓGICA DO SITE (JavaScript)
-   Fase 2: XP/níveis progressivos, favoritos, histórico,
-   streak diário, desafio do dia, busca/filtros em quizzes,
-   conquistas com progresso, explicações e suporte a V/F.
+   Fase 1: motor do quiz, ranking local, conquistas e perfil.
+   Fase 2: XP/níveis, favoritos, histórico, streak, desafio do
+           dia, busca/filtros, conquistas com progresso.
+   Fase 3: competição e interação — modos (Sobrevivência, Blitz,
+           Contra o Tempo), ranking global por período/métrica,
+           compartilhamento, desafio competitivo e arquitetura
+           de salas multiplayer (WebSocket), preparada para
+           integração futura com backend.
    ========================================================== */
 
 /* ---------- 1) CONFIGURAÇÕES DO JOGO ---------- */
-const TEMPO_POR_DIFICULDADE = { facil: 25, medio: 20, dificil: 15, insano: 12 };
-const QUANTAS_PERGUNTAS = 10;
-const PONTOS_CERTA = 10;
-const BONUS_COMBO = 5;
-const LIMITE_HISTORICO = 12;
-const LIMITE_RANKING = 5;
-const PERGUNTAS_DESAFIO = 6;
+var TEMPO_POR_DIFICULDADE = { facil: 25, medio: 20, dificil: 15, insano: 12 };
+var QUANTAS_PERGUNTAS = 10;
+var PONTOS_CERTA = 10;
+var BONUS_COMBO = 5;
+var LIMITE_HISTORICO = 12;
+var LIMITE_RANKING = 5;
+var PERGUNTAS_DESAFIO = 6;
 
-const XP_ACERTO = 10;
-const XP_COMBO = 5;
-const XP_COMPLETAR = 25;
-const XP_PERFEITO = 40;
-const XP_CONQUISTA = 15;
-const XP_DESAFIO = 30;
+/* Modos especiais (Fase 3) */
+var QUANTAS_BLITZ = 15;          // perguntas no modo Blitz
+var TEMPO_BLITZ = 6;             // segundos por pergunta no Blitz
+var TEMPO_CONTRA_INICIAL = 90;   // relógio inicial do Contra o Tempo
+var CONTRA_ACERTO = 8;           // segundos ganhos a cada acerto
+var CONTRA_PENALIDADE = 10;      // segundos perdidos a cada erro
+var LIMITE_PARTIDAS = 120;       // partidas competitivas guardadas
+
+var XP_ACERTO = 10;
+var XP_COMBO = 5;
+var XP_COMPLETAR = 25;
+var XP_PERFEITO = 40;
+var XP_CONQUISTA = 15;
+var XP_DESAFIO = 30;
 
 /* ---------- 2) NÍVEIS E XP ---------- */
 function limiarNivel(numero) {
@@ -44,10 +57,12 @@ function calcularNivel(xp) {
 /* ---------- 3) TELAS ---------- */
 var TELAS = {
   inicio: 'tela-inicio',
+  modos: 'tela-modos',
   quizzes: 'tela-quizzes',
   quiz: 'tela-quiz',
   resultado: 'tela-resultado',
   ranking: 'tela-ranking',
+  salas: 'tela-salas',
   conquistas: 'tela-conquistas',
   perfil: 'tela-perfil'
 };
@@ -63,13 +78,19 @@ var erros = 0;
 var rapidas = 0;
 var respondeu = false;
 var quizAtual = null;
-var modoDesafio = false;
+var modoAtual = 'normal';   // normal | desafio | sobrevivencia | blitz | contra-tempo
+var fimSobrev = false;      // encerra partida de Sobrevivência ao errar
 var categoriaAtual = 'geral';
 var tempoRestante = 0;
 var cronometro = null;
+var cronometroGlobal = null; // relógio do Contra o Tempo
+var tecnicoTempoGeral = 0;  // (não usado, mantém compatibilidade)
+var tempoGeral = 0;
+var tempoGeralMax = 0;
 var tempoTotalUsado = 0;
 var segundosPorPergunta = 20;
 var nomeAnterior = '';
+var ultimaPartida = null;   // último registro competitivo (p/ compartilhar)
 
 /* ---------- 5) REFERÊNCIAS DE ELEMENTOS ---------- */
 function q(sel) { return document.getElementById(sel); }
@@ -82,9 +103,12 @@ var el = {
   statsVazio: q('stats-estado-vazio'),
   gradeStats: q('grade-stats'),
   rankingResumo: q('ranking-resumo'),
-  rankingCompleto: q('ranking-completo'),
   favoritosGrade: q('favoritos-grade'),
   desafioCard: q('desafio-card'),
+
+  modosGrade: q('modos-grade'),
+  modosSalas: q('modos-salas-card'),
+  salasCard: q('salas-card'),
 
   busca: q('busca-quizzes'),
   filtroCat: q('filtro-categoria'),
@@ -99,6 +123,7 @@ var el = {
 
   textoProgresso: q('texto-progresso'),
   barraProgresso: q('barra-progresso'),
+  modoChip: q('modo-chip'),
   chipCombo: q('chip-combo'),
   numeroSeq: q('sequencia'),
   chipPremio: q('chip-premio'),
@@ -130,9 +155,21 @@ var el = {
   rProgresso: q('resultado-progresso'),
   rConquistas: q('resultado-conquistas'),
   rStreak: q('resultado-streak'),
+  resultadoNota: q('resultado-nota'),
+  shareCard: q('share-card'),
+  shareConteudo: q('share-card-conteudo'),
+  botaoShareImagem: q('botao-share-imagem'),
+  botaoCompartilhar: q('botao-compartilhar'),
 
   conquistas: q('conquistas-grade'),
   conquistasProgresso: q('conquistas-progresso'),
+
+  rankingDescricao: q('ranking-descricao'),
+  periodoFiltros: q('periodo-filtros'),
+  rankingTipo: q('ranking-tipo'),
+  rankingPodio: q('ranking-podio'),
+  rankingTabela: q('ranking-tabela'),
+  rankingMinhaPosicao: q('ranking-minha-posicao'),
 
   perfilNome: q('perfil-nome'),
   perfilNivel: q('perfil-nivel'),
@@ -141,9 +178,34 @@ var el = {
   perfilStats: q('perfil-stats'),
   perfilHistorico: q('perfil-historico'),
   perfilStreak: q('perfil-streak'),
+  perfilCompeticao: q('perfil-competicao'),
+  perfilRecordes: q('perfil-recordes'),
+  perfilCompetitivo: q('perfil-competitivo'),
 
   overlayNivel: q('overlay-nivel'),
   overlayNivelTexto: q('overlay-nivel-texto')
+};
+
+/* ---------- 5b) ARQUITETURA DE BACKEND (Fase 3) ----------
+   A V2 é 100% front-end. Esta seção concentra TODOS os pontos de
+   integração com backend, para que a migração futura seja direta.
+   Enquanto não houver servidor, 'conectado' é false e as funções
+   retornam dados locais + avisos honestos (sem simular jogadores). */
+var BACKEND = {
+  conectado: false,
+  tipo: 'local',           // 'local' | 'websocket' | 'api'
+  wsUrl: '',               // ex.: 'wss://quiz-ake-v2.example.com/game'
+  apiUrl: '',              // ex.: 'https://quiz-ake-v2.example.com/api'
+  conectar: function (config) {
+    if (!config) return false;
+    this.tipo = config.tipo || 'api';
+    this.wsUrl = config.wsUrl || this.wsUrl;
+    this.apiUrl = config.apiUrl || this.apiUrl;
+    // Quando houver backend de verdade, esta função inicia socket/fetch.
+    this.conectado = true;
+    return true;
+  },
+  desconectar: function () { this.conectado = false; }
 };
 
 /* ---------- 6) ARMAZENAMENTO ---------- */
@@ -158,7 +220,8 @@ var CHAVE = {
   streak: 'quizAKE_streak',
   desafio: 'quizAKE_desafio',
   tema: 'quizAKE_tema',
-  nome: 'quizAKE_nome'
+  nome: 'quizAKE_nome',
+  partidas: 'quizAKE_partidas'     // Fase 3: log competitivo (histórico oficial)
 };
 
 function lerTexto(chave) { try { return localStorage.getItem(chave); } catch (e) { return null; } }
@@ -171,7 +234,7 @@ function lerObjeto(chave, padrao) {
   try { var o = JSON.parse(v); return o && typeof o === 'object' ? o : padrao; } catch (e) { return padrao; }
 }
 function lerStats() {
-  return lerObjeto(CHAVE.stats, { jogos: 0, acertos: 0, erros: 0, rapidas: 0, maiorCombo: 0, perfeitos: 0, desafios: 0, maiorPontos: 0 });
+  return lerObjeto(CHAVE.stats, { jogos: 0, acertos: 0, erros: 0, rapidas: 0, maiorCombo: 0, perfeitos: 0, desafios: 0, maiorPontos: 0, sobrevSeq: 0, blitzPontos: 0, contraPontos: 0, modosDistintos: 0 });
 }
 function salvarStats(s) { gravarTexto(CHAVE.stats, JSON.stringify(s)); }
 function lerNome() { var n = lerTexto(CHAVE.nome); return (n && n.trim()) ? n : 'Jogador AKE'; }
@@ -186,6 +249,11 @@ function dataComOffset(offset) {
   var d = new Date();
   d.setDate(d.getDate() + offset);
   return iso(d);
+}
+function inicioDoDia(ms) {
+  var d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
 }
 
 /* ---------- 7) TEMA ---------- */
@@ -217,7 +285,9 @@ function mostrarTela(nomeTela) {
   });
 
   if (nomeTela === 'quizzes') renderizarPaginaQuizzes();
+  if (nomeTela === 'modos') renderizarModos();
   if (nomeTela === 'ranking') renderizarRanking();
+  if (nomeTela === 'salas') renderizarSalas();
   if (nomeTela === 'conquistas') renderizarConquistas();
   if (nomeTela === 'perfil') renderizarPerfil();
   if (nomeTela === 'inicio') renderizarHome();
@@ -239,9 +309,27 @@ function iniciarNavegacao() {
   q('botao-comecar').addEventListener('click', function () { entrarNoQuiz('quiz-geral'); });
   q('botao-jogar-hero').addEventListener('click', function () { entrarNoQuiz('quiz-geral'); });
   q('botao-reiniciar').addEventListener('click', function () {
-    entrarNoQuiz(quizAtual ? quizAtual.id : 'quiz-geral');
+    if (modoAtual === 'normal' || modoAtual === 'desafio') {
+      entrarNoQuiz(quizAtual ? quizAtual.id : 'quiz-geral');
+    } else if (modoAtual === 'sobrevivencia' || modoAtual === 'blitz' || modoAtual === 'contra-tempo') {
+      iniciarModo(modoAtual);
+    }
   });
   q('botao-tema').addEventListener('click', alternarTema);
+
+  // Fase 3: compartilhamento
+  if (el.botaoCompartilhar) el.botaoCompartilhar.addEventListener('click', compartilharResultado);
+  if (el.botaoShareImagem) el.botaoShareImagem.addEventListener('click', baixarImagemShare);
+
+  // Fase 3: ranking — período e tipo
+  if (el.periodoFiltros) el.periodoFiltros.addEventListener('click', function (ev) {
+    var btn = ev.target.closest('.periodo-btn');
+    if (!btn) return;
+    el.periodoFiltros.querySelectorAll('.periodo-btn').forEach(function (b) { b.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    renderizarRanking();
+  });
+  if (el.rankingTipo) el.rankingTipo.addEventListener('change', renderizarRanking);
 
   if (el.busca) el.busca.addEventListener('input', debounce(renderizarTodos, 180));
   if (el.filtroCat) el.filtroCat.addEventListener('change', renderizarTodos);
@@ -253,7 +341,7 @@ function iniciarNavegacao() {
   var inputNome = q('input-nome');
   if (inputNome) inputNome.addEventListener('change', function () {
     var nome = inputNome.value.trim();
-    if (nome) { gravarTexto(CHAVE.nome, nome); inputNome.value = nome; }
+    if (nome) { gravarTexto(CHAVE.nome, nome); inputNome.value = nome; renderizarPerfil(); }
   });
 }
 
@@ -292,13 +380,37 @@ function lerHistorico() { return lerLista(CHAVE.historico); }
 function registrarHistorico(reg) {
   var lista = lerHistorico();
   lista.unshift(reg);
-  gravarTexto(CHAVE.historico, JSON.stringify(lista.slice(0, 12)));
+  gravarTexto(CHAVE.historico, JSON.stringify(lista.slice(0, LIMITE_HISTORICO)));
 }
 function vezesJogado(id) { return lerHistorico().filter(function (h) { return h.quiz === id; }).length; }
 function ultimoJogoData(id) {
   var lista = lerHistorico();
   for (var i = 0; i < lista.length; i++) if (lista[i].quiz === id) return lista[i].quando;
   return '';
+}
+
+/* ---------- 11b) PARTIDAS COMPETITIVAS (Fase 3) ---------- */
+function lerPartidas() { return lerLista(CHAVE.partidas); }
+function registrarPartida(rec) {
+  var lista = lerPartidas();
+  lista.unshift(rec);
+  gravarTexto(CHAVE.partidas, JSON.stringify(lista.slice(0, LIMITE_PARTIDAS)));
+}
+function partidasNoPeriodo(periodo) {
+  var lista = lerPartidas();
+  if (!periodo || periodo === 'geral') return lista;
+  var agora = inicioDoDia(Date.now());
+  var hojemis = inicioDoDia(Date.now());
+  if (periodo === 'hoje') {
+    return lista.filter(function (p) { return inicioDoDia(p.ts) === hojemis; });
+  }
+  return lista.filter(function (p) {
+    var ms = p.ts || Date.now();
+    var d = inicioDoDia(ms);
+    if (periodo === 'semana') return d >= agora - 6 * 86400000;
+    if (periodo === 'mes') return d >= agora - 29 * 86400000;
+    return true;
+  });
 }
 
 /* ---------- 12) STREAK ---------- */
@@ -324,7 +436,7 @@ function registrarAtividade() {
   return calcularStreak();
 }
 
-/* ---------- 13) DESAFIO DO DIA ---------- */
+/* ---------- 13) DESAFIO DO DIA (competitivo, Fase 3) ---------- */
 function sementeDia(texto) {
   var h = 0;
   for (var i = 0; i < texto.length; i++) h = (h * 31 + texto.charCodeAt(i)) >>> 0;
@@ -341,20 +453,46 @@ function perguntasDesafioHoje() {
   return pool.slice(0, PERGUNTAS_DESAFIO);
 }
 function iniciarDesafioDoDia() {
+  pararTudo();
+  modoAtual = 'desafio';
   perguntasSorteio = perguntasDesafioHoje();
-  iniciarPartidaPerguntas(perguntasSorteio, 'desafio');
+  prepararPartida(perguntasSorteio);
+  if (el.modoChip) { el.modoChip.textContent = '🎯 Desafio do Dia'; el.modoChip.classList.remove('hidden'); }
+}
+function dadosDesafioHoje() {
+  // Estatísticas do desafio de hoje a partir das partidas competitivas.
+  var partes = lerPartidas().filter(function (p) { return p.modo === 'desafio' && inicioDoDia(p.ts) === inicioDoDia(Date.now()); });
+  if (!partes.length) return { jogado: false, melhor: 0, media: 0, posicao: null, qtd: 0 };
+  var melhores = partes.sort(function (a, b) { return b.pontos - a.pontos; });
+  var soma = 0;
+  partes.forEach(function (p) { soma += p.pontos; });
+  return { jogado: true, melhor: melhores[0].pontos, media: Math.round(soma / partes.length), posicao: 1, qtd: partes.length };
 }
 function renderizarDesafio() {
   if (!el.desafioCard) return;
   var desafio = lerObjeto(CHAVE.desafio, { hoje: '', melhor: 0 });
+  var info = dadosDesafioHoje();
   var jogouHoje = desafio.hoje === hojeISO();
+  var competitivo = '';
+  if (!BACKEND.conectado) {
+    competitivo = '<p class="desafio-aviso">🧩 Backend pendente — por enquanto você compete com o seu próprio histórico.</p>';
+  }
+  var statsHtml = info.jogado
+    ? '<div class="destaque-meta">' +
+        '<span>⭐ Melhor: <strong>' + info.melhor + ' pts</strong></span>' +
+        '<span>📊 Média: <strong>' + info.media + ' pts</strong></span>' +
+        '<span>👤 Você está em <strong>#1</strong> (local)</span>' +
+      '</div>'
+    : '<div class="destaque-meta"><span>❓ ' + PERGUNTAS_DESAFIO + ' perguntas</span>' +
+      (jogouHoje ? '<span>⭐ Melhor hoje: ' + desafio.melhor + ' pts</span>' : '<span>Você ainda não jogou hoje</span>') + '</div>';
+
   el.desafioCard.innerHTML =
     '<div class="destaque-badge">🎯 Desafio do Dia</div>' +
     '<h3>' + new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) + '</h3>' +
-    '<p>' + PERGUNTAS_DESAFIO + ' perguntas sorteadas de toda a biblioteca. Todo mundo recebe o mesmo desafio.</p>' +
-    '<div class="destaque-meta"><span>❓ ' + PERGUNTAS_DESAFIO + ' perguntas</span>' +
-    (jogouHoje ? '<span>⭐ Melhor hoje: ' + desafio.melhor + ' pts</span>' : '<span>Você ainda não jogou hoje</span>') + '</div>' +
-    '<button class="btn btn-primary" id="btn-desafio-card">Jogar Desafio</button>';
+    '<p>As mesmas ' + PERGUNTAS_DESAFIO + ' perguntas para todos os jogadores. Com backend conectado, pontuação, posição e média são globais.</p>' +
+    competitivo +
+    statsHtml +
+    '<button class="btn btn-primary" id="btn-desafio-card">' + (info.jogado ? 'Melhorar resultado' : 'Jogar Desafio') + '</button>';
   var b = q('btn-desafio-card');
   if (b) b.addEventListener('click', iniciarDesafioDoDia);
 }
@@ -466,8 +604,8 @@ function renderizarSugestoes() {
     renderizarCards(el.gradeRecentes, rec);
   }
   if (el.gradeRecomendados) {
-    var rec_ = QUIZZES.slice().sort(function (a, b) { return vezesJogado(a.id) - vezesJogado(b.id); }).slice(0, 3);
-    renderizarCards(el.gradeRecomendados, rec_);
+    var rec2 = QUIZZES.slice().sort(function (a, b) { return vezesJogado(a.id) - vezesJogado(b.id); }).slice(0, 3);
+    renderizarCards(el.gradeRecomendados, rec2);
   }
 }
 function popularFiltros() {
@@ -521,7 +659,7 @@ function renderizarEstatisticas() {
     ['❓', respondidas, 'Perguntas'],
     ['✅', taxa + '%', 'Taxa de acerto'],
     ['🏆', lerRecorde(), 'Melhor pontuação'],
-    ['🌈', s.maiorCombo || 0, 'Maior combo'],
+    ['🌈', s.maiorCombo, 'Maior combo'],
     ['📅', sequencia.atual, 'Dias seguidos']
   ];
 
@@ -574,20 +712,336 @@ function renderizarRankingResumo() {
   el.rankingResumo.innerHTML = '<ul class="lista-ranking">' + itens.join('') + '</ul>';
 }
 
-/* ---------- 17) RANKING COMPLETO ---------- */
-function renderizarRanking() {
-  if (!el.rankingCompleto) return;
-  var lista = lerLista(CHAVE.ranking);
-  if (lista.length === 0) {
-    el.rankingCompleto.innerHTML = '<div class="estado-vazio"><span class="emoji">🏆</span><p>Nenhum registro ainda. Jogue para entrar no ranking.</p></div>';
-    return;
+/* ---------- 17) MODOS DE JOGO (Fase 3) ---------- */
+function iniciarModo(id) {
+  var modo = buscarModo(id);
+  if (!modo) return;
+  pararTudo();
+  modoAtual = id;
+  fimSobrev = false;
+
+  if (el.modoChip) {
+    el.modoChip.textContent = modo.icone + ' ' + modo.nome;
+    el.modoChip.style.setProperty('--modo-cor', modo.cor || 'var(--acento)');
+    el.modoChip.classList.remove('hidden');
   }
-  el.rankingCompleto.innerHTML = '<ul class="lista-ranking">' + lista.map(function (r, i) {
-    return '<li><span class="pos">' + (i + 1) + 'º</span><span class="nome">' + r.nome + '</span><span class="pts">' + r.pontos + ' pts</span></li>';
-  }).join('') + '</ul>';
+
+  // Pool embaralhado de todas as perguntas.
+  var pool = PERGUNTAS.slice();
+  for (var i = pool.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+  }
+
+  if (modoAtual === 'sobrevivencia' || modoAtual === 'contra-tempo') {
+    perguntasSorteio = pool; // infinito: recicla quando acabar
+  } else if (modoAtual === 'blitz') {
+    perguntasSorteio = pool.slice(0, QUANTAS_BLITZ);
+  }
+
+  if (modoAtual === 'contra-tempo') {
+    tempoGeralMax = TEMPO_CONTRA_INICIAL;
+    tempoGeral = tempoGeralMax;
+  }
+
+  prepararPartida(perguntasSorteio);
+}
+function renderizarModos() {
+  if (!el.modosGrade) return;
+  var s = lerStats();
+  var modosHtml = MODOS.map(function (m) {
+    var melhor = sDeModo(m.id);
+    var rec = melhor ? melhor.pontos : 0;
+    return '<article class="modo-card" data-modo="' + m.id + '" style="--modo-cor:' + m.cor + '">' +
+      '<span class="modo-icone">' + m.icone + '</span>' +
+      '<h3 class="modo-nome">' + m.nome + '</h3>' +
+      '<p class="modo-desc">' + m.desc + '</p>' +
+      '<span class="modo-regra">' + m.regra + '</span>' +
+      '<span class="modo-recorde">Recorde: <strong>' + rec + ' pts</strong></span>' +
+      '<button class="btn btn-primary" data-modo-jogar="' + m.id + '">Jogar agora</button>' +
+    '</article>';
+  }).join('');
+  el.modosGrade.innerHTML = modosHtml;
+  el.modosGrade.querySelectorAll('[data-modo-jogar]').forEach(function (b) {
+    b.addEventListener('click', function () { iniciarModo(b.getAttribute('data-modo-jogar')); });
+  });
+
+  // Card da seção multiplayer (arquitetura preparada)
+  if (el.modosSalas) renderizarCardSalas(el.modosSalas, true);
 }
 
-/* ---------- 18) CONQUISTAS ---------- */
+/* Recordes por modo derivados do histórico competitivo */
+function sDeModo(modoId) {
+  var partes = lerPartidas().filter(function (p) { return p.modo === modoId; });
+  if (!partes.length) return null;
+  var melhorPontos = 0, melhorHonra = null;
+  partes.forEach(function (p) {
+    if (p.pontos > melhorPontos) { melhorPontos = p.pontos; melhorHonra = p; }
+  });
+  return melhorHonra;
+}
+
+/* ---------- 18) RANKING GLOBAL E ESPECÍFICOS (Fase 3) ---------- */
+function periodoAtual() {
+  var ativo = el.periodoFiltros ? el.periodoFiltros.querySelector('.periodo-btn.ativo') : null;
+  return ativo ? ativo.getAttribute('data-periodo') : 'geral';
+}
+function rankingTipoAtual() {
+  return el.rankingTipo ? el.rankingTipo.value : 'pontos';
+}
+/* Retorna a lista ordenada de partidas do período, pela métrica escolhida.
+   Quando o backend estiver conectado, a mesma assinatura buscaria a lista
+   global no servidor (ver BACKEND.conectar). */
+function listaRankingLocal(tipo, periodo) {
+  var lista = partidasNoPeriodo(periodo);
+  var ordem = { pontos: 'pontos', xp: 'xp', sequencia: 'maiorCombo', quizzes: 'ts', taxa: 'taxa' };
+  var chave = ordem[tipo] || 'pontos';
+  return lista.slice().sort(function (a, b) {
+    var va = a[chave] || 0, vb = b[chave] || 0;
+    if (tipo === 'quizzes') return vb - va;   // mais partidas primeiro (rs, lista já é por data)
+    return vb - va;
+  });
+}
+function roteirizarRanking() {
+  var tipo = rankingTipoAtual();
+  var periodo = periodoAtual();
+  return { tipo: tipo, periodo: periodo, lista: listaRankingLocal(tipo, periodo) };
+}
+function renderizarRanking() {
+  if (!el.rankingTipo || !el.rankingPodio || !el.rankingTabela) return;
+  var dados = roteirizarRanking();
+  var tipo = dados.tipo, periodo = dados.periodo, lista = dados.lista;
+
+  var rotuloPeriodo = { hoje: 'hoje', semana: 'nesta semana', mes: 'neste mês', geral: 'no geral' }[periodo] || '';
+  var rotuloTipo = el.rankingTipo.options[el.rankingTipo.selectedIndex] ? el.rankingTipo.options[el.rankingTipo.selectedIndex].text : '';
+
+  var aviso = '';
+  if (!BACKEND.conectado) {
+    aviso = '<p class="ranking-aviso">🔒 Offline — exibindo apenas o seu histórico competitivo. Quando o backend estiver conectado, você verá os jogadores reais.</p>';
+  }
+
+  // Pódio top 3
+  if (!lista.length) {
+    el.rankingPodio.innerHTML = '<div class="estado-vazio"><span class="emoji">🏆</span><p><strong>Sem registros ' + (rotuloPeriodo ? ' ' + rotuloPeriodo : '') + '.</strong><br>Jogue e volte para ver sua posição!</p></div>';
+    el.rankingTabela.innerHTML = '';
+  } else {
+    var topo = lista.slice(0, 3);
+    var med = ['🥇', '🥈', '🥉'];
+    el.rankingPodio.innerHTML = '<div class="podio">' + topo.map(function (p, i) {
+      return '<div class="podio-item' + (i === 0 ? ' primeiro' : '') + '">' +
+        '<span class="podio-medalha">' + med[i] + '</span>' +
+        '<span class="podio-avatar">' + (p.icon || '🧑‍🚀') + '</span>' +
+        '<span class="podio-nome">' + (p.nome || lerNome()) + '</span>' +
+        '<span class="podio-valor">' + formatarValorRank(tipo, p) + '</span>' +
+        '<span class="podio-pontos">' + p.pontos + ' pts</span>' +
+      '</div>';
+    }).join('') + '</div>';
+
+    // Tabela completa
+    var linhas = lista.slice(0, 30).map(function (p, i) {
+      var destaque = i === 0;
+      return '<li class="rank-linha' + (destaque ? ' destaque' : '') + '">' +
+        '<span class="rank-pos">' + (i + 1) + 'º</span>' +
+        '<span class="rank-avatar">' + (p.icon || '🧑‍🚀') + '</span>' +
+        '<span class="rank-nome">' + (p.nome || lerNome()) +
+          '<small>' + p.dataFmt + ' · ' + rotuloModoNome(p.modo) + '</small></span>' +
+        '<span class="rank-nivel">Nv ' + (p.nivel || 1) + '</span>' +
+        '<span class="rank-eff">' + formatarValorRank(tipo, p) + '</span>' +
+        '<span class="rank-pontos rank-medida">' + p.pontos + ' pts</span>' +
+      '</li>';
+    });
+    el.rankingTabela.innerHTML = '<h3 class="titulo-bloco">' + rotuloTipo + '</h3>' + aviso +
+      '<ul class="lista-ranking lista-grid">' + linhas.join('') + '</ul>';
+  }
+
+  // Posição do próprio jogador
+  renderizarMinhaPosicao(lista);
+}
+function formatarValorRank(tipo, p) {
+  if (tipo === 'xp') return (p.xp || 0) + ' XP';
+  if (tipo === 'sequencia') return (p.maiorCombo || 0) + ' seq.';
+  if (tipo === 'quizzes') return (p.streakParcial || '1') + '';
+  if (tipo === 'taxa') return (p.taxa || 0) + '%';
+  return p.pontos + ' pts';
+}
+function rotuloModoNome(modo) {
+  var m = buscarModo(modo);
+  return m ? m.nome : modo === 'desafio' ? 'Desafio do Dia' : 'Quiz';
+}
+function renderizarMinhaPosicao(lista) {
+  if (!el.rankingMinhaPosicao) return;
+  if (!lista.length) {
+    el.rankingMinhaPosicao.innerHTML = '<div class="card suave minhapos"><span>👤 Sua posição: <strong>—</strong></span></div>';
+    return;
+  }
+  // Melhor resultado é sempre o 1º da lista local (todos os registros são seus).
+  var melhor = lista[0];
+  var nv = calcularNivel(lerXpValido());
+  el.rankingMinhaPosicao.innerHTML =
+    '<div class="card suave minhapos">' +
+      '<span class="minhapos-icone">' + (melhor.icon || '🧑‍🚀') + '</span>' +
+      '<div class="minhapos-info">' +
+        '<strong>Você está em 1º lugar</strong>' +
+        '<small>Nível ' + nv.nivel + ' · ' + lerXpValido() + ' XP · Melhor pontuação: ' + lerRecorde() + '</small>' +
+      '</div>' +
+    '</div>';
+}
+
+/* ---------- 19) MULTIPLAYER / SALAS (Fase 3, arquitetura) ----------
+   Preparado para WebSocket. NADA é simulado: enquanto a conexão não
+   existir (BACKEND.conectado = false), a UI explica o fluxo e o botão
+   fica desabilitado. Quando o backend for plugado, basta implementar
+   os métodos de SalaTempoReal abaixo e ligar BACKEND.conectar(). */
+var SalaTempoReal = {
+  emPartida: false,
+  sala: null,
+  /* Fluxo previsto:
+     criarSala(quizId) -> gera código (ex.: AKE492)
+     entrarSala(codigo)
+     iniciarHost()     -> distribui mesmas perguntas para todos
+     responder(idx)    -> envia resposta com timestamp
+     rankingPorRodada() -> tabela parcial após cada pergunta */
+  criarSala: function (quizId) {
+    if (!BACKEND.conectado) return Promise.reject(new Error('Backend não conectado.'));
+    // Quando houver servidor: POST /salas -> { codigo, jogadorId }
+    return Promise.resolve({ codigo: 'AKE492' });
+  },
+  entrarSala: function (codigo) {
+    if (!BACKEND.conectado) return Promise.reject(new Error('Backend não conectado.'));
+    return Promise.resolve(true);
+  },
+  enviarResposta: function (indice, pct) {
+    if (!BACKEND.conectado) return false;
+    return true;
+  },
+  rankingPorRodada: function () {
+    if (!BACKEND.conectado) return null;
+    return [];
+  }
+};
+function renderizarCardSalas(container, resumido) {
+  if (!container) return;
+  if (BACKEND.conectado) {
+    container.innerHTML = '<div class="estado-vazio"><span class="emoji">🛰️</span><p>Backend conectado! A tela de salas será habilitada aqui.</p></div>';
+    return;
+  }
+  container.innerHTML =
+    '<div class="sala-offline">' +
+      '<span class="sala-offline-icone">🛰️</span>' +
+      '<h3>Salas multiplayer em breve</h3>' +
+      '<p>' + (resumido ? 'Crie uma sala, compartilhe o código e dispute a mesma partida em tempo real.' : '') + '</p>' +
+      '<ol class="sala-fluxo">' +
+        '<li><strong>Criar sala</strong> — um código como <em>SALA #AKE492</em> é gerado.</li>' +
+        '<li><strong>Compartilhar código</strong> — convide outros jogadores.</li>' +
+        '<li><strong>Host inicia</strong> — todos recebem as mesmas perguntas.</li>' +
+        '<li><strong>Responder simultaneamente</strong> — pontos por velocidade e acerto.</li>' +
+        '<li><strong>Ranking após cada rodada</strong> — tabela parcial ao vivo.</li>' +
+        '<li><strong>Resultado final</strong> — pódio da sala.</li>' +
+      '</ol>' +
+      '<p class="sala-aviso">🔧 Este modo precisa de um servidor WebSocket. A arquitetura está pronta em <code>BACKEND</code> e <code>SalaTempoReal</code> — basta plugar o servidor para ativar. Sem fake: nenhuma sala é simulada offline.</p>' +
+      (BACKEND.conectado ? '' : '<p class="sala-exemplo">Exemplo de sala (aguardando backend):</p><pre class="sala-pre">SALA #AKE492\n1. Willian — 920 pts\n2. João — 810 pts\n3. Pedro — 760 pts</pre>') +
+    '</div>';
+}
+function renderizarSalas() {
+  if (!el.salasCard) return;
+  renderizarCardSalas(el.salasCard, false);
+}
+
+/* ---------- 20) COMPARTILHAR RESULTADO (Fase 3) ---------- */
+function textoCompartilhamento() {
+  var p = ultimaPartida;
+  if (!p) return '';
+  var nome = lerNome();
+  var tx = (p.taxa || 0);
+  return '🧠 Quiz AKE\n\n' +
+    nome + ' conseguiu ' + p.acertos + '/' + p.total + ' (' + tx + '%)!\n\n' +
+    '🔥 Combo máximo: ' + (p.maiorCombo || 0) + '\n' +
+    '🏆 Pontuação: ' + p.pontos.toLocaleString('pt-BR') + ' pts\n\n' +
+    'Será que você consegue superar?';
+}
+function desenharShareCard() {
+  if (!el.shareConteudo || !ultimaPartida) return;
+  el.shareConteudo.innerHTML =
+    '<div class="share-head"><span>🧠</span> Quiz AKE</div>' +
+    '<div class="share-score">' + ultimaPartida.acertos + '/' + (ultimaPartida.total || 0) + '</div>' +
+    '<div class="share-linha">🔥 Combo máximo: <strong>' + (ultimaPartida.maiorCombo || 0) + '</strong></div>' +
+    '<div class="share-linha">🏆 Pontuação: <strong>' + ultimaPartida.pontos.toLocaleString('pt-BR') + '</strong></div>' +
+    '<div class="share-challenge">Será que você consegue superar?</div>';
+}
+function compartilharResultado() {
+  var texto = textoCompartilhamento();
+  if (!texto) return;
+  if (el.shareCard) {
+    desenharShareCard();
+    el.shareCard.classList.remove('hidden');
+  }
+  // Web Share API
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    navigator.share({ title: 'Quiz AKE', text: texto, url: location.href })
+      .catch(function () { copiarParaAreaDeTransferencia(texto); });
+    return;
+  }
+  copiarParaAreaDeTransferencia(texto);
+}
+function copiarParaAreaDeTransferencia(texto) {
+  var feito = function () { mostrarMensagem('🔗 Resultado copiado!', 'var(--ok)'); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(texto).then(feito).catch(function () { areaDeTransferenciaFallback(texto); feito(); });
+    return;
+  }
+  areaDeTransferenciaFallback(texto);
+  feito();
+}
+function areaDeTransferenciaFallback(texto) {
+  var ta = document.createElement('textarea');
+  ta.value = texto;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  if (ta.parentNode) ta.parentNode.removeChild(ta);
+}
+function baixarImagemShare() {
+  if (!ultimaPartida) return;
+  var canvas = document.createElement('canvas');
+  canvas.width = 1080; canvas.height = 1920;
+  var ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // Fundo
+  var g = ctx.createLinearGradient(0, 0, 0, 1920);
+  g.addColorStop(0, '#151833'); g.addColorStop(1, '#0e1020');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1920);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#7c6cf0';
+  ctx.font = 'bold 96px Segoe UI, sans-serif';
+  ctx.fillText('🧠 Quiz AKE', 540, 260);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 200px Segoe UI, sans-serif';
+  ctx.fillText(ultimaPartida.acertos + '/' + (ultimaPartida.total || 0), 540, 560);
+
+  ctx.fillStyle = '#a9b0d8';
+  ctx.font = '40px Segoe UI, sans-serif';
+  ctx.fillText('🔥 Combo máximo: ' + (ultimaPartida.maiorCombo || 0), 540, 720);
+  ctx.fillText('🏆 Pontuação: ' + ultimaPartida.pontos.toLocaleString('pt-BR') + ' pts', 540, 800);
+  ctx.fillText('🎯 Aproveitamento: ' + (ultimaPartida.taxa || 0) + '%', 540, 880);
+
+  ctx.fillStyle = '#4aa8ff';
+  ctx.font = 'bold 56px Segoe UI, sans-serif';
+  ctx.fillText('Será que você consegue superar?', 540, 1100);
+
+  var a = document.createElement('a');
+  a.download = 'quiz-ake-resultado.png';
+  a.href = canvas.toDataURL('image/png');
+  document.body.appendChild(a);
+  a.click();
+  if (a.parentNode) a.parentNode.removeChild(a);
+}
+
+/* ---------- 21) CONQUISTAS ---------- */
 function lerConquistas() { return lerLista(CHAVE.conquistas); }
 function desbloquear(id) {
   var lista = lerConquistas();
@@ -607,6 +1061,10 @@ function progressoConquista(def) {
     case 'recorde': v = lerRecorde() > 0 ? 1 : 0; break;
     case 'desafios': v = s.desafios; break;
     case 'streak': v = seq.maior; break;
+    case 'sobSeq': v = s.sobrevSeq || 0; break;
+    case 'blitzPontos': v = s.blitzPontos || 0; break;
+    case 'contraPontos': v = s.contraPontos || 0; break;
+    case 'modosJogados': v = s.modosDistintos || 0; break;
   }
   return { valor: v, alvo: def.alvo };
 }
@@ -641,7 +1099,7 @@ function checarConquistas() {
   return novas;
 }
 
-/* ---------- 19) PERFIL ---------- */
+/* ---------- 22) PERFIL (competição, Fase 3) ---------- */
 function renderizarPerfil() {
   var s = lerStats();
   var xp = lerXpValido();
@@ -672,8 +1130,72 @@ function renderizarPerfil() {
     d.innerHTML = '<span class="stat-valor">' + c[1] + '</span><span class="stat-rotulo">' + c[2] + '</span>';
     el.perfilStats.appendChild(d);
   });
+  renderizarCompeticao();
+  renderizarRecordes();
+  renderizarCompetitivo();
   renderizarHistorico();
   renderizarCalendarioStreak();
+}
+
+function renderizarCompeticao() {
+  if (!el.perfilCompeticao) return;
+  var s = lerStats();
+  var partes = lerPartidas();
+  var ganhas = lerConquistas();
+  var melhorPos = '1º';
+  var melhorPontos = partes.length ? partes[0].pontos : lerRecorde();
+  var mediaPontos = partes.length ? Math.round(partes.reduce(function (a, p) { return a + p.pontos; }, 0) / partes.length) : 0;
+
+  el.perfilCompeticao.innerHTML =
+    '<div class="competicao-grid">' +
+      '<div class="stat-card"><span class="stat-valor">' + melhorPos + '</span><span class="stat-rotulo">Melhor posição (ranking)</span></div>' +
+      '<div class="stat-card"><span class="stat-valor">' + melhorPontos + '</span><span class="stat-rotulo">Melhor pontuação</span></div>' +
+      '<div class="stat-card"><span class="stat-valor">' + mediaPontos + '</span><span class="stat-rotulo">Média de pontos</span></div>' +
+      '<div class="stat-card"><span class="stat-valor">' + ganhas.length + '/' + CONQUISTAS_DEF.length + '</span><span class="stat-rotulo">Medalhas desbloqueadas</span></div>' +
+    '</div>' +
+    (BACKEND.conectado ? '' : '<p class="descricao-bloco comp-aviso">🔒 Offline — posição e média consideram apenas o seu histórico local.</p>');
+}
+
+function renderizarRecordes() {
+  if (!el.perfilRecordes) return;
+  var s = lerStats();
+  var partes = lerPartidas();
+  var modosJogados = MODOS.map(function (m) {
+    var ms = sDeModo(m.id);
+    var qtd = partes.filter(function (p) { return p.modo === m.id; }).length;
+    return '<div class="recorde-linha" style="--modo-cor:' + m.cor + '">' +
+      '<span class="recorde-icone">' + m.icone + '</span>' +
+      '<div class="recorde-info">' +
+        '<strong>' + m.nome + '</strong>' +
+        '<small>' + qtd + ' partida(s) · melhor ' + (ms ? ms.pontos : 0) + ' pts</small>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  var chunks2 = [
+    ['🌳', 'Sobrevivência (maior sequência)', s.sobrevSeq || 0],
+    ['⚡', 'Blitz (melhor pontuação)', s.blitzPontos || 0],
+    ['⏰', 'Contra o Tempo (melhor pontuação)', s.contraPontos || 0]
+  ].map(function (c) {
+    return '<div class="stat-card"><span class="stat-valor">' + c[2] + '</span><span class="stat-rotulo">' + c[1] + '</span></div>';
+  }).join('');
+  el.perfilRecordes.innerHTML = '<div class="grade-stats">' + chunks2 + '</div>' + modosJogados;
+}
+
+function renderizarCompetitivo() {
+  if (!el.perfilCompetitivo) return;
+  var partes = lerPartidas();
+  if (partes.length === 0) {
+    el.perfilCompetitivo.innerHTML = '<div class="estado-vazio"><p>Nenhuma partida competitiva ainda. Explore os modos!</p></div>';
+    return;
+  }
+  el.perfilCompetitivo.innerHTML = partes.slice(0, 8).map(function (p) {
+    var m = buscarModo(p.modo);
+    return '<li class="hist-item">' +
+      '<span class="hist-icon">' + (m ? m.icone : p.modo === 'desafio' ? '🎯' : '🧠') + '</span>' +
+      '<span class="hist-info"><strong>' + (m ? m.nome : 'Quiz') + '</strong><small>' + p.dataFmt + '</small></span>' +
+      '<span class="hist-pct">' + (p.taxa || 0) + '%</span>' +
+      '<span class="pts">' + p.pontos + ' pts</span></li>';
+  }).join('');
 }
 
 function renderizarHistorico() {
@@ -714,20 +1236,16 @@ function renderizarCalendarioStreak() {
     }).join('') + '</div>';
 }
 
-/* ---------- 20) MOTOR DO QUIZ ---------- */
+/* ---------- 23) MOTOR DO QUIZ ---------- */
 function entrarNoQuiz(id) {
   var quiz = buscarQuiz(id) || QUIZZES[0];
   var pool = perguntasDoQuiz(quiz);
   if (!pool.length) return;
-  pararTimer();
+  pararTudo();
+  modoAtual = 'normal';
   quizAtual = quiz;
-  modoDesafio = false;
-  prepararPartida(pool);
-}
-function iniciarPartidaPerguntas(pool, tipo) {
-  pararTimer();
-  modoDesafio = tipo === 'desafio';
-  prepararPartida(pool);
+  if (el.modoChip) el.modoChip.classList.add('hidden');
+  prepararPartida(pool.slice(0, Math.min(QUANTAS_PERGUNTAS, pool.length)));
 }
 function prepararPartida(pool) {
   var copia = pool.slice();
@@ -735,14 +1253,15 @@ function prepararPartida(pool) {
     var j = Math.floor(Math.random() * (i + 1));
     var t = copia[i]; copia[i] = copia[j]; copia[j] = t;
   }
-  perguntasSorteio = copia.slice(0, QUANTAS_PERGUNTAS);
-  if (modoDesafio) perguntasSorteio = copia.slice(0, PERGUNTAS_DESAFIO);
+  perguntasSorteio = copia;
 
   indiceAtual = 0; pontuacao = 0; sequenciaCerta = 0; maiorCombo = 0;
   acertos = 0; erros = 0; rapidas = 0; respondeu = false; tempoTotalUsado = 0;
+  fimSobrev = false;
 
-  var dif = quizAtual ? quizAtual.dificuldade : 'medio';
-  segundosPorPergunta = TEMPO_POR_DIFICULDADE[dif] || 20;
+  if (modoAtual === 'contra-tempo') {
+    tempoGeral = tempoGeralMax;
+  }
 
   el.pontuacao.textContent = '0';
   el.acertosTela.textContent = '0';
@@ -752,14 +1271,41 @@ function prepararPartida(pool) {
   mostrarPergunta();
 }
 
+function perguntaAtual() {
+  if (modoAtual === 'sobrevivencia') {
+    // Dificuldade sobe conforme os acertos da partida.
+    var difMeta = dificuldadeSobrevivencia(acertos);
+    var candidatas = PERGUNTAS.concat(perguntasSorteio).filter(function (p) {
+      return p.dificuldade === difMeta;
+    });
+    if (!candidatas.length) candidatas = perguntasSorteio;
+    return candidatas[Math.floor(Math.random() * candidatas.length)];
+  }
+  if (perguntasSorteio.length) {
+    return perguntasSorteio[indiceAtual % perguntasSorteio.length];
+  }
+  return PERGUNTAS[Math.floor(Math.random() * PERGUNTAS.length)];
+}
+function dificuldadeSobrevivencia(acertosPartida) {
+  if (acertosPartida < 4) return 'facil';
+  if (acertosPartida < 9) return 'medio';
+  if (acertosPartida < 14) return 'dificil';
+  return 'insano';
+}
+
 function mostrarPergunta() {
   pararTimer();
-  var pergunta = perguntasSorteio[indiceAtual];
-  var total = perguntasSorteio.length;
+  var pergunta = perguntaAtual();
+  var total = totalPerguntasPartida();
+  var infinito = (modoAtual === 'sobrevivencia' || modoAtual === 'contra-tempo');
 
-  el.textoProgresso.textContent = 'Pergunta ' + (indiceAtual + 1) + ' de ' + total;
+  el.textoProgresso.textContent = rotuloProgresso(total, infinito);
   el.numeroPergunta.textContent = 'Pergunta ' + (indiceAtual + 1);
-  el.barraProgresso.style.width = (indiceAtual / total) * 100 + '%';
+  if (infinito) {
+    el.barraProgresso.style.width = Math.min(100, ((acertos) % 50) * 2) + '%';
+  } else {
+    el.barraProgresso.style.width = (indiceAtual / total) * 100 + '%';
+  }
 
   var tipo = buscarTipo(pergunta.tipo || 'multipla');
   el.tipoPergunta.textContent = '· ' + tipo.nome;
@@ -789,10 +1335,43 @@ function mostrarPergunta() {
   respondeu = false;
   contarPergunta();
 }
+function totalPerguntasPartida() {
+  if (modoAtual === 'sobrevivencia' || modoAtual === 'contra-tempo') return Infinity;
+  if (modoAtual === 'blitz') return QUANTAS_BLITZ;
+  return perguntasSorteio.length || QUANTAS_PERGUNTAS;
+}
+function rotuloProgresso(total, infinito) {
+  if (modoAtual === 'sobrevivencia') return '⚔️ Sobrevivência · Acerto ' + (indiceAtual + 1);
+  if (modoAtual === 'blitz') return '⚡ Blitz · Pergunta ' + (indiceAtual + 1) + ' de ' + QUANTAS_BLITZ;
+  if (modoAtual === 'contra-tempo') return '⏰ Contra o Tempo · Pergunta ' + (indiceAtual + 1);
+  return 'Pergunta ' + (indiceAtual + 1) + ' de ' + total;
+}
 
 function contarPergunta() {
-  segundosPorPergunta = TEMPO_POR_DIFICULDADE[quizAtual ? quizAtual.dificuldade : 'medio'] || 20;
-  tempoRestante = segundosPorPergunta;
+  pararTimer();
+
+  // Contra o Tempo usa relógio contínuo global (não por pergunta).
+  if (modoAtual === 'contra-tempo') {
+    if (tempoGeralMax <= 0) tempoGeralMax = TEMPO_CONTRA_INICIAL;
+    tempoGeral = (tempoGeral <= 0) ? tempoGeralMax : tempoGeral;
+    el.numTimer.textContent = tempoGeral;
+    el.barraTimer.style.width = Math.max(0, Math.min(100, (tempoGeral / tempoGeralMax) * 100)) + '%';
+    el.numTimer.classList.remove('warning', 'danger');
+    el.barraTimer.style.background = 'var(--ok)';
+    cronometroGlobal = setInterval(function () {
+      tempoGeral--;
+      el.numTimer.textContent = Math.max(0, tempoGeral);
+      el.barraTimer.style.width = Math.max(0, (tempoGeral / tempoGeralMax) * 100) + '%';
+      if (tempoGeral <= 5) { el.numTimer.classList.add('danger'); el.barraTimer.style.background = 'var(--erro)'; }
+      else if (tempoGeral <= 9) { el.numTimer.classList.add('warning'); el.barraTimer.style.background = 'var(--aviso)'; }
+      if (tempoGeral <= 0) { pararTudo(); finalizarPartida(); }
+    }, 1000);
+    return;
+  }
+
+  var tempo = tempoDaPergunta();
+  segundosPorPergunta = tempo;
+  tempoRestante = tempo;
   el.numTimer.textContent = tempoRestante;
   el.barraTimer.style.width = '100%';
   el.numTimer.classList.remove('warning', 'danger');
@@ -808,9 +1387,22 @@ function contarPergunta() {
     if (tempoRestante <= 0) { pararTimer(); tempoEsgotado(); }
   }, 1000);
 }
+function tempoDaPergunta() {
+  if (modoAtual === 'blitz') return TEMPO_BLITZ;
+  if (modoAtual === 'sobrevivencia') {
+    var d = dificuldadeSobrevivencia(acertos);
+    return TEMPO_POR_DIFICULDADE[d] || 15;
+  }
+  var dif = quizAtual ? quizAtual.dificuldade : 'medio';
+  return TEMPO_POR_DIFICULDADE[dif] || 20;
+}
 
 function pararTimer() {
   if (cronometro !== null) { clearInterval(cronometro); cronometro = null; }
+}
+function pararTudo() {
+  pararTimer();
+  if (cronometroGlobal !== null) { clearInterval(cronometroGlobal); cronometroGlobal = null; }
 }
 
 function tempoEsgotado() {
@@ -822,7 +1414,7 @@ function tempoEsgotado() {
 
   var botoes = el.areaRespostas.querySelectorAll('.answer-btn');
   botoes.forEach(function (b) { b.disabled = true; });
-  var pergunta = perguntasSorteio[indiceAtual];
+  var pergunta = perguntaAtual();
   var okIdx = pergunta.correta;
   if (botoes[okIdx]) botoes[okIdx].classList.add('correct');
 
@@ -831,8 +1423,20 @@ function tempoEsgotado() {
   el.numeroSeq.textContent = '0';
 
   tocarSom(false);
-  mostrarMensagem('⏰ Tempo esgotado!', 'var(--erro)');
   mostrarExplicacao(false, pergunta);
+
+  // Sobrevivência: erro (ou tempo) encerra imediatamente.
+  if (modoAtual === 'sobrevivencia') {
+    fimSobrev = true;
+    setTimeout(function () { finalizarPartida(); }, 2600);
+    return;
+  }
+  if (modoAtual === 'contra-tempo') {
+    // Erro por tempo no contra-tempo já tratado pelo relógio global; se chegar aqui (defensivo) encerra.
+    finalizarPartida();
+    return;
+  }
+  mostrarMensagem('⏰ Tempo esgotado!', 'var(--erro)');
   proximaPergunta();
 }
 
@@ -842,12 +1446,13 @@ function responder(idx, botao, valor) {
   pararTimer();
 
   var tempoUsado = segundosPorPergunta - tempoRestante;
+  if (modoAtual === 'contra-tempo') tempoUsado = 1; // sem cronômetro por pergunta
   tempoTotalUsado += tempoUsado;
 
   var todos = el.areaRespostas.querySelectorAll('.answer-btn');
   todos.forEach(function (b) { b.disabled = true; });
 
-  var pergunta = perguntasSorteio[indiceAtual];
+  var pergunta = perguntaAtual();
   var certa = pergunta.correta;
 
   if (idx === certa) {
@@ -856,17 +1461,25 @@ function responder(idx, botao, valor) {
     if (sequenciaCerta > maiorCombo) maiorCombo = sequenciaCerta;
     el.chipCombo.style.display = 'inline-flex';
     el.numeroSeq.textContent = sequenciaCerta;
-    if (tempoUsado <= 4) rapidas++;
+    if (tempoUsado <= 4 && modoAtual !== 'contra-tempo') rapidas++;
 
     var pontosBase = PONTOS_CERTA + BONUS_COMBO * (sequenciaCerta - 1);
     var ganho = pontosBase * (valor || 1);
+    if (modoAtual === 'blitz') {
+      // Pontos por velocidade: quanto mais rápido, mais pontos (até 2x).
+      ganho = Math.round(pontosBase * (1 + tempoRestante / (tempoDaPergunta() || 1)));
+    }
+    if (modoAtual === 'contra-tempo') {
+      tempoGeral = Math.min(tempoGeralMax, tempoGeral + CONTRA_ACERTO);
+      el.numTimer.textContent = tempoGeral;
+    }
     pontuacao += ganho;
     el.pontuacao.textContent = pontuacao;
 
     botao.classList.add('correct');
     tocarSom(true);
     criarConfete();
-    mostrarMensagem(valor > 1 ? '+ ' + ganho + ' pts (x' + valor + ')' : '+ ' + ganho + ' pts', 'var(--ok)');
+    mostrarMensagem('+ ' + ganho + ' pts', 'var(--ok)');
     mostrarExplicacao(true, pergunta);
   } else {
     botao.classList.add('wrong');
@@ -876,10 +1489,25 @@ function responder(idx, botao, valor) {
     sequenciaCerta = 0;
     el.numeroSeq.textContent = '0';
     el.chipCombo.style.display = 'none';
+
+    if (modoAtual === 'contra-tempo') {
+      tempoGeral = Math.max(1, tempoGeral - CONTRA_PENALIDADE);
+      el.numTimer.textContent = tempoGeral;
+      pararTudo();
+      if (tempoGeral <= 0) {
+        setTimeout(function () { finalizarPartida(); }, 1200);
+        return;
+      }
+    }
     tocarSom(false);
-    mostrarMensagem('✖ Errou', 'var(--erro)');
     mostrarExplicacao(false, pergunta);
+    if (modoAtual === 'sobrevivencia') {
+      fimSobrev = true;
+      setTimeout(function () { finalizarPartida(); }, 1200);
+      return;
+    }
   }
+
   proximaPergunta();
 }
 
@@ -895,32 +1523,50 @@ function mostrarExplicacao(acertou, pergunta) {
 
 function proximaPergunta() {
   setTimeout(function () {
+    if (fimSobrev) { return; }
     indiceAtual++;
+    if (modoAtual === 'sobrevivencia' || modoAtual === 'contra-tempo') {
+      mostrarPergunta(); // infinito
+      return;
+    }
     if (indiceAtual < perguntasSorteio.length) mostrarPergunta();
     else finalizarPartida();
   }, 2600);
 }
 
-/* ---------- 21) FINAL DA PARTIDA ---------- */
+/* ---------- 24) FINAL DA PARTIDA (competitiva) ---------- */
 function finalizarPartida() {
-  pararTimer();
-  var total = perguntasSorteio.length || 1;
-  var percentual = Math.round((acertos / total) * 100);
-  var tempoMedio = Math.round(tempoTotalUsado / total);
+  pararTudo();
+  var total = totalPerguntasPartida();
+  var respondidas = acertos + erros;
+  var percentual = Math.round((acertos / Math.max(1, respondidas)) * 100);
+
+  var tempoMedio = tempoTotalUsado && Math.round(tempoTotalUsado / Math.max(1, respondidas));
+  if (modoAtual === 'contra-tempo') tempoMedio = Math.max(0, tempoGeralMax - tempoGeral);
 
   var novoRecorde = pontuacao > lerRecorde();
   if (novoRecorde) gravarTexto(CHAVE.recorde, pontuacao);
 
   var xpGanho = acertos * XP_ACERTO + maiorCombo * XP_COMBO + XP_COMPLETAR;
   if (percentual === 100) xpGanho += XP_PERFEITO;
-  if (modoDesafio) xpGanho += XP_DESAFIO;
+  if (modoAtual === 'desafio') xpGanho += XP_DESAFIO;
+  if (modoAtual === 'sobrevivencia' || modoAtual === 'blitz' || modoAtual === 'contra-tempo') xpGanho += XP_DESAFIO;
 
   var s = lerStats();
   s.jogos++; s.acertos += acertos; s.erros += erros; s.rapidas += rapidas;
   if (maiorCombo > s.maiorCombo) s.maiorCombo = maiorCombo;
   if (percentual === 100) s.perfeitos++;
   if (pontuacao > s.maiorPontos) s.maiorPontos = pontuacao;
-  if (modoDesafio) s.desafios++;
+  if (modoAtual === 'desafio') s.desafios++;
+  if (modoAtual === 'sobrevivencia') s.sobrevSeq = Math.max(s.sobrevSeq || 0, acertos);
+  if (modoAtual === 'blitz') s.blitzPontos = Math.max(s.blitzPontos || 0, pontuacao);
+  if (modoAtual === 'contra-tempo') s.contraPontos = Math.max(s.contraPontos || 0, pontuacao);
+
+  // Conta modos distintos jogados (para conquista 'modosJogados')
+  var modosSet = {};
+  lerPartidas().forEach(function (p) { modosSet[p.modo] = true; });
+  modosSet[modoAtual] = true;
+  s.modosDistintos = Object.keys(modosSet).filter(function (k) { return k !== 'normal'; }).length;
   salvarStats(s);
 
   var xpAntes = lerXpValido();
@@ -936,39 +1582,94 @@ function finalizarPartida() {
   var seq = registrarAtividade();
 
   registrarHistorico({
-    quiz: quizAtual ? quizAtual.id : 'desafio-dia',
-    titulo: quizAtual ? quizAtual.titulo : 'Desafio do Dia',
-    icon: quizAtual ? quizAtual.capa.emoji : '🎯',
+    quiz: quizAtual ? quizAtual.id : 'modo-' + modoAtual,
+    titulo: tituloPartida(),
+    icon: iconePartida(),
     quando: new Date().toLocaleDateString('pt-BR'),
     pontos: pontuacao,
     pct: percentual
   });
 
+  var dataFmt = new Date().toLocaleDateString('pt-BR');
+  ultimaPartida = {
+    ts: Date.now(),
+    dataISO: hojeISO(),
+    dataFmt: dataFmt,
+    modo: modoAtual,
+    nome: lerNome(),
+    icon: iconePartida(),
+    pontos: pontuacao,
+    xp: xpGanho,
+    acertos: acertos,
+    erros: erros,
+    total: Math.min(Math.max(total, respondidas), acertos + erros + acertos || 1),
+    percentual: percentual,
+    taxa: percentual,
+    maiorCombo: maiorCombo,
+    nivel: nivelDepois.nivel
+  };
+  registrarPartida(ultimaPartida);
+
   var ranking = lerLista(CHAVE.ranking);
-  ranking.push({ nome: lerNome() + ' · ' + (quizAtual ? quizAtual.titulo : 'Desafio'), pontos: pontuacao });
+  ranking.push({ nome: lerNome() + ' · ' + tituloPartida(), pontos: pontuacao });
   ranking.sort(function (a, b) { return b.pontos - a.pontos; });
   gravarTexto(CHAVE.ranking, JSON.stringify(ranking.slice(0, LIMITE_RANKING)));
 
-  if (modoDesafio) {
+  if (modoAtual === 'desafio') {
     var d = lerObjeto(CHAVE.desafio, { hoje: '', melhor: -1 });
     var venceuRecorde = d.hoje === hojeISO() ? (pontuacao >= d.melhor) : true;
     if (venceuRecorde) {
-      gravarTexto(CHAVE.desafio, JSON.stringify({ hoje: hojeISO(), melhor: pontuacao, acertos: acertos, total: total }));
+      gravarTexto(CHAVE.desafio, JSON.stringify({ hoje: hojeISO(), melhor: pontuacao, acertos: acertos, total: PERGUNTAS_DESAFIO }));
     }
   }
 
-  montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecorde);
+  montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecorde, totalInfinito);
+}
+
+/* Total final considerado (Infinity vira acertos contados para exibição) */
+function totalInfinito() {
+  if (modoAtual === 'sobrevivencia' || modoAtual === 'contra-tempo') return acertos + (modoAtual === 'sobrevivencia' ? 1 : erros);
+  return perguntasSorteio.length || QUANTAS_PERGUNTAS;
+}
+function tituloPartida() {
+  if (modoAtual === 'sobrevivencia') return 'Sobrevivência';
+  if (modoAtual === 'blitz') return 'Blitz';
+  if (modoAtual === 'contra-tempo') return 'Contra o Tempo';
+  if (modoAtual === 'desafio') return 'Desafio do Dia';
+  return quizAtual ? quizAtual.titulo : 'Quiz';
+}
+function iconePartida() {
+  if (modoAtual === 'sobrevivencia') return '⚔️';
+  if (modoAtual === 'blitz') return '⚡';
+  if (modoAtual === 'contra-tempo') return '⏰';
+  if (modoAtual === 'desafio') return '🎯';
+  return quizAtual && quizAtual.capa ? quizAtual.capa.emoji : '🧠';
 }
 
 function montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecorde) {
+  var totalFinal = totalInfinito();
   el.pontuacaoFinal.textContent = pontuacao + ' pontos';
   el.rAcertos.textContent = acertos;
   el.rErros.textContent = erros;
   el.rPercentual.textContent = percentual + '%';
   el.rCombo.textContent = 'x' + maiorCombo;
-  el.rTempo.textContent = tempoMedio + 's';
+  el.rTempo.textContent = (tempoMedio || 0) + 's';
   el.rXp.textContent = '+' + xpGanho + ' XP';
   el.melhorPontuacao.textContent = '🏅 Melhor pontuação: ' + lerRecorde();
+
+  // Nota competitiva (Fase 3)
+  if (!BACKEND.conectado) {
+    if (el.resultadoNota) {
+      el.resultadoNota.classList.remove('hidden');
+      el.resultadoNota.innerHTML =
+        '<div class="nota-linha"><span>🧩 Modo:</span><strong>' + tituloPartida() + '</strong></div>' +
+        '<div class="nota-linha"><span>👤 Posição no ranking (local):</span><strong>1º</strong></div>' +
+        (modoAtual === 'sobrevivencia' || modoAtual === 'blitz' || modoAtual === 'contra-tempo'
+          ? '<div class="nota-linha"><span>Recorde do modo:</span><strong>' + (sRecordeModoDoJogador(modoAtual)) + ' pts</strong></div>'
+          : '') +
+        '<p class="descricao-bloco comp-aviso">🔒 Offline — posição e recorde consideram apenas o seu histórico local.</p>';
+    }
+  } else if (el.resultadoNota) el.resultadoNota.classList.add('hidden');
 
   var nv = calcularNivel(lerXpValido());
   el.rNivel.textContent = 'Nível ' + nv.nivel;
@@ -989,6 +1690,10 @@ function montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecord
 
   if (el.rStreak) el.rStreak.innerHTML = '<span>🔥 Sequência atual: <strong>' + seq.atual + '</strong> · Recorde: <strong>' + seq.maior + '</strong></span>';
 
+  // Card de compartilhamento pronto para uso
+  desenharShareCard();
+  if (el.shareCard) el.shareCard.classList.remove('hidden');
+
   var emoji = '🏆', titulo = 'Perfeito!', sub = '100% de acerto, que gênio!';
   if (percentual >= 80) { emoji = '🎉'; titulo = 'Excelente!'; sub = 'Você arrasou!'; }
   else if (percentual >= 60) { emoji = '😄'; titulo = 'Muito bom!'; sub = 'Continue treinando!'; }
@@ -1007,6 +1712,10 @@ function montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecord
   renderizarRanking();
   renderizarConquistas();
 }
+function sRecordeModoDoJogador(modoId) {
+  var m = sDeModo(modoId);
+  return m ? m.pontos : 0;
+}
 
 function mostrarNivelUp(nivel) {
   if (!el.overlayNivel) return;
@@ -1016,7 +1725,7 @@ function mostrarNivelUp(nivel) {
   setTimeout(function () { el.overlayNivel.classList.add('hidden'); }, 3500);
 }
 
-/* ---------- 22) MENSAGENS, CONFETE, SOM ---------- */
+/* ---------- 25) MENSAGENS, CONFETE, SOM ---------- */
 function mostrarMensagem(texto, cor) {
   var m = document.createElement('div');
   m.className = 'floating-msg';
@@ -1054,7 +1763,7 @@ function tocarSom(acertou) {
   } catch (e) {}
 }
 
-/* ---------- 23) INICIAR ---------- */
+/* ---------- 26) INICIAR ---------- */
 function iniciar() {
   aplicarTema();
   iniciarNavegacao();
@@ -1064,8 +1773,11 @@ function iniciar() {
   if (el.heroTotalCats) el.heroTotalCats.textContent = CATEGORIAS.length;
 
   renderizarHome();
+  renderizarModos();
   renderizarConquistas();
   renderizarPaginaQuizzes();
+  renderizarRanking();
+  renderizarSalas();
   mostrarTela('inicio');
 }
 

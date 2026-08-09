@@ -45,8 +45,10 @@
       <!-- Links de navegação + ações -->
       <nav class="nav-links" id="nav-links" aria-label="Navegação principal">
         <a href="#" class="nav-link active" data-navegar="inicio">Início</a>
+        <a href="#" class="nav-link" data-navegar="modos">Modos</a>
         <a href="#" class="nav-link" data-navegar="quizzes">Quizzes</a>
         <a href="#" class="nav-link" data-navegar="ranking">Ranking</a>
+        <a href="#" class="nav-link" data-navegar="salas">Salas</a>
         <a href="#" class="nav-link" data-navegar="conquistas">Conquistas</a>
         <a href="#" class="nav-link" data-navegar="perfil">Perfil</a>
 
@@ -203,12 +205,31 @@
     </div>
   </main>
 
+  <!-- ==================== TELA: MODOS (Fase 3) ==================== -->
+  <main class="tela hidden" id="tela-modos">
+    <div class="container">
+      <div class="bloco-cabecalho">
+        <h2 class="titulo-bloco">⚔️ Modos de jogo</h2>
+        <p class="descricao-bloco">Regras especiais para variar a disputa. Cada modo tem seu próprio ranking.</p>
+      </div>
+      <div id="modos-grade" class="grade-modos"></div>
+
+      <div class="bloco">
+        <h3 class="titulo-bloco">🛰️ Multiplayer</h3>
+        <p class="descricao-bloco">Salas em tempo real para competir com outros jogadores.</p>
+        <div id="modos-salas-card" class="card suave"></div>
+      </div>
+    </div>
+  </main>
+
   <!-- ==================== TELA: QUIZ ==================== -->
   <main class="tela hidden" id="tela-quiz">
     <div class="container">
       <div class="quiz-topo">
-        <!-- Progresso: PERGUNTA 3/10 -->
-        <div class="progress-text" id="texto-progresso">Pergunta 1 de 10</div>
+        <div class="quiz-topo-linha">
+          <span class="chip-modo hidden" id="modo-chip"></span>
+          <div class="progress-text" id="texto-progresso">Pergunta 1 de 10</div>
+        </div>
         <div class="progress-bar">
           <div class="progress-fill" id="barra-progresso"></div>
         </div>
@@ -253,7 +274,7 @@
     </div>
   </main>
 
-  <!-- ==================== TELA: RESULTADO (Fase 2) ==================== -->
+  <!-- ==================== TELA: RESULTADO (Fase 2/3) ==================== -->
   <main class="tela hidden" id="tela-resultado">
     <div class="container">
       <div class="result-emoji" id="emoji-resultado">🏆</div>
@@ -291,7 +312,10 @@
         </div>
       </div>
 
-      <!-- Progresso de nível (Fase 2) -->
+      <!-- Fase 3: números competitivos (posição, recorde, média) -->
+      <div class="resultado-nota card suave hidden" id="resultado-nota"></div>
+
+      <!-- Progresso de nível -->
       <div class="resultado-nivel card">
         <div class="resultado-nivel-linha">
           <strong id="resultado-nivel">Nível 1</strong>
@@ -302,28 +326,74 @@
         </div>
       </div>
 
-      <!-- Conquistas ganhas na partida (Fase 2) -->
+      <!-- Conquistas ganhas na partida -->
       <div class="resultado-conquistas" id="resultado-conquistas"></div>
 
-      <!-- Streak (Fase 2) -->
+      <!-- Streak -->
       <div class="resultado-streak" id="resultado-streak"></div>
+
+      <!-- Fase 3: card de compartilhamento -->
+      <div class="share-card hidden" id="share-card" aria-live="polite">
+        <div class="share-card-corpo" id="share-card-conteudo"></div>
+        <button class="btn btn-ghost btn-largo" id="botao-share-imagem" type="button">Baixar imagem</button>
+      </div>
 
       <div class="result-acoes">
         <button class="btn btn-primary" id="botao-reiniciar">Jogar novamente</button>
+        <button class="btn btn-ghost" id="botao-compartilhar">🔗 Compartilhar resultado</button>
         <button class="btn btn-ghost" data-navegar="quizzes">Escolher outro quiz</button>
         <button class="btn btn-ghost" data-navegar="inicio">Voltar para início</button>
       </div>
     </div>
   </main>
 
-  <!-- ==================== TELA: RANKING ==================== -->
+  <!-- ==================== TELA: RANKING (Fase 3) ==================== -->
   <main class="tela hidden" id="tela-ranking">
     <div class="container">
       <div class="bloco-cabecalho">
         <h2>🏆 Ranking</h2>
-        <p class="descricao-bloco">Suas melhores pontuações salvas neste navegador.</p>
+        <p class="descricao-bloco" id="ranking-descricao">Rankings de pontuação, XP, sequência, quizzes e taxa de acerto.</p>
       </div>
-      <div id="ranking-completo"></div>
+
+      <!-- Filtros: período e tipo de ranking -->
+      <div class="ranking-filtros">
+        <div class="periodo-filtros" id="periodo-filtros" aria-label="Filtrar por período">
+          <button class="periodo-btn ativo" data-periodo="geral">Geral</button>
+          <button class="periodo-btn" data-periodo="hoje">Hoje</button>
+          <button class="periodo-btn" data-periodo="semana">Esta semana</button>
+          <button class="periodo-btn" data-periodo="mes">Este mês</button>
+        </div>
+        <div class="ranking-tipo-linha">
+          <label class="ranking-tipo-label" for="ranking-tipo">Tipo:</label>
+          <select id="ranking-tipo" aria-label="Tipo de ranking">
+            <option value="pontos">🏆 Maior pontuação</option>
+            <option value="xp">🧠 Maior XP</option>
+            <option value="sequencia">🔥 Maior sequência</option>
+            <option value="quizzes">🎮 Mais quizzes realizados</option>
+            <option value="taxa">🎯 Maior taxa de acerto</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Pódio top 3 -->
+      <div id="ranking-podio" class="ranking-podio"></div>
+
+      <!-- Tabela completa -->
+      <div id="ranking-tabela" class="card suave"></div>
+
+      <!-- Posição do próprio jogador -->
+      <div id="ranking-minha-posicao"></div>
+    </div>
+  </main>
+
+  <!-- ==================== TELA: SALAS (Fase 3, multiplayer) ==================== -->
+  <main class="tela hidden" id="tela-salas">
+    <div class="container">
+      <div class="bloco-cabecalho">
+        <h2>🛰️ Salas Multiplayer</h2>
+        <p class="descricao-bloco">Compartilhe um código e dispute a mesma partida com outros jogadores.</p>
+      </div>
+      <div id="salas-card" class="card suave"></div>
     </div>
   </main>
 
@@ -338,12 +408,12 @@
     </div>
   </main>
 
-  <!-- ==================== TELA: PERFIL (Fase 2) ==================== -->
+  <!-- ==================== TELA: PERFIL (Fase 2/3) ==================== -->
   <main class="tela hidden" id="tela-perfil">
     <div class="container">
       <div class="bloco-cabecalho">
         <h2>👤 Perfil</h2>
-        <p class="descricao-bloco">Seu progresso, histórico e sequência diária.</p>
+        <p class="descricao-bloco">Seu progresso, histórico, competição e sequência diária.</p>
       </div>
       <div class="card suave perfil">
         <div class="perfil-topo">
@@ -361,6 +431,26 @@
           <div class="barra-xp-fill" id="barra-xp"></div>
         </div>
         <div class="grade-stats" id="perfil-stats"></div>
+      </div>
+
+      <!-- Fase 3: competição (recordes, medalhas, histórico competitivo) -->
+      <div class="bloco">
+        <h3 class="titulo-bloco">🏅 Competição</h3>
+        <div class="card suave" id="perfil-competicao"></div>
+      </div>
+
+      <!-- Fase 3: recordes por modo -->
+      <div class="bloco">
+        <h3 class="titulo-bloco">⚔️ Recordes por modo</h3>
+        <div class="card suave" id="perfil-recordes"></div>
+      </div>
+
+      <!-- Fase 3: histórico competitivo -->
+      <div class="bloco">
+        <h3 class="titulo-bloco">🏆 Histórico competitivo</h3>
+        <div class="card suave">
+          <ul id="perfil-competitivo" class="lista-historico"></ul>
+        </div>
       </div>
 
       <!-- Sequência diária (Fase 2) -->

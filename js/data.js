@@ -301,5 +301,45 @@ const CONQUISTAS_DEF = [
   { id: 'recordista',  icone: '🏅', nome: 'Recordista',               desc: 'Bata seu próprio recorde.',          tipo: 'recorde',    alvo: 1 },
   { id: 'desafiante',  icone: '🎯', nome: 'Desafiante',               desc: 'Complete o Desafio do Dia.',         tipo: 'desafios',   alvo: 1 },
   { id: 'streak3',     icone: '📅', nome: 'Constância',               desc: 'Jogue 3 dias seguidos.',              tipo: 'streak',     alvo: 3 },
-  { id: 'cincoJogos',  icone: '🎮', nome: 'Veterano',                 desc: 'Jogue pelo menos 5 partidas.',       tipo: 'jogos',      alvo: 5 }
+  { id: 'cincoJogos',  icone: '🎮', nome: 'Veterano',                 desc: 'Jogue pelo menos 5 partidas.',       tipo: 'jogos',      alvo: 5 },
+  /* Fase 3 - competição */
+  { id: 'sobrevivente',  icone: '⚔️', nome: 'Duro de Matar',   desc: 'Acerte 10 perguntas seguidas em Sobrevivência.', tipo: 'sobSeq',       alvo: 10 },
+  { id: 'blitz100',      icone: '⚡', nome: 'Relâmpago',        desc: 'Faça 100 pontos em uma partida Blitz.',        tipo: 'blitzPontos',   alvo: 100 },
+  { id: 'contraTempo300',icone: '⏰', nome: 'Contra o Relógio', desc: 'Faça 300 pontos em Contra o Tempo.',           tipo: 'contraPontos',  alvo: 300 },
+  { id: 'cincoModos',    icone: '🎯', nome: 'Completo',         desc: 'Jogue nos 3 modos especiais.',                tipo: 'modosJogados',  alvo: 3 }
 ];
+
+/* ==========================================================
+   8) MODOS ESPECIAIS (Fase 3)
+   Cada modo altera as regras de tempo e de fim da partida.
+   ========================================================== */
+const MODOS = [
+  {
+    id: 'sobrevivencia',
+    icone: '⚔️',
+    nome: 'Sobrevivência',
+    cor: '#ff5b6a',
+    desc: 'Perguntas infinitas com dificuldade crescente. Um erro e a partida acaba.',
+    regra: 'Errou, acabou.'
+  },
+  {
+    id: 'blitz',
+    icone: '⚡',
+    nome: 'Blitz',
+    cor: '#ffb020',
+    desc: 'Tempo curtíssimo por pergunta. Quanto mais rápido, mais pontos.',
+    regra: 'Velocidade vale pontos.'
+  },
+  {
+    id: 'contra-tempo',
+    icone: '⏰',
+    nome: 'Contra o Tempo',
+    cor: '#2aa1d9',
+    desc: 'O relógio nunca para. Acertos aumentam seu tempo, erros o drenam.',
+    regra: 'Tempo drenante.'
+  }
+];
+
+function buscarModo(id) {
+  return MODOS.find(function (m) { return m.id === id; }) || null;
+}
