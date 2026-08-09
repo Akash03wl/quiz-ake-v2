@@ -1,433 +1,1165 @@
 /* ==========================================================
-   ARQUIVO DE ESTILO (CSS) do Quiz
-   Aqui fica toda a parte VISUAL (cores, fontes, animações).
-   O HTML chama este arquivo usando a tag <link>.
+   QUIZ AKE - DESIGN SYSTEM (CSS)
+   Todas as cores, fontes, espaços e animações da plataforma.
+
+   TEMAS:
+   - data-theme="dark"   -> padrão (escuro)
+   - data-theme="light"  -> claro
+   - data-theme="system" -> segue o sistema operacional
    ========================================================== */
 
-/* "reset" simples: remove espaço padrão que o navegador coloca */
+/* ----------------------------------------------------------
+   0) VARIÁVEIS DE COR (design tokens)
+   Um "token" é um nome que guarda uma cor/valor para reutilizar.
+   Trocando aqui, muda o site inteiro de forma consistente.
+   ---------------------------------------------------------- */
+
+/* Tema ESCURO (padrão) */
+:root,
+html[data-theme="dark"] {
+  --bg: #0e1020;
+  --bg-suave: #151833;
+  --card: #1a1e3d;
+  --card-2: #232750;
+  --borda: rgba(255, 255, 255, 0.08);
+  --texto: #f1f3ff;
+  --texto-suave: #a9b0d8;
+  --acento: #7c6cf0;
+  --acento-2: #4aa8ff;
+  --gradiente: linear-gradient(135deg, #7c6cf0, #4aa8ff);
+  --ok: #2ed573;
+  --erro: #ff5b6a;
+  --aviso: #ffb020;
+  --sombra: 0 12px 34px rgba(0, 0, 0, 0.35);
+  --raio: 18px;
+}
+
+/* Tema CLARO */
+html[data-theme="light"] {
+  --bg: #eef1fb;
+  --bg-suave: #ffffff;
+  --card: #ffffff;
+  --card-2: #f1f3fc;
+  --borda: rgba(30, 34, 80, 0.12);
+  --texto: #202342;
+  --texto-suave: #5a5f86;
+  --acento: #7c6cf0;
+  --acento-2: #2a8bff;
+  --gradiente: linear-gradient(135deg, #7c6cf0, #4aa8ff);
+  --ok: #1fa85c;
+  --erro: #e04a5a;
+  --aviso: #d98f00;
+  --sombra: 0 12px 34px rgba(40, 45, 120, 0.12);
+  --raio: 18px;
+}
+
+/* Quando o tema é "system", usamos a preferência do aparelho */
+@media (prefers-color-scheme: light) {
+  html[data-theme="system"] {
+    --bg: #eef1fb;
+    --bg-suave: #ffffff;
+    --card: #ffffff;
+    --card-2: #f1f3fc;
+    --borda: rgba(30, 34, 80, 0.12);
+    --texto: #202342;
+    --texto-suave: #5a5f86;
+    --acento: #7c6cf0;
+    --acento-2: #2a8bff;
+    --gradiente: linear-gradient(135deg, #7c6cf0, #4aa8ff);
+    --ok: #1fa85c;
+    --erro: #e04a5a;
+    --aviso: #d98f00;
+    --sombra: 0 12px 34px rgba(40, 45, 120, 0.12);
+    --raio: 18px;
+  }
+}
+
+/* ----------------------------------------------------------
+   1) RESET básico
+   ---------------------------------------------------------- */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Estilo do corpo da página (o fundo atrás do quadrinho branco) */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: 'Segoe UI', Arial, sans-serif;   /* fonte bonita e comum */
-  background: linear-gradient(135deg, #667eea, #764ba2); /* fundo em degrade */
-  min-height: 100vh;               /* ocupa a tela toda */
-  display: flex;                   /* centraliza o conteúdo */
-  justify-content: center;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--texto);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 20px;
-  margin: 0;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* "container" = quadrinho branco que guarda o conteúdo do quiz */
-.container {
-  background: white;
-  border-radius: 20px;              /* cantos arredondados */
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); /* sombra para profundidade */
-  width: 100%;
-  max-width: 620px;                 /* largura máxima no PC */
-  padding: 30px;
-  text-align: center;
+/* Fundo decorativo com brilhos discretos (gradientes) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(600px 400px at 10% 0%, rgba(124, 108, 240, 0.18), transparent 60%),
+    radial-gradient(600px 400px at 90% 10%, rgba(74, 168, 255, 0.15), transparent 60%);
 }
 
-/* Esconde um elemento. O JavaScript liga/desliga para trocar de tela */
-.hidden {
-  display: none;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-/* Título principal */
-h1 {
-  font-size: 2.2em;
-  color: #764ba2;
-  margin-bottom: 10px;
+button {
+  font-family: inherit;
+  cursor: pointer;
 }
 
-/* Emoji grande (decorativo) */
-.emoji-big {
-  font-size: 3.5em;
-  display: block;
-  margin-bottom: 5px;
-}
-
-/* Parágrafo de descrição */
-.description {
-  color: #666;
-  margin-bottom: 20px;
-  padding: 0 10px;
-  line-height: 1.4;
-}
-
-/* Texto de destaque (negrito) dentro da descrição */
-.bonus-text {
-  color: #e67e22;
-  background: #fdebd0;
-  padding: 2px 6px;
+/* Foco visível para quem usa teclado (acessibilidade) */
+:focus-visible {
+  outline: 3px solid var(--acento-2);
+  outline-offset: 2px;
   border-radius: 6px;
 }
 
-/* Botões em geral */
-button {
-  padding: 12px 30px;
-  font-size: 1em;
-  border: none;
-  border-radius: 50px;              /* formato de pílula */
-  cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s;
-  color: white;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  font-weight: bold;
+/* ----------------------------------------------------------
+   2) UTILIDADES
+   ---------------------------------------------------------- */
+
+/* Esconde um elemento (usado para trocar de tela) */
+.hidden {
+  display: none !important;
 }
 
-/* Aumenta um pouco o botão quando o mouse passa por cima */
-button:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
-}
-
-/* ---- Barra de progresso (quantas perguntas já foram) ---- */
-.progress-bar {
-  background: #eee;
-  border-radius: 50px;
-  height: 15px;
+/* Largura máxima do conteúdo + centralização */
+.container {
   width: 100%;
-  margin-bottom: 10px;
+  max-width: 1080px;
+  padding: 0 20px;
+  margin: 0 auto;
+}
+
+/* Link para pular ao conteúdo (acessibilidade) */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 10px;
+  background: var(--acento);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 10px;
+  z-index: 999;
+}
+
+.skip-link:focus {
+  left: 10px;
+}
+
+/* Texto com gradiente roxo->azul */
+.texto-gradiente {
+  background: var(--gradiente);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ----------------------------------------------------------
+   3) NAVBAR (menu do topo)
+   ---------------------------------------------------------- */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--borda);
+}
+
+.nav-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo strong {
+  background: var(--gradiente);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: var(--texto-suave);
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+
+.nav-link:hover {
+  background: var(--card-2);
+  color: var(--texto);
+}
+
+.nav-link.active {
+  color: var(--texto);
+  background: var(--card-2);
+  box-shadow: inset 0 -2px 0 var(--acento);
+}
+
+/* Ações do navbar (tema + botão começar) */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-toggle {
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  color: var(--texto);
+  font-size: 1.1rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.08);
+}
+
+/* Botão hambúrguer (só aparece no celular) */
+.menu-toggle {
+  display: none;
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  color: var(--texto);
+  font-size: 1.4rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ----------------------------------------------------------
+   4) BOTÕES (design system)
+   ---------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.98rem;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* Botão principal (gradiente) */
+.btn-primary {
+  background: var(--gradiente);
+  color: white;
+  box-shadow: 0 8px 20px rgba(124, 108, 240, 0.35);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 10px 26px rgba(124, 108, 240, 0.5);
+}
+
+/* Botão "fantasma" (contorno) */
+.btn-ghost {
+  background: transparent;
+  color: var(--texto);
+  border: 2px solid var(--borda);
+}
+
+.btn-ghost:hover {
+  border-color: var(--acento);
+  background: var(--card-2);
+}
+
+/* Botão largo (ocupa a largura do cartão) */
+.btn-largo {
+  width: 100%;
+  margin-top: 12px;
+}
+
+/* Botão pequeno usado no navbar */
+.btn-nav {
+  padding: 9px 18px;
+  font-size: 0.9rem;
+}
+
+/* ----------------------------------------------------------
+   5) TELAS (páginas)
+   ---------------------------------------------------------- */
+.tela {
+  width: 100%;
+  padding: 28px 0 60px;
+}
+
+/* Cartão genérico */
+.card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  padding: 22px;
+}
+
+.card.suave {
+  background: var(--bg-suave);
+  box-shadow: none;
+}
+
+/* Cabeçalho de cada bloco da home */
+.bloco {
+  margin-top: 44px;
+}
+
+.bloco-cabecalho {
+  margin-bottom: 20px;
+}
+
+.bloco-cabecalho h2 {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.descricao-bloco {
+  color: var(--texto-suave);
+}
+
+/* Link "ver mais" no cabeçalho do bloco */
+.link-mais {
+  background: none;
+  border: none;
+  color: var(--acento-2);
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ----------------------------------------------------------
+   6) HERO (área de destaque principal)
+   ---------------------------------------------------------- */
+.hero {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 30px;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 26px;
+  box-shadow: var(--sombra);
+  padding: 40px;
+  margin-top: 28px;
+}
+
+.hero-badge {
+  display: inline-block;
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  color: var(--acento-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.hero h1 {
+  font-size: clamp(1.8rem, 4vw, 2.9rem);
+  line-height: 1.15;
+  margin-bottom: 14px;
+}
+
+.hero-sub {
+  color: var(--texto-suave);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.hero-acoes {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+
+.hero-slug {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.hero-slug strong {
+  color: var(--texto);
+}
+
+/* Ilustração (bolhas flutuantes com emoji) */
+.hero-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.orcamento-quiz {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: var(--gradiente);
+  opacity: 0.92;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 18px 50px rgba(124, 108, 240, 0.4);
+}
+
+.orcamento-quiz::after {
+  content: '❓';
+  font-size: 5rem;
+}
+
+.card-flutuante {
+  position: absolute;
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 8px 12px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  box-shadow: var(--sombra);
+  animation: flutuar 3s ease-in-out infinite;
+}
+
+.f1 { top: -14px; left: -20px; font-size: 1.8rem; animation-delay: 0s; }
+.f2 { top: -6px; right: -26px; color: var(--aviso); animation-delay: 0.5s; }
+.f3 { bottom: 30px; left: -34px; color: var(--acento-2); animation-delay: 1s; }
+.f4 { bottom: -14px; right: 6px; color: var(--ok); animation-delay: 1.5s; }
+.f5 { top: 60px; right: -40px; font-size: 1.5rem; animation-delay: 2s; }
+
+@keyframes flutuar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ----------------------------------------------------------
+   7) DESTAQUES E CATEGORIAS (grade de cards)
+   ---------------------------------------------------------- */
+.grade-destaques {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.grade-categorias {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+/* Card de quiz/categoria */
+.card-quiz {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--texto);
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
   overflow: hidden;
 }
 
-/* A parte colorida que cresce conforme avança */
-.progress-fill {
-  background: linear-gradient(90deg, #28e08a, #16c1f3);
-  height: 100%;
-  width: 0%;                /* começa vazia; o JS define a largura */
-  border-radius: 50px;
-  transition: width 0.5s ease;   /* anima o crescimento */
+/* Faixa de cor no topo do card, usando a cor da categoria */
+.card-quiz::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 6px;
+  background: var(--cor-categoria, var(--acento));
+}
+
+.card-quiz:hover {
+  transform: translateY(-6px);
+  border-color: var(--cor-categoria, var(--acento));
+  box-shadow: var(--sombra);
+}
+
+.card-quiz .icone {
+  font-size: 1.9rem;
+}
+
+.card-quiz .nome {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.card-quiz .meta {
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+}
+
+/* Selo "Em breve" para categorias ainda sem perguntas */
+.selo-em-breve {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  color: var(--texto-suave);
+  font-size: 0.68rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+/* ----------------------------------------------------------
+   8) ESTADO VAZIO (quando não há dados ainda)
+   ---------------------------------------------------------- */
+.estado-vazio {
+  text-align: center;
+  padding: 26px 12px;
+  color: var(--texto-suave);
+  border: 2px dashed var(--borda);
+  border-radius: var(--raio);
+}
+
+.estado-vazio .emoji {
+  font-size: 2.2rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* ----------------------------------------------------------
+   9) GRADE DUPLA (estatísticas + ranking)
+   ---------------------------------------------------------- */
+.grade-dupla {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.grade-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stat-card {
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+}
+
+.stat-card .stat-valor {
+  font-size: 1.5rem;
+  font-weight: 800;
+  display: block;
+}
+
+.stat-card .stat-rotulo {
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+}
+
+/* Ranking resumido (lista ordenada) */
+.lista-ranking {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lista-ranking li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.lista-ranking .pos {
+  font-size: 1.3rem;
+}
+
+.lista-ranking .nome {
+  flex: 1;
+  margin-left: 10px;
+  font-weight: 600;
+}
+
+.lista-ranking .pts {
+  color: var(--acento-2);
+  font-weight: 800;
+}
+
+/* ----------------------------------------------------------
+   10) TELA DO QUIZ (perguntas)
+   ---------------------------------------------------------- */
+#tela-quiz .container {
+  max-width: 760px;
+}
+
+/* Topo da tela: progresso + hud (combo, prêmio, timer) */
+.quiz-topo {
+  margin-bottom: 22px;
 }
 
 .progress-text {
-  font-size: 0.9em;
-  color: #777;
-  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--texto-suave);
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
 }
 
-.question-number {
-  font-size: 0.9em;
-  color: #999;
-  margin-bottom: 5px;
+/* Barra de progresso geral (perguntas) */
+.progress-bar {
+  background: var(--card-2);
+  border-radius: 999px;
+  height: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  border: 1px solid var(--borda);
 }
 
-/* ---- Selo da "pergunta prêmio" ---- */
-.bonus-badge {
-  display: inline-block;
-  background: linear-gradient(135deg, #ffd32a, #ff9f43);
-  color: #6d4c00;
-  font-weight: bold;
-  font-size: 0.85em;
-  padding: 5px 14px;
-  border-radius: 50px;
-  margin-bottom: 12px;
-  box-shadow: 0 4px 10px rgba(255, 159, 67, 0.5);
-  animation: shine 1.5s infinite alternate;
+.progress-fill {
+  background: var(--gradiente);
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  transition: width 0.5s ease;
 }
 
-@keyframes shine {
-  from { transform: scale(1); }
-  to   { transform: scale(1.06); }
+/* HUD: combo, prêmio e timer lado a lado */
+.quiz-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
-/* ---- Pergunta ---- */
-.question-text {
-  font-size: 1.3em;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20px;
-  min-height: 60px;   /* reserva espaço para não "pular" ao trocar de pergunta */
+.chip-combo,
+.chip-premio {
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
-/* ==== Cronômetro (timer) ==== */
-.timer-area {
-  margin-bottom: 20px;
+.chip-combo {
+  color: var(--aviso);
 }
 
-/* Número grande do contador */
+.chip-premio {
+  color: var(--acento-2);
+  border-color: var(--acento-2);
+}
+
+/* Timer: número + barra */
+.timer-chip {
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 800;
+}
+
 .timer-number {
-  font-size: 2.4em;
-  font-weight: bold;
-  color: #28e78a;              /* verde enquanto sobra tempo */
+  color: var(--ok);
 }
 
-/* Laranja quando o tempo está diminuindo */
 .timer-number.warning {
-  color: #f39c12;
+  color: var(--aviso);
 }
 
-/* Vermelho PISCANDO quando o tempo está quase no fim */
 .timer-number.danger {
-  color: #e74c3c;
-  animation: blink 0.5s infinite alternate;   /* animação "blink" */
+  color: var(--erro);
+  animation: piscar 0.5s infinite alternate;
 }
 
-.timer-bar {
-  background: #eee;
-  height: 6px;
-  border-radius: 50px;
-  margin-top: 8px;
+@keyframes piscar {
+  from { opacity: 1; }
+  to { opacity: 0.3; }
+}
+
+.timer-bar-container {
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  height: 8px;
   overflow: hidden;
 }
 
-/* A parte colorida que vai diminuindo com o tempo */
-.timer-fill {
+.timer-bar {
   height: 100%;
-  background: #28a745;
+  width: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.timer-fill {
+  background: var(--ok);
+  height: 100%;
   width: 100%;
   transition: width 1s linear;
 }
 
-/* Animação de piscar (para o aviso de final de tempo) */
-@keyframes blink {
-  from { opacity: 1; }
-  to   { opacity: 0.2; }
+/* Selo de pergunta prêmio (x2 / x3) */
+.selo-bonus {
+  display: inline-block;
+  background: linear-gradient(135deg, #ffd32a, #ff9f43);
+  color: #6d4c00;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 6px 16px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+  animation: pulso 1.4s infinite alternate;
 }
 
-/* ==== Botões de resposta ==== */
+@keyframes pulso {
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
+}
+
+/* Número da pergunta */
+.question-number {
+  color: var(--acento-2);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+/* Texto da pergunta */
+.question-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  min-height: 60px;
+}
+
+/* Botões de resposta */
 .answers {
   display: flex;
-  flex-direction: column;   /* um botão abaixo do outro */
-  gap: 10px;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .answer-btn {
-  background: #f4f4f8;
-  color: #333;
+  background: var(--card);
+  border: 2px solid var(--borda);
+  color: var(--texto);
   text-align: left;
-  border: 2px solid #e0e0e8;
-  font-weight: normal;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: transform 0.15s, border-color 0.2s, background 0.2s;
 }
 
 .answer-btn:hover {
-  background: #eef;
-  border-color: #667eea;
+  border-color: var(--acento);
+  transform: translateX(4px);
 }
 
-/* VERDE: resposta certa */
 .answer-btn.correct {
-  background: #28a745;
-  border-color: #1fb666;
+  background: var(--ok);
+  border-color: var(--ok);
   color: white;
-  animation: pop 0.3s;    /* "salta" para dar ênfase */
+  animation: pop 0.35s;
 }
 
-/* VERMELHO: resposta errada escolhida */
 .answer-btn.wrong {
-  background: #e74c3c;
-  border-color: #c0392b;
+  background: var(--erro);
+  border-color: var(--erro);
   color: white;
-  animation: shake 0.4s;  /* "treme" para indicar erro */
+  animation: tremer 0.4s;
 }
 
 .answer-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.65;
+  opacity: 0.7;
 }
 
-/* Animação "pop" - aumenta e volta ao normal */
 @keyframes pop {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.08); }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
   100% { transform: scale(1); }
 }
 
-/* Animação "shake" - mexe de um lado para o outro */
-@keyframes shake {
+@keyframes tremer {
   0%, 100% { transform: translateX(0); }
-  20%      { transform: translateX(-8px); }
-  40%      { transform: translateX(8px); }
-  60%      { transform: translateX(-6px); }
-  80%      { transform: translateX(6px); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
 }
 
-/* ==== Placar (pontos e sequência) ==== */
+/* Placar (pontos, acertos, erros) */
 .scoreboard {
   display: flex;
-  justify-content: space-between;   /* um item de cada lado */
-  margin-top: 25px;
-  font-weight: bold;
-  color: #555;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--borda);
+  color: var(--texto-suave);
+  font-weight: 600;
 }
 
-.streak {
-  color: #f39c12;
+.scoreboard strong {
+  color: var(--texto);
 }
 
-/* ==== Tela de resultado ==== */
+/* ----------------------------------------------------------
+   11) TELA DE RESULTADO
+   ---------------------------------------------------------- */
+#tela-resultado .container {
+  max-width: 700px;
+  text-align: center;
+}
+
 .result-emoji {
-  font-size: 4em;
-  margin-bottom: 10px;
+  font-size: 4rem;
+  animation: pop 0.6s;
 }
 
 .result-title {
-  font-size: 1.7em;
-  color: #764ba2;
-  margin-bottom: 10px;
+  font-size: 1.9rem;
+  margin: 6px 0 4px;
+  background: var(--gradiente);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .result-subtitle {
-  color: #666;
+  color: var(--texto-suave);
   margin-bottom: 10px;
 }
 
 .final-score {
-  font-size: 2em;
-  font-weight: bold;
-  color: #333;
-  margin: 15px 0;
+  font-size: 2.4rem;
+  font-weight: 900;
+  margin: 10px 0;
 }
 
 .best-score {
-  color: #28a745;
-  font-weight: bold;
+  color: var(--ok);
+  font-weight: 700;
   margin-bottom: 22px;
 }
 
-/* ==== Confete (emojis caindo ao acertar) ==== */
+/* Grade de métricas do resultado */
+.grade-resultado {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+.metric {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metric-rotulo {
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+}
+
+.metric-valor {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--acento-2);
+}
+
+.result-acoes {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ----------------------------------------------------------
+   12) CONQUISTAS
+   ---------------------------------------------------------- */
+.grade-conquistas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.conquista {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  text-align: center;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.conquista .icone {
+  font-size: 2.4rem;
+}
+
+.conquista .nome {
+  font-weight: 700;
+  margin: 6px 0 4px;
+}
+
+.conquista .desc {
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+}
+
+/* Conquista bloqueada (acinzentada) */
+.conquista.bloqueada {
+  opacity: 0.45;
+  filter: grayscale(0.8);
+}
+
+/* ----------------------------------------------------------
+   13) PERFIL
+   ---------------------------------------------------------- */
+.perfil-topo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.avatar {
+  font-size: 3rem;
+  background: var(--gradiente);
+  border-radius: 50%;
+  width: 74px;
+  height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.perfil-nome {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.perfil-nivel {
+  color: var(--texto-suave);
+}
+
+/* Barra de XP */
+.barra-xp {
+  background: var(--card-2);
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  height: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.barra-xp-fill {
+  background: var(--gradiente);
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  transition: width 0.8s ease;
+}
+
+/* ----------------------------------------------------------
+   14) RODAPÉ
+   ---------------------------------------------------------- */
+.rodape {
+  width: 100%;
+  border-top: 1px solid var(--borda);
+  padding: 22px 0;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+/* ----------------------------------------------------------
+   15) CONFETES E MENSAGENS FLUTUANTES
+   ---------------------------------------------------------- */
 .confetti-piece {
-  position: fixed;         /* fixa na tela inteira */
+  position: fixed;
   top: -20px;
   font-size: 20px;
   z-index: 1000;
-  pointer-events: none;    /* não atrapalha os cliques */
-  animation: fall linear forwards;   /* animação de queda ativada via JS */
+  pointer-events: none;
+  animation: cair linear forwards;
 }
 
-@keyframes fall {
-  to { transform: translateY(110vh) rotate(360deg); }  /* desce girando */
+@keyframes cair {
+  to { transform: translateY(110vh) rotate(360deg); }
 }
 
-/* ==== Mensagem flutuante (criada pelo JS) ==== */
 .floating-msg {
   position: fixed;
   top: 35%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 3em;
-  font-weight: bold;
+  font-size: 2.4rem;
+  font-weight: 900;
   z-index: 1000;
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   animation: pop 0.5s;
+  pointer-events: none;
 }
 
-/* ==== Responsividade: em telas pequenas (celular) reduz o texto ==== */
-@media (max-width: 480px) {
-  h1 { font-size: 1.8em; }
-  .container { padding: 20px; }
-  .question-text { font-size: 1.1em; }
+/* ----------------------------------------------------------
+   16) RESPONSIVIDADE (celular, tablet, desktop)
+   ---------------------------------------------------------- */
+
+/* Tablet pequeno e celular */
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 26px;
+  }
+
+  .hero-visual {
+    order: -1;
+  }
+
+  .grade-destaques {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grade-dupla {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+
+  /* Menu que vira "gaveta" vertical no celular */
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--bg-suave);
+    border-bottom: 1px solid var(--borda);
+    padding: 14px 20px;
+    gap: 4px;
+  }
+
+  .nav-links.aberto {
+    display: flex;
+  }
+
+  .nav-actions {
+    margin-top: 10px;
+    justify-content: space-between;
+  }
 }
 
-/* ==========================================================
-   TELA INICIAL (home)
-   Estilos extras para deixar a primeira tela mais bonita
-   e informativa (título, cartões de regras, recorde, etc.)
-   ========================================================== */
+/* Celular pequeno */
+@media (max-width: 520px) {
+  .grade-destaques {
+    grid-template-columns: 1fr;
+  }
 
-/* Para o emoji não congelar, damos a ele uma animação de flutuação */
-.home-header .emoji-big {
-  animation: float 2.5s ease-in-out infinite;   /* movimento para cima e para baixo */
+  .grade-resultado {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grade-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hero-acoes {
+    flex-direction: column;
+  }
+
+  .hero-acoes .btn {
+    width: 100%;
+  }
 }
 
-/* Animação "float": sobe e desce suavemente */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-10px); }
-}
-
-/* Subtítulo logo abaixo do título */
-.home-subtitle {
-  color: #666;
-  font-size: 1.05em;
-  margin-top: 8px;
-}
-
-/* O "heading" da home centraliza o cabeçalho */
-.home-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-/* Caixão grande com o texto explicativo do quiz */
-.info-card {
-  background: #f4f4fb;
-  border: 2px solid #e0e0f0;
-  border-radius: 15px;
-  padding: 16px;
-  margin-bottom: 18px;
-  text-align: left;
-  color: #555;
-  line-height: 1.4;
-}
-
-.info-card p {
-  margin: 0;
-}
-
-/* Título interno dos cartões (ex.: "Sobre o Quiz") */
-.info-title {
-  font-size: 1.1em;
-  color: #764ba2;
-  margin-bottom: 6px;
-}
-
-/* Grade de cartões pequenos (regras do jogo) */
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;   /* duas colunas lado a lado */
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-/* Cada caixinha individual */
-.info-box {
-  background: linear-gradient(145deg, #ffffff, #f3f3fb);
-  border: 2px solid #e0e0f0;
-  border-radius: 15px;
-  padding: 14px;
-  text-align: center;
-}
-
-/* Icone (emoji) de cada caixinha */
-.info-icon {
-  font-size: 2em;
-  display: block;
-  margin-bottom: 6px;
-}
-
-.info-box h3 {
-  font-size: 0.95em;
-  color: #764ba2;
-  margin-bottom: 4px;
-}
-
-.info-box p {
-  font-size: 0.82em;
-  color: #666;
-  margin: 0;
-  line-height: 1.35;
-}
-
-/* Cartão visual do recorde (dourado) */
-.home-best {
-  background: linear-gradient(135deg, #fff7d6, #ffe9a8);
-  border: 2px solid #ffd32a;
-  color: #8a6d00;
-  padding: 12px;
-  border-radius: 50px;
-  font-size: 1em;
-  margin-bottom: 20px;
-}
-
-/* Em telas bem pequenas, as caixinhas ficam uma embaixo da outra */
-@media (max-width: 420px) {
-  .info-grid { grid-template-columns: 1fr; }
+/* Respeita usuários que preferem menos animação */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

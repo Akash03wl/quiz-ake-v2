@@ -1,125 +1,294 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  QUIZ DE CONHECIMENTOS GERAIS - Trabalho de Programação Web
+  QUIZ AKE - Plataforma de Quizzes
   ============================================================
-  Agora o site está separado em 3 arquivos (mais organizado):
+  Estrutura:
+    - index.html        -> a página (estrutura das telas)
+    - css/style.css     -> o visual (design system, temas)
+    - js/script.js      -> a lógica (motor do quiz e da plataforma)
 
-    - index.html        -> a ESTRUTURA da página
-    - css/style.css     -> o ESTILO (cores, fontes, animações)
-    - js/script.js      -> a LÓGICA (o funcionamento do jogo)
-
-  O HTML é o "esqueleto": ele EXECUTA o CSS e o JS para deixar
-  a página bonita e funcional.
+  O site é de página única: as "telas" (Home, Quiz, Resultado,
+  Ranking, Conquistas e Perfil) ficam todas neste arquivo e o
+  JavaScript mostra/esconde uma por vez.
   ============================================================
 -->
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="system">
 <head>
-  <!-- charset: faz os acentos (ç, ã, é) aparecerem corretamente -->
   <meta charset="UTF-8">
-  <!-- Faz a página se adaptar ao tamanho da tela (celular, tablet, PC) -->
+  <!-- Faz a página caber no celular, tablet e PC -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz de Conhecimentos Gerais</title>
+  <meta name="description" content="Quiz AKE - plataforma de quizzes de conhecimentos gerais">
+  <title>Quiz AKE</title>
 
-  <!-- Aqui indicamos o arquivo de ESTILO (CSS) -->
+  <!-- Caminho do CSS -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- ============ TELA INICIAL ============ -->
-  <div id="tela-inicio" class="container home">
-    <!-- Cabeçalho com emoji grande e animado -->
-    <div class="home-header">
-      <span class="emoji-big">🧠</span>
-      <h1>Quiz de Conhecimentos Gerais</h1>
-      <p class="home-subtitle">Teste sua mente com perguntas sobre <strong>ciência, história, geografia e muito mais!</strong></p>
-    </div>
+  <!-- ============ NAVBAR (menu do topo) ============ -->
+  <header class="navbar" role="banner">
+    <div class="nav-inner">
+      <!-- Logo -->
+      <a href="#" class="logo" data-navegar="inicio" aria-label="Quiz AKE - ir para o início">
+        <span class="logo-icon">🧠</span>
+        <span>Quiz <strong>AKE</strong></span>
+      </a>
 
-    <!-- Cartão de informação: o que é o quiz -->
-    <div class="info-card">
-      <h2 class="info-title">📖 Sobre o Quiz</h2>
-      <p>
-        A cada partida, <strong>10 perguntas</strong> são <strong>sorteadas aleatoriamente</strong> de um banco
-        com mais de 30 perguntas. Por isso, cada jogo é um desafio diferente!
-      </p>
-    </div>
+      <!-- Botão do menu no celular -->
+      <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu de navegação" aria-expanded="false">
+        ☰
+      </button>
 
-    <!-- Cartões das regras e recursos -->
-    <div class="info-grid">
-      <div class="info-box">
-        <span class="info-icon">⏱️</span>
-        <h3>20 segundos</h3>
-        <p>Você tem <strong>20s</strong> para responder cada pergunta. Cuidado com o relógio!</p>
+      <!-- Links de navegação + ações -->
+      <nav class="nav-links" id="nav-links" aria-label="Navegação principal">
+        <a href="#" class="nav-link active" data-navegar="inicio">Início</a>
+        <a href="#" class="nav-link" data-navegar="quizzes">Quizzes</a>
+        <a href="#" class="nav-link" data-navegar="ranking">Ranking</a>
+        <a href="#" class="nav-link" data-navegar="conquistas">Conquistas</a>
+        <a href="#" class="nav-link" data-navegar="perfil">Perfil</a>
+
+        <div class="nav-actions">
+          <button class="theme-toggle" id="botao-tema" aria-label="Alternar tema do site">🌙</button>
+          <button class="btn btn-primary btn-nav" id="botao-comecar">Começar quiz</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ==================== TELA: HOME ==================== -->
+  <main class="tela" id="tela-inicio">
+    <div class="container">
+
+      <!-- Botão de acessibilidade: pular direto para o conteúdo -->
+      <a href="#conteudo" class="skip-link">Pular para o conteúdo</a>
+      <div id="conteudo"></div>
+
+      <!-- ---------- HERO (destaque principal) ---------- -->
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-texto">
+          <span class="hero-badge">🎯 + de 30 perguntas e 12 categorias</span>
+          <h1 id="hero-title">Teste seus <span class="texto-gradiente">conhecimentos.</span></h1>
+          <p class="hero-sub">
+            O <strong>Quiz AKE</strong> é a sua plataforma de quizzes: responda no tempo,
+            monte combos, descubra perguntas prêmio e suba no ranking.
+          </p>
+          <div class="hero-acoes">
+            <button class="btn btn-primary" id="botao-jogar-hero">▶ Jogar agora</button>
+            <button class="btn btn-ghost" data-navegar="quizzes">Explorar quizzes</button>
+          </div>
+          <div class="hero-slug">
+            <span><strong id="hero-total-perguntas">30+</strong> perguntas</span>
+            <span><strong id="hero-total-categorias">12</strong> categorias</span>
+            <span><strong>⏱️ 20s</strong> por pergunta</span>
+          </div>
+        </div>
+
+        <!-- Ilustração visual (feita só com CSS/emoji, sem imagens pesadas) -->
+        <div class="hero-visual" aria-hidden="true">
+          <div class="orcamento-quiz">
+            <span class="card-flutuante f1">🧠</span>
+            <span class="card-flutuante f2">🔥 COMBO</span>
+            <span class="card-flutuante f3">⭐ x2</span>
+            <span class="card-flutuante f4">⏱️ 20s</span>
+            <span class="card-flutuante f5">✅</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- DESTAQUES (quiz do dia, populares, recomendados) ---------- -->
+      <section class="bloco" aria-labelledby="titulo-destaques">
+        <div class="bloco-cabecalho">
+          <h2 id="titulo-destaques">Em destaque</h2>
+          <button class="link-mais" data-navegar="quizzes">Ver todas as categorias →</button>
+        </div>
+        <div id="destaques-grade" class="grade-destaques"></div>
+      </section>
+
+      <!-- ---------- CATEGORIAS ---------- -->
+      <section class="bloco" id="area-categorias" aria-labelledby="titulo-categorias">
+        <div class="bloco-cabecalho">
+          <h2 id="titulo-categorias">Categorias</h2>
+        </div>
+        <div id="categorias-grade" class="grade-categorias"></div>
+      </section>
+
+      <!-- ---------- ESTATÍSTICAS + RANKING (lado a lado) ---------- -->
+      <section class="bloco" aria-labelledby="titulo-minhas">
+        <div class="grade-dupla">
+
+          <!-- Estatísticas do jogador -->
+          <div class="card suave">
+            <h2 id="titulo-minhas">Minhas estatísticas</h2>
+            <div id="stats-estado-vazio" class="estado-vazio"></div>
+            <div class="grade-stats" id="grade-stats"></div>
+          </div>
+
+          <!-- Ranking resumido -->
+          <div class="card suave">
+            <h2>Ranking</h2>
+            <div id="ranking-resumo"></div>
+            <button class="btn btn-ghost btn-largo" data-navegar="ranking">Ver ranking completo</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ==================== TELA: QUIZZES ==================== -->
+  <main class="tela hidden" id="tela-quizzes">
+    <div class="container">
+      <div class="bloco-cabecalho">
+        <h2>Escolha um quiz</h2>
+        <p class="descricao-bloco">Selecione uma categoria para começar o desafio.</p>
       </div>
-      <div class="info-box">
-        <span class="info-icon">🔥</span>
-        <h3>Bônus em sequência</h3>
-        <p>Acertos seguidos dão <strong>pontos extras</strong> (combo). Não deixe a sequência cair!</p>
+      <div id="categorias-grade-full" class="grade-categorias"></div>
+    </div>
+  </main>
+
+  <!-- ==================== TELA: QUIZ ==================== -->
+  <main class="tela hidden" id="tela-quiz">
+    <div class="container">
+      <div class="quiz-topo">
+        <!-- Progresso: PERGUNTA 3/10 -->
+        <div class="progress-text" id="texto-progresso">Pergunta 1 de 10</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="barra-progresso"></div>
+        </div>
+
+        <div class="quiz-hud">
+          <!-- Combo -->
+          <span class="chip-combo" id="chip-combo">
+            🔥 <span id="sequencia">0</span> combo
+          </span>
+          <!-- Multiplicador / prêmio -->
+          <span class="chip-premio hidden" id="chip-premio">⭐ x2</span>
+          <!-- Cronômetro -->
+          <span class="timer-chip">
+            <span class="timer-number" id="numero-timer">20</span>s
+          </span>
+        </div>
+        <div class="timer-bar-container">
+          <div class="timer-bar">
+            <div class="timer-fill" id="barra-timer"></div>
+          </div>
+        </div>
       </div>
-      <div class="info-box">
-        <span class="info-icon">⭐</span>
-        <h3>Perguntas prêmio</h3>
-        <p>Algumas perguntas aleatórias valem <strong>2x ou 3x</strong> os pontos. Fique de olho!</p>
-      </div>
-      <div class="info-box">
-        <span class="info-icon">🏆</span>
-        <h3>Recorde salvo</h3>
-        <p>Sua <strong>melhor pontuação</strong> fica salva no seu navegador e aparece aqui.</p>
+
+      <div class="selo-bonus hidden" id="selo-bonus">⭐ PERGUNTA PRÊMIO</div>
+
+      <div class="question-number" id="numero-pergunta">Pergunta 1</div>
+      <div class="question-text" id="texto-pergunta">...</div>
+
+      <div class="answers" id="area-respostas" aria-live="polite"></div>
+
+      <div class="scoreboard">
+        <span>⭐ Pontos: <strong id="pontuacao">0</strong></span>
+        <span>💀 Acertos: <strong id="acertos">0</strong></span>
+        <span>❌ Erros: <strong id="erros">0</strong></span>
       </div>
     </div>
+  </main>
 
-    <!-- Melhor pontuação (preenchida pelo JavaScript) -->
-    <div class="best-score home-best" id="melhor-pontuacao-inicio">🏅 Melhor pontuação: 0</div>
+  <!-- ==================== TELA: RESULTADO ==================== -->
+  <main class="tela hidden" id="tela-resultado">
+    <div class="container">
+      <div class="result-emoji" id="emoji-resultado">🏆</div>
+      <h2 class="result-title" id="titulo-resultado">Resultado</h2>
+      <p class="result-subtitle" id="subtitulo-resultado"></p>
 
-    <!-- Botão para começar o jogo -->
-    <button id="botao-comecar">Começar! 🚀</button>
-  </div>
+      <div class="final-score" id="pontuacao-final">0 pontos</div>
+      <div class="best-score" id="melhor-pontuacao">🏅 Melhor pontuação: 0</div>
 
-  <!-- ============ TELA DO QUIZ (perguntas) ============ -->
-  <div id="tela-quiz" class="container hidden">
-    <!-- Barra de progresso -->
-    <div class="progress-bar">
-      <div class="progress-fill" id="barra-progresso"></div>
-    </div>
-    <div class="progress-text" id="texto-progresso">Pergunta 0 de 0</div>
+      <!-- Grade de métricas do resultado -->
+      <div class="grade-resultado">
+        <div class="metric">
+          <span class="metric-rotulo">Acertos</span>
+          <span class="metric-valor" id="resultado-acertos">0</span>
+        </div>
+        <div class="metric">
+          <span class="metric-rotulo">Erros</span>
+          <span class="metric-valor" id="resultado-erros">0</span>
+        </div>
+        <div class="metric">
+          <span class="metric-rotulo">Aproveitamento</span>
+          <span class="metric-valor" id="resultado-percentual">0%</span>
+        </div>
+        <div class="metric">
+          <span class="metric-rotulo">Maior combo</span>
+          <span class="metric-valor" id="resultado-combo">x0</span>
+        </div>
+        <div class="metric">
+          <span class="metric-rotulo">Tempo médio</span>
+          <span class="metric-valor" id="resultado-tempo">0s</span>
+        </div>
+        <div class="metric">
+          <span class="metric-rotulo">XP ganho</span>
+          <span class="metric-valor" id="resultado-xp">+0</span>
+        </div>
+      </div>
 
-    <!-- Cronômetro -->
-    <div class="timer-area">
-      <div class="timer-number" id="numero-timer">20</div>
-      <div class="timer-bar">
-        <div class="timer-fill" id="barra-timer"></div>
+      <div class="result-acoes">
+        <button class="btn btn-primary" id="botao-reiniciar">Jogar novamente</button>
+        <button class="btn btn-ghost" data-navegar="quizzes">Escolher outro quiz</button>
+        <button class="btn btn-ghost" data-navegar="inicio">Voltar para início</button>
       </div>
     </div>
+  </main>
 
-    <div class="question-number" id="numero-pergunta">Pergunta 1</div>
-
-    <!-- Selo que aparece se a pergunta for "prêmio" (vale mais pontos) -->
-    <div class="bonus-badge hidden" id="selo-bonus">⭐ PERGUNTA PRÊMIO</div>
-
-    <div class="question-text" id="texto-pergunta">...</div>
-
-    <div class="answers" id="area-respostas"></div>
-
-    <div class="scoreboard">
-      <span>⭐ Pontos: <span id="pontuacao">0</span></span>
-      <span class="streak">🔥 Sequência: <span id="sequencia">0</span></span>
+  <!-- ==================== TELA: RANKING ==================== -->
+  <main class="tela hidden" id="tela-ranking">
+    <div class="container">
+      <div class="bloco-cabecalho">
+        <h2>🏆 Ranking</h2>
+        <p class="descricao-bloco">Suas melhores pontuações salvas neste navegador.</p>
+      </div>
+      <div id="ranking-completo"></div>
     </div>
-  </div>
+  </main>
 
-  <!-- ============ TELA DE RESULTADO ============ -->
-  <div id="tela-resultado" class="container hidden">
-    <div class="result-emoji" id="emoji-resultado">🏆</div>
-    <div class="result-title" id="titulo-resultado">Resultado</div>
-    <div class="result-subtitle" id="subtitulo-resultado"></div>
+  <!-- ==================== TELA: CONQUISTAS ==================== -->
+  <main class="tela hidden" id="tela-conquistas">
+    <div class="container">
+      <div class="bloco-cabecalho">
+        <h2>🏅 Conquistas</h2>
+        <p class="descricao-bloco">Medalhas que você desbloqueia jogando.</p>
+      </div>
+      <div id="conquistas-grade" class="grade-conquistas"></div>
+    </div>
+  </main>
 
-    <div class="final-score" id="pontuacao-final">0 pontos</div>
-    <div class="best-score" id="melhor-pontuacao">🏅 Melhor pontuação: 0</div>
+  <!-- ==================== TELA: PERFIL ==================== -->
+  <main class="tela hidden" id="tela-perfil">
+    <div class="container">
+      <div class="bloco-cabecalho">
+        <h2>👤 Perfil</h2>
+        <p class="descricao-bloco">Seu progresso e nível de XP.</p>
+      </div>
+      <div class="card suave perfil">
+        <div class="perfil-topo">
+          <div class="avatar" id="avatar-perfil">🧑‍🚀</div>
+          <div>
+            <div class="perfil-nome">Jogador AKE</div>
+            <div class="perfil-nivel">Nível <strong id="perfil-nivel">1</strong> · <span id="perfil-xp">0 XP</span></div>
+          </div>
+        </div>
+        <div class="barra-xp">
+          <div class="barra-xp-fill" id="barra-xp"></div>
+        </div>
+        <div class="grade-stats" id="perfil-stats"></div>
+      </div>
+    </div>
+  </main>
 
-    <button id="botao-reiniciar">Jogar novamente</button>
-  </div>
+  <!-- Rodapé -->
+  <footer class="rodape">
+    <div class="container">
+      <p>🧠 Quiz AKE · Trabalho de Programação Web · JavaScript puro, sem bibliotecas</p>
+    </div>
+  </footer>
 
-  <!-- Aqui carregamos o arquivo de LÓGICA (JavaScript).
-       Colocamos no fim para a página já estar montada quando rodar. -->
+  <!-- Arquivo JavaScript com toda a lógica -->
   <script src="js/script.js"></script>
 </body>
 </html>

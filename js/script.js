@@ -1,260 +1,705 @@
 /* ==========================================================
-   ARQUIVO DE LÓGICA (JavaScript) do Quiz
-   Aqui fica o FUNCIONAMENTO do jogo.
-   Este arquivo é carregado pelo HTML através da tag <script>.
+   QUIZ AKE - LÓGICA DO SITE (JavaScript)
+   Este arquivo faz tudo funcionar. Está organizado em seções
+   numeradas, cada uma com uma função clara.
    ========================================================== */
 
 /* ------------------------------------------------------------
-   1) O "banco de perguntas" (BANCO GRANDE)
-   É uma lista (array) MUITO maior do que antes.
-   Cada objeto tem:
-     - pergunta       : o texto da pergunta
-     - alternativas   : as 4 opções de resposta
-     - correta        : o ÍNDICE (0,1,2,3) da resposta certa
-     - valor          : o "peso" da pergunta
-                        valor 1 = normal (pontos base)
-                        valor 2 = PERGUNTA PRÊMIO (dobra os pontos)
-                        valor 3 = PERGUNTA PRÊMIO (triplica os pontos)
+   1) CATEGORIAS DE QUIZZES
+   Cada categoria tem: id, nome, emoji e uma cor de destaque.
    ------------------------------------------------------------ */
-const bancoDePerguntas = [
-  // --- Ciência / Natureza ---
-  { pergunta: "Qual é o maior planeta do Sistema Solar?", alternativas: ["Terra", "Júpiter", "Saturno", "Marte"], correta: 1, valor: 1 },
-  { pergunta: "Qual é o símbolo químico do ouro?", alternativas: ["Au", "Ag", "Fe", "O"], correta: 0, valor: 1 },
-  { pergunta: "Qual é o maior oceano do mundo?", alternativas: ["Atlântico", "Índico", "Pacífico", "Ártico"], correta: 2, valor: 1 },
-  { pergunta: "Qual destes animais é um mamífero?", alternativas: ["Tubarão", "Golfinho", "Polvo", "Tartaruga"], correta: 1, valor: 2 }, // PRÊMIO
-  { pergunta: "Qual gás os seres humanos respiram para sobreviver?", alternativas: ["Oxigênio", "Hidrogênio", "Gás carbônico", "Hélio"], correta: 0, valor: 1 },
-  { pergunta: "Quantos ossos tem (aproximadamente) o corpo humano adulto?", alternativas: ["106", "206", "306", "406"], correta: 1, valor: 2 }, // PRÊMIO
-  { pergunta: "Qual planeta é conhecido como o 'Planeta Vermelho'?", alternativas: ["Vênus", "Marte", "Mercúrio", "Netuno"], correta: 1, valor: 1 },
-  { pergunta: "O que a fotossíntese produz nas plantas?", alternativas: ["Oxigênio", "Carbono", "Nitrogênio", "Hidrogênio"], correta: 0, valor: 1 },
-  { pergunta: "Quantos estados (estados físicos) básicos da matéria existem?", alternativas: ["2", "3", "4", "5"], correta: 1, valor: 3 }, // PRÊMIO
-  { pergunta: "Qual é o planeta mais próximo do Sol?", alternativas: ["Vênus", "Mercúrio", "Terra", "Marte"], correta: 1, valor: 1 },
-
-  // Matemática
-  { pergunta: "Quantos lados tem um hexágono?", alternativas: ["4", "5", "6", "7"], correta: 2, valor: 1 },
-  { pergunta: "Qual é o resultado de 7 x 8?", alternativas: ["48", "54", "56", "64"], correta: 2, valor: 1 },
-  { pergunta: "Qual é o único número primo par?", alternativas: ["0", "1", "2", "4"], correta: 2, valor: 2 }, // PRÊMIO
-  { pergunta: "Quanto é a raiz quadrada de 144?", alternativas: ["10", "11", "12", "14"], correta: 2, valor: 1 },
-  { pergunta: "Qual é o ângulo de um triângulo retângulo em um dos seus cantos?", alternativas: ["45º", "60º", "90º", "120º"], correta: 2, valor: 2 }, // PRÊMIO
-
-  // Geografia
-  { pergunta: "Qual é a capital da França?", alternativas: ["Londres", "Paris", "Roma", "Berlim"], correta: 1, valor: 1 },
-  { pergunta: "Qual é a capital do Brasil?", alternativas: ["São Paulo", "Rio de Janeiro", "Brasília", "Salvador"], correta: 2, valor: 1 },
-  { pergunta: "Qual é o maior país do mundo em território?", alternativas: ["China", "EUA", "Brasil", "Rússia"], correta: 3, valor: 1 },
-  { pergunta: "Qual é a maior cidade da Europa em população?", alternativas: ["Paris", "Londres", "Moscou", "Madrid"], correta: 2, valor: 3 }, // PRÊMIO
-  { pergunta: "Quantos continentes existem no planeta?", alternativas: ["5", "6", "7", "8"], correta: 2, valor: 1 },
-  { pergunta: "Em que continente fica o Egito?", alternativas: ["Ásia", "África", "Europa", "América"], correta: 1, valor: 1 },
-  { pergunta: "Qual o maior deserto do mundo (não contando o polar)?", alternativas: ["Saara", "Gobi", "Kalahari", "Atacama"], correta: 0, valor: 2 }, // PRÊMIO
-
-  // Arte / Cultura
-  { pergunta: "Quem pintou a Mona Lisa?", alternativas: ["Van Gogh", "Picasso", "Leonardo da Vinci", "Michelangelo"], correta: 2, valor: 2 }, // PRÊMIO
-  { pergunta: "Qual artista é conhecido como o 'Rei do Pop'?", alternativas: ["Elvis Presley", "Freddie Mercury", "Michael Jackson", "Bob Dylan"], correta: 2, valor: 1 },
-  { pergunta: "Quem escreveu 'Dom Casmurro'?", alternativas: ["José de Alencar", "Machado de Assis", "Clarice Lispector", "Graciliano Ramos"], correta: 1, valor: 2 }, // PRÊMIO
-  { pergunta: "Qual é a nacionalidade de Beethoven?", alternativas: ["Francês", "Alemão", "Italiano", "Austríaco"], correta: 1, valor: 1 },
-  { pergunta: "Em qual ano o Brasil comemorou 500 anos de descobrimento?", alternativas: ["1998", "2000", "2002", "2005"], correta: 1, valor: 3 },
-
-  // História
-  { pergunta: "Quem foi o primeiro presidente do Brasil?", alternativas: ["Getúlio Vargas", "Deodoro da Fonseca", "Juscelino Kubitschek", "Washington Luís"], correta: 1, valor: 1 },
-  { pergunta: "Quando o homem pisou na Lua pela primeira vez?", alternativas: ["1965", "1969", "1972", "1979"], correta: 1, valor: 2 }, // PRÊMIO
-  { pergunta: "Qual país foi o primeiro a conquistar uma Copa do Mundo?", alternativas: ["Brasil", "Itália", "Uruguai", "Argentina"], correta: 2, valor: 3 },
-  { pergunta: "Qual cidade foi a primeira capital do Brasil em 1500?", alternativas: ["Salvador", "Rio de Janeiro", "Recife", "São Paulo"], correta: 0, valor: 2 }
+const CATEGORIAS = [
+  { id: 'geral',      nome: 'Conhecimentos Gerais', emoji: '🧠', cor: '#7c6cf0' },
+  { id: 'geografia',  nome: 'Geografia',            emoji: '🌎', cor: '#2aa1d9' },
+  { id: 'historia',   nome: 'História',             emoji: '📜', cor: '#e0a33a' },
+  { id: 'ciencia',    nome: 'Ciência',              emoji: '🔬', cor: '#35c08a' },
+  { id: 'esportes',   nome: 'Esportes',             emoji: '⚽', cor: '#e05a4f' },
+  { id: 'games',      nome: 'Games',                emoji: '🎮', cor: '#9b6cf0' },
+  { id: 'filmes',     nome: 'Filmes e Séries',      emoji: '🎬', cor: '#d94b6f' },
+  { id: 'musica',     nome: 'Música',               emoji: '🎵', cor: '#e04b9b' },
+  { id: 'tecnologia', nome: 'Tecnologia',           emoji: '💻', cor: '#4aa8ff' },
+  { id: 'portugues',  nome: 'Português',            emoji: '📚', cor: '#8fa83c' },
+  { id: 'matematica', nome: 'Matemática',           emoji: '➗', cor: '#e0a33a' },
+  { id: 'brasil',     nome: 'Brasil',               emoji: '🇧🇷', cor: '#2fc05f' },
+  { id: 'logica',     nome: 'Lógica',               emoji: '🧩', cor: '#6366f1' }
 ];
 
-/* ------------------------------------------------------------
-   2) Configurações do jogo (as "regras")
-   ------------------------------------------------------------ */
-const TEMPO_POR_PERGUNTA = 20;    // segundos (pedido: aumentar para 20s)
-const QUANTAS_PERGUNTAS = 10;     // quantas perguntas sorteamos por partida
-const PONTOS_CERTA = 10;          // pontos base ao acertar
-const BONUS_COMBO = 5;            // pontos extras por acerto SEGUIDO
-const MAXIMO_PONTOS_POR_PERGUNTA = PONTOS_CERTA * 3; // usado no cálculo do perfil
+/* ============================================================
+   2) BANCO DE PERGUNTAS
+   Cada pergunta tem:
+   - categoria     : a categoria a que pertence
+   - pergunta      : o texto
+   - alternativas  : opções de resposta
+   - correta       : posição (índice) da resposta certa
+   - valor         : peso de pontos (1 = normal, 2/3 = prêmio)
+   ============================================================ */
+const BANCO_DE_PERGUNTAS = [
+  // --- Ciência / Natureza ---
+  { categoria: 'ciencia', pergunta: "Qual é o maior planeta do Sistema Solar?", alternativas: ["Terra", "Júpiter", "Saturno", "Marte"], correta: 1, valor: 1 },
+  { categoria: 'ciencia', pergunta: "Qual é o símbolo químico do ouro?", alternativas: ["Au", "Ag", "Fe", "O"], correta: 0, valor: 1 },
+  { categoria: 'ciencia', pergunta: "Qual gás os seres humanos respiram para sobreviver?", alternativas: ["Oxigênio", "Hidrogênio", "Gás carbônico", "Hélio"], correta: 0, valor: 1 },
+  { categoria: 'ciencia', pergunta: "Qual destes animais é um mamífero?", alternativas: ["Tubarão", "Golfinho", "Polvo", "Tartaruga"], correta: 1, valor: 2 },
+  { categoria: 'ciencia', pergunta: "Quantos ossos tem (aprox.) o corpo humano adulto?", alternativas: ["106", "206", "306", "406"], correta: 1, valor: 1 },
+  { categoria: 'ciencia', pergunta: "O que a fotossíntese produz nas plantas?", alternativas: ["Oxigênio", "Carbono", "Nitrogênio", "Hidrogênio"], correta: 0, valor: 1 },
+  { categoria: 'ciencia', pergunta: "Quantos estados físicos básicos da matéria existem?", alternativas: ["2", "3", "4", "5"], correta: 1, valor: 3 },
 
-/* ------------------------------------------------------------
-   3) Variáveis de "estado" (valores que mudam durante o jogo)
-   ------------------------------------------------------------ */
-let perguntasSorteio = [];   // quais perguntas serão usadas NESTA partida
-let indiceAtual = 0;         // qual pergunta estamos (0 = primeira)
+  // --- Geografia ---
+  { categoria: 'geografia', pergunta: "Qual é o maior oceano do mundo?", alternativas: ["Atlântico", "Índico", "Pacífico", "Ártico"], correta: 2, valor: 1 },
+  { categoria: 'geografia', pergunta: "Qual é a capital da França?", alternativas: ["Londres", "Paris", "Roma", "Berlim"], correta: 1, valor: 1 },
+  { categoria: 'geografia', pergunta: "Qual é o maior país do mundo em território?", alternativas: ["China", "EUA", "Brasil", "Rússia"], correta: 3, valor: 1 },
+  { categoria: 'geografia', pergunta: "Quantos continentes existem no planeta?", alternativas: ["5", "6", "7", "8"], correta: 2, valor: 1 },
+  { categoria: 'geografia', pergunta: "Em que continente fica o Egito?", alternativas: ["Ásia", "África", "Europa", "América"], correta: 1, valor: 1 },
+  { categoria: 'geografia', pergunta: "Qual o maior deserto (não polar) do mundo?", alternativas: ["Saara", "Gobi", "Kalahari", "Atacama"], correta: 0, valor: 2 },
+  { categoria: 'geografia', pergunta: "Qual planeta é conhecido como 'Planeta Vermelho'?", alternativas: ["Vênus", "Marte", "Mercúrio", "Netuno"], correta: 1, valor: 1 },
+
+  // --- História ---
+  { categoria: 'historia', pergunta: "Quando o homem pisou na Lua pela primeira vez?", alternativas: ["1965", "1969", "1972", "1979"], correta: 1, valor: 2 },
+  { categoria: 'historia', pergunta: "Em qual ano o Brasil comemorou 500 anos de descobrimento?", alternativas: ["1998", "2000", "2002", "2005"], correta: 1, valor: 3 },
+  { categoria: 'historia', pergunta: "Quem pintou a Mona Lisa?", alternativas: ["Van Gogh", "Picasso", "Leonardo da Vinci", "Michelangelo"], correta: 2, valor: 2 },
+  { categoria: 'historia', pergunta: "Qual país conquistou a primeira Copa do Mundo de futebol?", alternativas: ["Brasil", "Itália", "Uruguai", "Argentina"], correta: 2, valor: 1 },
+
+  // --- Esportes ---
+  { categoria: 'esportes', pergunta: "Quantos jogadores compõem um time de futebol em campo?", alternativas: ["9", "10", "11", "12"], correta: 2, valor: 1 },
+  { categoria: 'esportes', pergunta: "Em que país surgiram as Olimpíadas da era moderna?", alternativas: ["França", "Grécia", "Itália", "EUA"], correta: 1, valor: 2 },
+  { categoria: 'esportes', pergunta: "Qual piloto tem mais títulos de Fórmula 1?", alternativas: ["Schumacher", "Hamilton", "Senna", "Verstappen"], correta: 1, valor: 3 },
+
+  // --- Games ---
+  { categoria: 'games', pergunta: "Quem é o criador do Super Mario?", alternativas: ["Shigeru Miyamoto", "Hideo Kojima", "Gabe Newell", "John Carmack"], correta: 0, valor: 2 },
+  { categoria: 'games', pergunta: "Qual jogo é famoso por construir com blocos?", alternativas: ["Tetris", "Pac-Man", "Minecraft", "Angry Birds"], correta: 2, valor: 1 },
+  { categoria: 'games', pergunta: "Qual é o protagonista do Resident Evil 1?", alternativas: ["Chris Redfield", "Jill Valentine", "Albert Wesker", "Barry Burton"], correta: 0, valor: 3 },
+
+  // --- Filmes e Séries ---
+  { categoria: 'filmes', pergunta: "Qual saga de filmes tem o personagem Darth Vader?", alternativas: ["Senhor dos Anéis", "Star Wars", "Harry Potter", "Jurassic Park"], correta: 1, valor: 1 },
+  { categoria: 'filmes', pergunta: "Quem interpretou Tony Stark no cinema?", alternativas: ["Chris Evans", "Robert Downey Jr.", "Chris Hemsworth", "Scarlett Johansson"], correta: 1, valor: 2 },
+  { categoria: 'filmes', pergunta: "Qual filme tem a frase 'Que a força esteja com você'?", alternativas: ["Star Trek", "Star Wars", "Guardiões da Galáxia", "Matrix"], correta: 1, valor: 1 },
+
+  // --- Música ---
+  { categoria: 'musica', pergunta: "Qual artista é conhecido como o 'Rei do Pop'?", alternativas: ["Elvis Presley", "Freddie Mercury", "Michael Jackson", "Bob Dylan"], correta: 2, valor: 1 },
+  { categoria: 'musica', pergunta: "Qual é a nacionalidade de Beethoven?", alternativas: ["Francês", "Alemão", "Italiano", "Austríaco"], correta: 1, valor: 1 },
+
+  // --- Tecnologia ---
+  { categoria: 'tecnologia', pergunta: "Qual destes é um navegador de internet?", alternativas: ["Photoshop", "Chrome", "Windows", "Word"], correta: 1, valor: 1 },
+  { categoria: 'tecnologia', pergunta: "O que significa HTML?", alternativas: ["Hiper Texto de Marcas", "Linguagem de Marcação de Hipertexto", "Linguagem de Máquina Total", "Hora de Melhorar os Textos"], correta: 1, valor: 3 },
+  { categoria: 'tecnologia', pergunta: "Qual destes é um sistema operacional?", alternativas: ["Linux", "Intel", "NVIDIA", "RAM"], correta: 0, valor: 2 },
+
+  // --- Português ---
+  { categoria: 'portugues', pergunta: "Qual é o plural de 'pão'?", alternativas: ["pãos", "pães", "painçes", "pãis"], correta: 1, valor: 1 },
+  { categoria: 'portugues', pergunta: "Qual é o correto: 'eles ...'?", alternativas: ["fizero", "fizeram", "fazem", "fez"], correta: 1, valor: 2 },
+  { categoria: 'portugues', pergunta: "Quantas letras tem a palavra 'paralelepípedo'?", alternativas: ["11", "12", "13", "14"], correta: 2, valor: 1 },
+
+  // --- Matemática ---
+  { categoria: 'matematica', pergunta: "Quantos lados tem um hexágono?", alternativas: ["4", "5", "6", "7"], correta: 2, valor: 1 },
+  { categoria: 'matematica', pergunta: "Qual é o resultado de 7 x 8?", alternativas: ["48", "54", "56", "64"], correta: 2, valor: 1 },
+  { categoria: 'matematica', pergunta: "Qual é o único número primo par?", alternativas: ["0", "1", "2", "4"], correta: 2, valor: 2 },
+  { categoria: 'matematica', pergunta: "Quanto é a raiz quadrada de 144?", alternativas: ["10", "11", "12", "14"], correta: 2, valor: 1 },
+
+  // --- Brasil ---
+  { categoria: 'brasil', pergunta: "Qual é a capital do Brasil?", alternativas: ["São Paulo", "Rio de Janeiro", "Brasília", "Salvador"], correta: 2, valor: 1 },
+  { categoria: 'brasil', pergunta: "Quem foi o primeiro presidente do Brasil?", alternativas: ["Getúlio Vargas", "Deodoro da Fonseca", "Juscelino Kubitschek", "Washington Luís"], correta: 1, valor: 1 },
+  { categoria: 'brasil', pergunta: "Qual cidade foi a primeira capital do Brasil (1500)?", alternativas: ["Salvador", "Rio de Janeiro", "Recife", "São Paulo"], correta: 0, valor: 2 },
+
+  // --- Lógica ---
+  { categoria: 'logica', pergunta: "Qual número completa a sequência: 2, 4, 6, ...?", alternativas: ["7", "8", "9", "10"], correta: 1, valor: 1 },
+  { categoria: 'logica', pergunta: "Se A > B e B > C, então:", alternativas: ["A < C", "A > C", "A = C", "Impossível saber"], correta: 1, valor: 2 },
+  { categoria: 'logica', pergunta: "Quantas pernas têm 2 cachorros e 3 gatos?", alternativas: ["16", "18", "20", "24"], correta: 2, valor: 3 }
+];
+
+/* ============================================================
+   3) CONFIGURAÇÕES DO JOGO
+   ============================================================ */
+const TEMPO_POR_PERGUNTA = 20;   // segundos por pergunta
+const QUANTAS_PERGUNTAS = 10;    // total de perguntas por partida
+const PONTOS_CERTA = 10;         // pontos base ao acertar
+const BONUS_COMBO = 5;           // bônus por acerto em sequência
+const META_XP = 100;             // XP necessária para subir de nível
+
+/* ============================================================
+   4) MAPA DE TELAS (cada <main> da página)
+   ============================================================ */
+const TELAS = {
+  inicio: 'tela-inicio',
+  quizzes: 'tela-quizzes',
+  quiz: 'tela-quiz',
+  resultado: 'tela-resultado',
+  ranking: 'tela-ranking',
+  conquistas: 'tela-conquistas',
+  perfil: 'tela-perfil'
+};
+
+/* ============================================================
+   5) VARIÁVEIS DE ESTADO DO JOGO
+   ============================================================ */
+let perguntasSorteio = [];   // perguntas da partida atual
+let indiceAtual = 0;         // qual pergunta estamos
 let pontuacao = 0;           // total de pontos
-let sequenciaCerta = 0;      // quantas certas SEGUIDAS
-let respondeuJa = false;     // já respondeu esta pergunta? (evita clicar 2x)
-let melhorPontuacao = 0;     // recorde salvo no navegador
-let tempoRestante = 0;       // segundos que faltam no cronômetro
-let cronometro = null;       // identifica o "setInterval" no cronômetro
+let sequenciaCerta = 0;      // acertos seguidos (combo)
+let maiorCombo = 0;          // maior combo da partida
+let acertos = 0;             // total de acertos
+let erros = 0;               // total de erros
+let respondeu = false;       // evita clicar 2x na mesma pergunta
+let categoriaAtual = 'geral';// categoria em jogo
+let tempoRestante = 0;       // segundos que faltam
+let cronometro = null;       // guarda o setInterval do cronômetro
+let tempoTotalUsado = 0;     // soma do tempo usado nas perguntas
 
-/* ------------------------------------------------------------
-   4) Pegando referências das partes da página (getElementById)
-   Serve para podermos mexer (mostrar/alterar) cada elemento.
-   ------------------------------------------------------------ */
-const telaInicio = document.getElementById('tela-inicio');
-const telaQuiz = document.getElementById('tela-quiz');
-const telaResultado = document.getElementById('tela-resultado');
+/* ============================================================
+   6) REFERÊNCIA AOS ELEMENTOS DA PÁGINA
+   ============================================================ */
+const el = {
+  // Home / hero
+  heroTotalQuiz: document.getElementById('hero-total-perguntas'),
+  heroTotalCat: document.getElementById('hero-total-categorias'),
+  destaques: document.getElementById('destaques-grade'),
+  categorias: document.getElementById('categorias-grade'),
+  categoriasFull: document.getElementById('categorias-grade-full'),
+  statsVazio: document.getElementById('stats-estado-vazio'),
+  gradeStats: document.getElementById('grade-stats'),
+  rankingResumo: document.getElementById('ranking-resumo'),
+  rankingCompleto: document.getElementById('ranking-completo'),
+  conquistas: document.getElementById('conquistas-grade'),
+  perfilStats: document.getElementById('perfil-stats'),
+  perfilNivel: document.getElementById('perfil-nivel'),
+  perfilXp: document.getElementById('perfil-xp'),
+  barraXp: document.getElementById('barra-xp'),
 
-const barraProgresso = document.getElementById('barra-progresso');
-const textoProgresso = document.getElementById('texto-progresso');
+  // Quiz
+  textoProgresso: document.getElementById('texto-progresso'),
+  barraProgresso: document.getElementById('barra-progresso'),
+  chipCombo: document.getElementById('chip-combo'),
+  numeroSeq: document.getElementById('sequencia'),
+  chipPremio: document.getElementById('chip-premio'),
+  numTimer: document.getElementById('numero-timer'),
+  barraTimer: document.getElementById('barra-timer'),
+  seloBonus: document.getElementById('selo-bonus'),
+  numeroPergunta: document.getElementById('numero-pergunta'),
+  textoPergunta: document.getElementById('texto-pergunta'),
+  areaRespostas: document.getElementById('area-respostas'),
+  pontuacao: document.getElementById('pontuacao'),
+  acertosTela: document.getElementById('acertos'),
+  errosTela: document.getElementById('erros'),
 
-const numeroTimer = document.getElementById('numero-timer');
-const barraTimer = document.getElementById('barra-timer');
+  // Resultado
+  emojiResultado: document.getElementById('emoji-resultado'),
+  tituloResultado: document.getElementById('titulo-resultado'),
+  subtituloResultado: document.getElementById('subtitulo-resultado'),
+  pontuacaoFinal: document.getElementById('pontuacao-final'),
+  melhorPontuacao: document.getElementById('melhor-pontuacao'),
+  rAcertos: document.getElementById('resultado-acertos'),
+  rErros: document.getElementById('resultado-erros'),
+  rPercentual: document.getElementById('resultado-percentual'),
+  rCombo: document.getElementById('resultado-combo'),
+  rTempo: document.getElementById('resultado-tempo'),
+  rXp: document.getElementById('resultado-xp')
+};
 
-const numeroPergunta = document.getElementById('numero-pergunta');
-const seloBonus = document.getElementById('selo-bonus');
-const textoPergunta = document.getElementById('texto-pergunta');
-const areaRespostas = document.getElementById('area-respostas');
+/* ============================================================
+   7) ARMAZENAMENTO LOCAL (localStorage)
+   Guarda: recorde, XP, estatísticas, ranking, conquistas e tema.
+   ============================================================ */
+const CHAVE = {
+  recorde: 'quizAKE_recorde',
+  xp: 'quizAKE_xp',
+  stats: 'quizAKE_stats',
+  ranking: 'quizAKE_ranking',
+  conquistas: 'quizAKE_conquistas',
+  tema: 'quizAKE_tema'
+};
 
-const textoPontuacao = document.getElementById('pontuacao');
-const textoSeguencia = document.getElementById('sequencia');
-const textoPontosFinal = document.getElementById('pontuacao-final');
+function lerTexto(chave) {
+  try { return localStorage.getItem(chave); } catch (e) { return null; }
+}
 
-const textoMelhorResultado = document.getElementById('melhor-pontuacao');
-const textoMelhorInicio = document.getElementById('melhor-pontuacao-inicio');
+function gravarTexto(chave, valor) {
+  try { localStorage.setItem(chave, valor); } catch (e) {}
+}
 
-const emojiResultado = document.getElementById('emoji-resultado');
-const tituloResultado = document.getElementById('titulo-resultado');
-const subtituloResultado = document.getElementById('subtitulo-resultado');
+function lerNumero(chave) {
+  const v = lerTexto(chave);
+  return v === null ? 0 : Number(v);
+}
 
-/* ------------------------------------------------------------
-   5) Recuperar a melhor pontuação salva (localStorage)
-   ------------------------------------------------------------ */
-function carregarMelhorPontuacao() {
-  const salvo = localStorage.getItem('melhorPontuacaoQuiz');
-  if (salvo !== null) {
-    melhorPontuacao = Number(salvo);   // transforma texto em número
+function lerLista(chave) {
+  const v = lerTexto(chave);
+  if (v === null) return [];
+  try { return JSON.parse(v); } catch (e) { return []; }
+}
+
+function lerRecorde() {
+  return lerNumero(CHAVE.recorde);
+}
+
+/* ============================================================
+   8) SISTEMA DE TEMAS (escuro, claro e sistema)
+   ============================================================ */
+const TEMAS = ['dark', 'light', 'system'];
+const ICONES_TEMA = { dark: '🌙', light: '☀️', system: '🖥️' };
+
+function temaAtual() {
+  const t = lerTexto(CHAVE.tema);
+  return TEMAS.includes(t) ? t : 'system';
+}
+
+function aplicarTema() {
+  const t = temaAtual();
+  document.documentElement.setAttribute('data-theme', t);
+  const botao = document.getElementById('botao-tema');
+  botao.textContent = ICONES_TEMA[t];
+  botao.setAttribute('aria-label', 'Tema atual: ' + t + '. Clique para alternar');
+}
+
+function alternarTema() {
+  const ordem = ['dark', 'light', 'system'];
+  const atual = temaAtual();
+  const proximo = ordem[(ordem.indexOf(atual) + 1) % ordem.length];
+  gravarTexto(CHAVE.tema, proximo);
+  aplicarTema();
+}
+
+/* ============================================================
+   9) NAVEGAÇÃO ENTRE TELAS
+   ============================================================ */
+function mostrarTela(nomeTela) {
+  const id = TELAS[nomeTela] || TELAS.inicio;
+
+  // Esconde todos os <main> (telas)
+  document.querySelectorAll('main.tela').forEach(function (main) {
+    main.classList.add('hidden');
+  });
+
+  // Mostra a tela pedida
+  const alvo = document.getElementById(id);
+  if (alvo) alvo.classList.remove('hidden');
+
+  // Atualiza o link ativo do menu
+  document.querySelectorAll('.nav-link').forEach(function (link) {
+    const alvoLink = link.getAttribute('data-navegar');
+    link.classList.toggle('active', alvoLink === nomeTela);
+  });
+
+  // Fecha o menu mobile e sobe ao topo
+  fecharMenu();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function iniciarNavegacao() {
+  // Links do menu e botões com data-navegar
+  document.querySelectorAll('[data-navegar]').forEach(function (elem) {
+    elem.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      const alvo = this.getAttribute('data-navegar');
+      if (alvo === 'quiz-dia') { entrarQuiz('geral'); return; }
+      mostrarTela(alvo);
+      if (alvo === 'quizzes') renderizarCategorias();
+      if (alvo === 'ranking') renderizarRanking();
+      if (alvo === 'conquistas') renderizarConquistas();
+      if (alvo === 'perfil') renderizarPerfil();
+    });
+  });
+
+  // Botões "Começar" (navbar e hero) iniciam um quiz geral
+  document.getElementById('botao-comecar').addEventListener('click', function () {
+    entrarQuiz('geral');
+  });
+  document.getElementById('botao-jogar-hero').addEventListener('click', function () {
+    entrarQuiz('geral');
+  });
+
+  // Botão "Jogar novamente" na tela de resultado
+  document.getElementById('botao-reiniciar').addEventListener('click', function () {
+    entrarQuiz(categoriaAtual);
+  });
+
+  // Botão do tema
+  document.getElementById('botao-tema').addEventListener('click', alternarTema);
+}
+
+/* ============================================================
+   10) MENU MOBILE (hambúrguer)
+   ============================================================ */
+function iniciarMenuMobile() {
+  const botao = document.getElementById('menu-toggle');
+  const nav = document.getElementById('nav-links');
+
+  botao.addEventListener('click', function () {
+    const abrir = nav.classList.toggle('aberto');
+    botao.setAttribute('aria-expanded', abrir);
+  });
+}
+
+function fecharMenu() {
+  const nav = document.getElementById('nav-links');
+  nav.classList.remove('aberto');
+  document.getElementById('menu-toggle').setAttribute('aria-expanded', 'false');
+}
+
+/* ============================================================
+   11) RENDERIZAR CATEGORIAS
+   ============================================================ */
+function contarPerguntas(categoriaId) {
+  if (categoriaId === 'geral') return BANCO_DE_PERGUNTAS.length;
+  return BANCO_DE_PERGUNTAS.filter(function (p) {
+    return p.categoria === categoriaId;
+  }).length;
+}
+
+function criarCardCategoria(cat) {
+  const div = document.createElement('div');
+  const total = contarPerguntas(cat.id);
+  const disponivel = total > 0;
+
+  div.className = 'card-quiz';
+  div.style.setProperty('--cor-categoria', cat.cor);
+  div.setAttribute('role', 'button');
+  div.setAttribute('tabindex', '0');
+  div.setAttribute('aria-label', 'Categoria ' + cat.nome + (disponivel ? ' com ' + total + ' perguntas' : ' em breve'));
+
+  div.innerHTML =
+    '<span class="icone">' + (disponivel ? cat.emoji : '🔒') + '</span>' +
+    '<span class="nome">' + cat.nome + '</span>' +
+    '<span class="meta">' + (disponivel ? total + ' perguntas' : 'Em breve') + '</span>';
+
+  if (!disponivel) {
+    div.style.opacity = '0.5';
+    div.style.cursor = 'not-allowed';
+    return div;
   }
-  // Usa texto simples (textContent) pois o HTML já tem o emoji 🏅
-  textoMelhorInicio.textContent = '🏅 Melhor pontuação: ' + melhorPontuacao;
-  textoMelhorResultado.textContent = '🏅 Melhor pontuação: ' + melhorPontuacao;
+
+  // Só permite abrir se houver perguntas
+  function abrir() { entrarQuiz(cat.id); }
+  div.addEventListener('click', abrir);
+  div.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      abrir();
+    }
+  });
+
+  return div;
 }
 
-/* ------------------------------------------------------------
-   6) Salvar a melhor pontuação (chamado no final do jogo)
-   ------------------------------------------------------------ */
-function salvarMelhorPontuacao() {
-  if (pontuacao > melhorPontuacao) {
-    melhorPontuacao = pontuacao;
-    localStorage.setItem('melhorPontuacaoQuiz', melhorPontuacao);   // guarda no navegador
+function renderizarCategorias() {
+  el.categorias.innerHTML = '';
+  el.categoriasFull.innerHTML = '';
+  CATEGORIAS.forEach(function (cat) {
+    el.categorias.appendChild(criarCardCategoria(cat));
+    el.categoriasFull.appendChild(criarCardCategoria(cat));
+  });
+}
+
+/* ============================================================
+   12) RENDERIZAR DESTAQUES (quiz do dia, populares, recomendados)
+   ============================================================ */
+function renderizarDestaques() {
+  const grade = el.destaques;
+  grade.innerHTML = '';
+
+  const destaques = [
+    { cat: 'geral',     rotulo: '⭐ Quiz do dia',     desc: 'Perguntas variadas de todas as áreas.' },
+    { cat: 'geografia', rotulo: '🔥 Populares',      desc: 'A categoria mais jogada por aqui.' },
+    { cat: 'ciencia',   rotulo: '✨ Recomendados',   desc: 'Ideal para quem ama descobertas.' }
+  ];
+
+  destaques.forEach(function (d) {
+    const cat = CATEGORIAS.find(function (c) { return c.id === d.cat; });
+    if (!cat) return;
+
+    const div = document.createElement('div');
+    div.className = 'card-quiz';
+    div.style.setProperty('--cor-categoria', cat.cor);
+    div.setAttribute('role', 'button');
+    div.setAttribute('tabindex', '0');
+    div.innerHTML =
+      '<span class="icone">' + cat.emoji + '</span>' +
+      '<span class="nome">' + cat.nome + '</span>' +
+      '<span class="meta">' + d.rotulo + ' · ' + d.desc + '</span>';
+
+    function abrir() { entrarQuiz(d.cat); }
+    div.addEventListener('click', abrir);
+    div.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        abrir();
+      }
+    });
+
+    grade.appendChild(div);
+  });
+}
+
+/* ============================================================
+   13) ESTATÍSTICAS (home + perfil)
+   ============================================================ */
+function carregarStats() {
+  return lerLista(CHAVE.stats);
+}
+
+function salvarStats(stats) {
+  gravarTexto(CHAVE.stats, JSON.stringify(stats));
+}
+
+function renderizarEstatisticas() {
+  const stats = carregarStats();
+  el.statsVazio.innerHTML = '';
+  el.gradeStats.innerHTML = '';
+
+  const jogos = stats.jogos || 0;
+
+  if (jogos === 0) {
+    el.statsVazio.innerHTML =
+      '<span class="emoji">🎯</span>' +
+      '<p><strong>Você ainda não jogou!</strong><br>Complete um quiz para ver suas estatísticas por aqui.</p>';
+    return;
   }
-  textoMelhorResultado.textContent = '🏅 Melhor pontuação: ' + melhorPontuacao;
-  textoMelhorInicio.textContent = '🏅 Melhor pontuação: ' + melhorPontuacao;
+
+  const acertosTotal = stats.acertos || 0;
+  const errosTotal = stats.erros || 0;
+  const respondidas = acertosTotal + errosTotal;
+  const taxa = respondidas > 0 ? Math.round((acertosTotal / respondidas) * 100) : 0;
+
+  const cards = [
+    { valor: jogos, rotulo: 'Quizzes realizados' },
+    { valor: respondidas, rotulo: 'Perguntas respondidas' },
+    { valor: taxa + '%', rotulo: 'Taxa de acerto' },
+    { valor: lerRecorde(), rotulo: 'Melhor pontuação' }
+  ];
+
+  cards.forEach(function (c) {
+    const div = document.createElement('div');
+    div.className = 'stat-card';
+    div.innerHTML = '<span class="stat-valor">' + c.valor + '</span><span class="stat-rotulo">' + c.rotulo + '</span>';
+    el.gradeStats.appendChild(div);
+  });
 }
 
-/* ------------------------------------------------------------
-   7) Mostrar uma tela e esconder as outras
-   ------------------------------------------------------------ */
-function mostrarTela(telaParaMostrar) {
-  telaInicio.classList.add('hidden');
-  telaQuiz.classList.add('hidden');
-  telaResultado.classList.add('hidden');
-  telaParaMostrar.classList.remove('hidden');
+function renderizarPerfil() {
+  const stats = carregarStats();
+  const jogos = stats.jogos || 0;
+  const xpTotal = lerNumero(CHAVE.xp);
+  const nivel = Math.floor(xpTotal / META_XP) + 1;
+  const xpNoNivel = xpTotal % META_XP;
+
+  el.perfilNivel.textContent = nivel;
+  el.perfilXp.textContent = xpTotal + ' XP';
+  el.barraXp.style.width = (xpNoNivel / META_XP) * 100 + '%';
+  el.barraXp.setAttribute('aria-label', 'XP do nível: ' + xpNoNivel + ' de ' + META_XP);
+
+  el.perfilStats.innerHTML = '';
+
+  const acertosTotal = stats.acertos || 0;
+  const errosTotal = stats.erros || 0;
+  const respondidas = acertosTotal + errosTotal;
+  const taxa = respondidas > 0 ? Math.round((acertosTotal / respondidas) * 100) : 0;
+
+  const cards = [
+    ['🎮', jogos, 'Jogos'],
+    ['❓', respondidas, 'Perguntas'],
+    ['✅', taxa + '%', 'Acerto'],
+    ['🏆', lerRecorde(), 'Recorde']
+  ];
+
+  cards.forEach(function (c) {
+    const div = document.createElement('div');
+    div.className = 'stat-card';
+    div.innerHTML = '<span class="stat-valor">' + c[1] + '</span><span class="stat-rotulo">' + c[2] + '</span>';
+    el.perfilStats.appendChild(div);
+  });
 }
 
-/* ------------------------------------------------------------
-   8) SORTEAR as perguntas (embaralha o banco e escolhe algumas)
-   ------------------------------------------------------------ */
-function sortearPerguntas() {
-  // Cria uma cópia do banco para não estragar o original
-  const embaralhadas = bancoDePerguntas.slice();
+/* ============================================================
+   14) RANKING (resumo na home + página completa)
+   ============================================================ */
+function renderizarRanking() {
+  const lista = lerLista(CHAVE.ranking);
+  const resumo = el.rankingResumo;
+  const completo = el.rankingCompleto;
 
-  // Embaralha a cópia usando o algoritmo de mistura (Fisher-Yates)
+  resumo.innerHTML = '';
+  completo.innerHTML = '';
+
+  if (lista.length === 0) {
+    const vazio =
+      '<div class="estado-vazio"><span class="emoji">🏆</span>' +
+      '<p><strong>Nenhum registro ainda.</strong><br>Jogue uma partida para entrar no ranking.</p></div>';
+    resumo.innerHTML = vazio;
+    completo.innerHTML = vazio;
+    return;
+  }
+
+  const medalhas = ['🥇', '🥈', '🥉'];
+  const itens = lista.map(function (entry, i) {
+    const medalha = medalhas[i] || (i + 1) + 'º';
+    return '<li><span class="pos">' + medalha + '</span>' +
+      '<span class="nome">' + entry.data + '</span>' +
+      '<span class="pts">' + entry.pontos + ' pts</span></li>';
+  });
+
+  resumo.innerHTML = '<ul class="lista-ranking">' + itens.slice(0, 3).join('') + '</ul>';
+  completo.innerHTML = '<ul class="lista-ranking">' + itens.slice(0, 10).join('') + '</ul>';
+}
+
+/* ============================================================
+   15) CONQUISTAS
+   ============================================================ */
+const CONQUISTAS_DEF = [
+  { id: 'primeiro',  nome: 'Primeira partida', desc: 'Complete seu primeiro quiz', icone: '🎯' },
+  { id: 'pontos100', nome: 'Centenário',       desc: 'Faça 100 pontos em uma partida', icone: '💯' },
+  { id: 'combo5',    nome: 'Fogoso',           desc: 'Atinga 5 acertos seguidos', icone: '🔥' },
+  { id: 'acertoTotal', nome: 'Perfeição',      desc: 'Conclua com 100% de acerto', icone: '⭐' },
+  { id: 'recorde',   nome: 'Recordista',       desc: 'Bata seu próprio recorde', icone: '🏅' },
+  { id: 'cincoJogos', nome: 'Veterano',        desc: 'Jogue pelo menos 5 partidas', icone: '🎮' }
+];
+
+function renderizarConquistas() {
+  const grade = el.conquistas;
+  const ganhas = lerLista(CHAVE.conquistas);
+  grade.innerHTML = '';
+
+  CONQUISTAS_DEF.forEach(function (conq) {
+    const desbloqueada = ganhas.includes(conq.id);
+    const div = document.createElement('div');
+    div.className = 'conquista' + (desbloqueada ? '' : ' bloqueada');
+    div.innerHTML =
+      '<div class="icone">' + (desbloqueada ? conq.icone : '🔒') + '</div>' +
+      '<div class="nome">' + conq.nome + '</div>' +
+      '<div class="desc">' + conq.desc + '</div>' +
+      '<div class="desc">' + (desbloqueada ? '✅ Desbloqueada' : 'Bloqueada') + '</div>';
+    grade.appendChild(div);
+  });
+}
+
+function desbloquearConquista(id) {
+  const lista = lerLista(CHAVE.conquistas);
+  if (!lista.includes(id)) {
+    lista.push(id);
+    gravarTexto(CHAVE.conquistas, JSON.stringify(lista));
+  }
+}
+
+function checarConquistas(dados) {
+  desbloquearConquista('primeiro');
+  if (dados.pontos >= 100) desbloquearConquista('pontos100');
+  if (dados.maiorCombo >= 5) desbloquearConquista('combo5');
+  if (dados.percentual === 100) desbloquearConquista('acertoTotal');
+  if (dados.novoRecorde) desbloquearConquista('recorde');
+  if ((carregarStats().jogos || 0) >= 5) desbloquearConquista('cincoJogos');
+}
+
+/* ============================================================
+   16) MOTOR DO QUIZ
+
+   Fluxo:
+     entrarQuiz()     -> sorteia e inicia
+     mostrarPergunta() -> mostra pergunta + timer
+     responder()      -> valida o clique
+     tempoEsgotado()  -> quando o cronômetro chega a 0
+     proximaPergunta() -> avança com pequena pausa
+     finalizarQuiz()  -> calcula tudo e mostra o resultado
+   ============================================================ */
+
+/* Filtra as perguntas da categoria e embaralha */
+function entrarQuiz(categoriaId) {
+  categoriaAtual = categoriaId;
+
+  let pool = BANCO_DE_PERGUNTAS;
+  if (categoriaId !== 'geral') {
+    pool = BANCO_DE_PERGUNTAS.filter(function (q) { return q.categoria === categoriaId; });
+  }
+  if (pool.length === 0) return; // categoria indisponível
+
+  // Embaralha (Fisher-Yates)
+  const embaralhadas = pool.slice();
   for (let i = embaralhadas.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1)); // índice aleatório
-    const troca = embaralhadas[i];                 // guarda
-    embaralhadas[i] = embaralhadas[j];             // troca posição i
-    embaralhadas[j] = troca;                       // coloca na posição j
+    const j = Math.floor(Math.random() * (i + 1));
+    const troca = embaralhadas[i];
+    embaralhadas[i] = embaralhadas[j];
+    embaralhadas[j] = troca;
   }
 
-  // Pega só as primeiras "QUANTAS_PERGUNTAS" da lista embaralhada
   perguntasSorteio = embaralhadas.slice(0, QUANTAS_PERGUNTAS);
-}
 
-/* ------------------------------------------------------------
-   9) COMEÇAR o jogo (sorteia, zera tudo e mostra a 1ª pergunta)
-   ------------------------------------------------------------ */
-function comecarQuiz() {
-  sortearPerguntas();        // escolhe as perguntas aleatórias
+  // Zera contadores
   indiceAtual = 0;
   pontuacao = 0;
   sequenciaCerta = 0;
+  maiorCombo = 0;
+  acertos = 0;
+  erros = 0;
+  tempoTotalUsado = 0;
 
-  textoPontuacao.textContent = '0';
-  textoSeguencia.textContent = '0';
+  el.pontuacao.textContent = '0';
+  el.acertosTela.textContent = '0';
+  el.errosTela.textContent = '0';
+  el.chipCombo.style.display = 'none';
 
-  mostrarTela(telaQuiz);
+  mostrarTela('quiz');
   mostrarPergunta();
 }
 
-/* ------------------------------------------------------------
-   10) MOSTRAR uma pergunta na tela e iniciar o cronômetro
-   ------------------------------------------------------------ */
+/* Mostra a pergunta atual e inicia o cronômetro */
 function mostrarPergunta() {
-  const atual = perguntasSorteio[indiceAtual];   // pergunta sorteada atual
+  pararTimer();
 
-  numeroPergunta.textContent = 'Pergunta ' + (indiceAtual + 1);
-  textoPergunta.textContent = atual.pergunta;
-
-  // Barra de progresso (percentual concluído)
+  const pergunta = perguntasSorteio[indiceAtual];
   const total = perguntasSorteio.length;
+
+  el.textoProgresso.textContent = 'Pergunta ' + (indiceAtual + 1) + ' de ' + total;
+  el.numeroPergunta.textContent = 'Pergunta ' + (indiceAtual + 1);
+
   const concluido = (indiceAtual / total) * 100;
-  barraProgresso.style.width = concluido + '%';
-  textoProgresso.textContent = 'Pergunta ' + (indiceAtual + 1) + ' de ' + total;
+  el.barraProgresso.style.width = concluido + '%';
 
-  // Mostra o "selo" somente se a pergunta for prêmio (valor > 1)
-  if (atual.valor > 1) {
-    seloBonus.classList.remove('hidden');
-    // Troca o texto do selo para indicar 2x ou 3x
-    seloBonus.textContent = '⭐ PERGUNTA PRÊMIO (x' + atual.valor + ')';
+  // Selo de pergunta prêmio
+  if (pergunta.valor > 1) {
+    el.seloBonus.classList.remove('hidden');
+    el.chipPremio.classList.remove('hidden');
+    el.chipPremio.textContent = '⭐ x' + pergunta.valor;
   } else {
-    seloBonus.classList.add('hidden');
+    el.seloBonus.classList.add('hidden');
+    el.chipPremio.classList.add('hidden');
   }
 
-  // Limpa as alternativas anteriores e cria as novas
-  areaRespostas.innerHTML = '';
+  el.textoPergunta.textContent = pergunta.pergunta;
 
-  for (let i = 0; i < atual.alternativas.length; i++) {
+  // Cria os botões de resposta
+  el.areaRespostas.innerHTML = '';
+  for (let i = 0; i < pergunta.alternativas.length; i++) {
     const botao = document.createElement('button');
-    botao.classList.add('answer-btn');
-    botao.textContent = atual.alternativas[i];
-
-    // Ao clicar, chama a função responder(índice, botao) e passa o valor
-    botao.addEventListener('click', function() {
-      responder(i, botao, atual.valor);
-    });
-
-    areaRespostas.appendChild(botao);
+    botao.className = 'answer-btn';
+    botao.textContent = pergunta.alternativas[i];
+    botao.addEventListener('click', function () { responder(i, botao, pergunta.valor); });
+    el.areaRespostas.appendChild(botao);
   }
 
-  // Libera para responder esta pergunta
-  respondeuJa = false;
-
-  // Reinicia o cronômetro
+  respondeu = false;
   iniciarTimer();
 }
 
-/* ------------------------------------------------------------
-   11) CRONÔMETRO (conta de 20 até 0, atualizando a cada segundo)
-   ------------------------------------------------------------ */
+/* Cronômetro: conta de 20 até 0, atualizando a cada segundo */
 function iniciarTimer() {
-  pararTimer();   // garante que não há cronômetro anterior rodando
+  pararTimer();
 
   tempoRestante = TEMPO_POR_PERGUNTA;
-  numeroTimer.textContent = tempoRestante;
+  el.numTimer.textContent = tempoRestante;
 
-  barraTimer.style.width = '100%';
-  numeroTimer.className = 'timer-number';
-  barraTimer.style.background = '#28a745';
+  el.barraTimer.style.width = '100%';
+  el.numTimer.classList.remove('warning', 'danger');
+  el.barraTimer.style.background = 'var(--ok)';
 
-  // setInterval chama a função a cada 1000 ms (1 segundo)
-  cronometro = setInterval(function() {
+  cronometro = setInterval(function () {
     tempoRestante--;
-    numeroTimer.textContent = tempoRestante;
+    el.numTimer.textContent = tempoRestante;
 
     const porcentagem = (tempoRestante / TEMPO_POR_PERGUNTA) * 100;
-    barraTimer.style.width = porcentagem + '%';
+    el.barraTimer.style.width = porcentagem + '%';
 
-    // Muda a cor conforme a pressa
     if (tempoRestante <= 5) {
-      numeroTimer.className = 'timer-number danger';   // vermelho piscando
-      barraTimer.style.background = '#e74c3c';
+      el.numTimer.classList.add('danger');
+      el.barraTimer.style.background = 'var(--erro)';
     } else if (tempoRestante <= 9) {
-      numeroTimer.className = 'timer-number warning';  // laranja
-      barraTimer.style.background = '#f39c12';
+      el.numTimer.classList.add('warning');
+      el.barraTimer.style.background = 'var(--aviso)';
+    } else {
+      el.barraTimer.style.background = 'var(--ok)';
     }
 
     if (tempoRestante <= 0) {
@@ -264,7 +709,6 @@ function iniciarTimer() {
   }, 1000);
 }
 
-/* Para (cancela) o cronômetro */
 function pararTimer() {
   if (cronometro !== null) {
     clearInterval(cronometro);
@@ -272,128 +716,216 @@ function pararTimer() {
   }
 }
 
-/* ------------------------------------------------------------
-   12) Quando o TEMPO acaba sem resposta
-   ------------------------------------------------------------ */
+/* Quando o tempo acaba, conta como erro */
 function tempoEsgotado() {
-  const botoes = areaRespostas.querySelectorAll('.answer-btn');
-  botoes.forEach(function(botao) {
-    botao.disabled = true;
-  });
+  if (respondeu) return;
+  respondeu = true;
 
-  // A resposta certa é destacada para o jogador aprender
-  const indiceCerto = perguntasSorteio[indiceAtual].correta;
-  botoes[indiceCerto].classList.add('correct');
+  erros++;
+  el.errosTela.textContent = erros;
 
-  // Quebra o combo
-  sequenciaCerta = 0;
-  textoSeguencia.textContent = '0';
+  // tempo usado = todo o tempo da pergunta
+  tempoTotalUsado += TEMPO_POR_PERGUNTA;
+
+  // Desabilita botões e marca a resposta certa
+  const botoes = el.areaRespostas.querySelectorAll('.answer-btn');
+  botoes.forEach(function (b) { b.disabled = true; });
+  const indiceOk = perguntasSorteio[indiceAtual].correta;
+  botoes[indiceOk].classList.add('correct');
+
+  sequenciaCerta = 0;   // quebra combo
+  el.chipCombo.style.display = 'none';
+  el.numeroSeq.textContent = '0';
+
+  tocarSom(false);
+  mostrarMensagem('⏰ Tempo esgotado!', 'var(--erro)');
 
   proximaPergunta();
 }
 
-/* ------------------------------------------------------------
-   13) O que acontece quando o usuário CLICA em uma alternativa
-   Aqui entra a lógica da PERGUNTA PRÊMIO: se a pergunta tem
-   "valor", os pontos ganhos são multiplicados por esse valor.
-   ------------------------------------------------------------ */
+/* Quando o usuário clica em uma alternativa */
 function responder(indiceClicado, botaoClicado, valorPergunta) {
-  // Proteção contra múltiplos cliques na mesma pergunta
-  if (respondeuJa) return;
-  respondeuJa = true;
+  if (respondeu) return;
+  respondeu = true;
 
-  pararTimer();   // para o cronômetro
+  pararTimer();
+
+  // tempo usado nesta pergunta
+  const tempoUsado = TEMPO_POR_PERGUNTA - tempoRestante;
+  tempoTotalUsado += tempoUsado;
+
+  // Desabilita todos os botões
+  const todosBotoes = el.areaRespostas.querySelectorAll('.answer-btn');
+  todosBotoes.forEach(function (b) { b.disabled = true; });
 
   const pergunta = perguntasSorteio[indiceAtual];
-  const respostaCerta = pergunta.correta;
+  const certa = pergunta.correta;
 
-  // Desabilita todos os botões (não pode trocar a resposta)
-  const todosBotoes = areaRespostas.querySelectorAll('.answer-btn');
-  todosBotoes.forEach(function(botao) {
-    botao.disabled = true;
-  });
-
-  // ---------------- ACERTOU ----------------
-  if (indiceClicado === respostaCerta) {
+  if (indiceClicado === certa) {
+    // ---------- ACERTOU ----------
     botaoClicado.classList.add('correct');
+    acertos++;
+    el.acertosTela.textContent = acertos;
 
     sequenciaCerta++;
+    if (sequenciaCerta > maiorCombo) maiorCombo = sequenciaCerta;
+    el.chipCombo.style.display = 'inline-flex';
+    el.numeroSeq.textContent = sequenciaCerta;
 
-    // Pontos = base + bônus do combo, MULTIPLICADO pela "valor" da pergunta
+    // pontos = base + bônus do combo, multiplicado pelo valor
     const pontosBase = PONTOS_CERTA + (BONUS_COMBO * (sequenciaCerta - 1));
     const pontosGanhos = pontosBase * valorPergunta;
     pontuacao += pontosGanhos;
-
-    textoPontuacao.textContent = pontuacao;
-    textoSeguencia.textContent = sequenciaCerta;
+    el.pontuacao.textContent = pontuacao;
 
     tocarSom(true);
     criarConfete();
 
-    // Mostra na mensagem se foi pergunta prêmio
-    if (valorPergunta > 1) {
-      mostrarMensagem('+ ' + pontosGanhos + ' pontos (x' + valorPergunta + ') ⭐', '#28a745');
-    } else {
-      mostrarMensagem('+ ' + pontosGanhos + ' pontos', '#28a745');
-    }
+    const msg = valorPergunta > 1
+      ? '+ ' + pontosGanhos + ' pts (x' + valorPergunta + ')'
+      : '+ ' + pontosGanhos + ' pts';
+    mostrarMensagem(msg, 'var(--ok)');
 
   } else {
-    // ---------------- ERROU ----------------
+    // ---------- ERROU ----------
     botaoClicado.classList.add('wrong');
-    todosBotoes[respostaCerta].classList.add('correct');   // mostra a certa
+    todosBotoes[certa].classList.add('correct'); // mostra a certa
+    erros++;
+    el.errosTela.textContent = erros;
 
-    sequenciaCerta = 0;
-    textoSeguencia.textContent = '0';
+    sequenciaCerta = 0; // quebra combo
+    el.numeroSeq.textContent = '0';
+    el.chipCombo.style.display = 'none';
+
     tocarSom(false);
-    mostrarMensagem('✖ Errou...', '#e74c3c');
+    mostrarMensagem('✖ Errou', 'var(--erro)');
   }
 
   proximaPergunta();
 }
 
-/* ------------------------------------------------------------
-   14) Mensagem flutuante (ex: "+15 pontos", "Errou...")
-   ------------------------------------------------------------ */
-function mostrarMensagem(texto, cor) {
-  const msg = document.createElement('div');
-  msg.classList.add('floating-msg');            // usa o estilo do CSS
-  msg.textContent = texto;
-  msg.style.color = cor;
-
-  document.body.appendChild(msg);
-
-  setTimeout(function() {
-    if (msg.parentNode) msg.parentNode.removeChild(msg);
-  }, 1000);
+/* Passa para a próxima pergunta ou finaliza o quiz */
+function proximaPergunta() {
+  setTimeout(function () {
+    indiceAtual++;
+    if (indiceAtual < perguntasSorteio.length) {
+      mostrarPergunta();
+    } else {
+      finalizarQuiz();
+    }
+  }, 1500);
 }
 
-/* ------------------------------------------------------------
-   15) Confete simples: emojis que "caem" pela tela (ao acertar)
-   ------------------------------------------------------------ */
-function criarConfete() {
-  const emojis = ['🎉', '⭐', '✨', '🎊', '🌟'];
-  for (let i = 0; i < 12; i++) {
-    const pedaco = document.createElement('div');
-    pedaco.classList.add('confetti-piece');
-    pedaco.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+/* ============================================================
+   17) FINAL DO QUIZ: calcula tudo e mostra o resultado
+   ============================================================ */
+function finalizarQuiz() {
+  pararTimer();
 
+  const total = perguntasSorteio.length;
+  const percentual = Math.round((acertos / total) * 100);
+  const tempoMedio = total > 0 ? Math.round(tempoTotalUsado / total) : 0;
+
+  // Recorde
+  const antes = lerRecorde();
+  const novoRecorde = pontuacao > antes;
+  if (novoRecorde) gravarTexto(CHAVE.recorde, pontuacao);
+
+  // XP: acertos * 10 + maior combo * 6
+  const xpGanho = acertos * 10 + maiorCombo * 6;
+  const xpTotal = lerNumero(CHAVE.xp) + xpGanho;
+  gravarTexto(CHAVE.xp, xpTotal);
+
+  // Estatísticas gerais
+  const stats = carregarStats();
+  stats.jogos = (stats.jogos || 0) + 1;
+  stats.acertos = (stats.acertos || 0) + acertos;
+  stats.erros = (stats.erros || 0) + erros;
+  salvarStats(stats);
+
+  // Ranking (guarda as 5 melhores)
+  const ranking = lerLista(CHAVE.ranking);
+  ranking.push({ pontos: pontuacao, data: new Date().toLocaleDateString('pt-BR') });
+  ranking.sort(function (a, b) { return b.pontos - a.pontos; });
+  gravarTexto(CHAVE.ranking, JSON.stringify(ranking.slice(0, 5)));
+
+  // Conquistas
+  checarConquistas({ pontos: pontuacao, maiorCombo: maiorCombo, percentual: percentual, novoRecorde: novoRecorde });
+
+  // Preenche a tela de resultado
+  el.pontuacaoFinal.textContent = pontuacao + ' pontos';
+  el.rAcertos.textContent = acertos;
+  el.rErros.textContent = erros;
+  el.rPercentual.textContent = percentual + '%';
+  el.rCombo.textContent = 'x' + maiorCombo;
+  el.rTempo.textContent = tempoMedio + 's';
+  el.rXp.textContent = '+ ' + xpGanho;
+  el.melhorPontuacao.textContent = '🏅 Melhor pontuação: ' + lerRecorde();
+
+  // Perfil (emoji + título + subtítulo)
+  let emoji, titulo, subtitulo;
+  if (percentual === 100) {
+    emoji = '🏆'; titulo = 'Perfeito!'; subtitulo = '100% de acerto, que gênio!' + (novoRecorde ? ' Novo recorde!' : '');
+  } else if (acertos >= 8) {
+    emoji = '🎉'; titulo = 'Excelente!'; subtitulo = 'Você arrasou!' + (novoRecorde ? ' Novo recorde!' : '');
+  } else if (acertos >= 6) {
+    emoji = '😄'; titulo = 'Muito bom!'; subtitulo = 'Continue treinando, você vai longe!';
+  } else if (acertos >= 3) {
+    emoji = '🙂'; titulo = 'Bom começo'; subtitulo = 'Esforço sempre ajuda!';
+  } else {
+    emoji = '💪'; titulo = 'Não desista'; subtitulo = 'Todo mestre já foi iniciante. Tente de novo!';
+  }
+
+  el.emojiResultado.textContent = emoji;
+  el.tituloResultado.textContent = titulo;
+  el.subtituloResultado.textContent = subtitulo;
+
+  if (percentual >= 70) criarConfete();
+
+  mostrarTela('resultado');
+  renderizarEstatisticas();
+  renderizarRanking();
+  renderizarConquistas();
+}
+
+/* ============================================================
+   18) MENSAGENS FLUTUANTES E CONFETE
+   ============================================================ */
+function mostrarMensagem(texto, cor) {
+  const msg = document.createElement('div');
+  msg.className = 'floating-msg';
+  msg.textContent = texto;
+  msg.style.color = cor;
+  document.body.appendChild(msg);
+
+  setTimeout(function () {
+    if (msg.parentNode) msg.parentNode.removeChild(msg);
+  }, 900);
+}
+
+function criarConfete() {
+  const emojis = ['🎉', '💥', '✨', '🎊', '🌟'];
+  for (let i = 0; i < 24; i++) {
+    const pedaco = document.createElement('div');
+    pedaco.className = 'confetti-piece';
+    pedaco.textContent = emojis[Math.floor(Math.random() * emojis.length)];
     pedaco.style.left = Math.random() * 100 + 'vw';
-    pedaco.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
-    pedaco.style.fontSize = (14 + Math.random() * 18) + 'px';
+    pedaco.style.animationDuration = (1.5 + Math.random()) + 's';
+    pedaco.style.fontSize = (16 + Math.random() * 22) + 'px';
 
     document.body.appendChild(pedaco);
 
-    setTimeout(function(p) {
-      return function() {
+    setTimeout(function (p) {
+      return function () {
         if (p.parentNode) p.parentNode.removeChild(p);
       };
-    }(pedaco), 2200);
+    }(pedaco), 2800);
   }
 }
 
-/* ------------------------------------------------------------
-   16) SOM: usa a Web Audio API (não precisa arquivo externo)
-   ------------------------------------------------------------ */
+/* ============================================================
+   19) SOM (beeps simples via Web Audio API)
+   ============================================================ */
 function tocarSom(acertou) {
   try {
     const contexto = new (window.AudioContext || window.webkitAudioContext)();
@@ -403,87 +935,34 @@ function tocarSom(acertou) {
     oscilador.connect(ganho);
     ganho.connect(contexto.destination);
 
-    oscilador.frequency.value = acertou ? 720 : 220;   // agudo ou grave
-    ganho.gain.value = 0.2;
+    oscilador.frequency.value = acertou ? 760 : 220;
+    ganho.gain.value = 0.15;
     oscilador.start();
-    oscilador.stop(contexto.currentTime + 0.25);
+    oscilador.stop(contexto.currentTime + 0.22);
   } catch (e) {
-    // Se o navegador não suportar som, ignora silenciosamente
+    // se o navegador não suportar áudio, ignora silenciosamente
   }
 }
 
-/* ------------------------------------------------------------
-   17) Passar para a Próxima pergunta (ou encerrar o quiz)
-   ------------------------------------------------------------ */
-function proximaPergunta() {
-  setTimeout(function() {
-    indiceAtual++;
-    if (indiceAtual < perguntasSorteio.length) {
-      mostrarPergunta();       // ainda há perguntas
-    } else {
-      finalizarQuiz();         // acabaram as perguntas
-    }
-  }, 1500);
+/* ============================================================
+   20) INICIALIZAÇÃO DA PÁGINA
+   ============================================================ */
+function iniciar() {
+  aplicarTema();
+  iniciarNavegacao();
+  iniciarMenuMobile();
+
+  el.heroTotalQuiz.textContent = BANCO_DE_PERGUNTAS.length;
+  el.heroTotalCat.textContent = CATEGORIAS.length;
+
+  renderizarCategorias();
+  renderizarDestaques();
+  renderizarEstatisticas();
+  renderizarRanking();
+  renderizarConquistas();
+  renderizarPerfil();
+
+  mostrarTela('inicio');
 }
 
-/* ------------------------------------------------------------
-   18) Fim do jogo: mostra o resultado com "perfil" personalizado
-   ------------------------------------------------------------ */
-function finalizarQuiz() {
-  pararTimer();
-  salvarMelhorPontuacao();
-
-  textoPontosFinal.textContent = pontuacao + ' pontos';
-
-  // Calcula um percentual de aproveitamento
-  const total = perguntasSorteio.length;
-  const maximoPossivel = total * MAXIMO_PONTOS_POR_PERGUNTA;
-  const percentual = maximoPossivel > 0 ? (pontuacao / maximoPossivel) * 100 : 0;
-
-  // Escolhe o perfil (emoji + título + frase) conforme o desempenho
-  let emoji, titulo, subtitulo;
-  if (sequenciaCerta >= 5) {
-    emoji = '🐐';
-    titulo = 'Você é um Gênio!';
-    subtitulo = 'Manteve uma sequência incrível de acertos!';
-  } else if (percentual >= 70) {
-    emoji = '🏆';
-    titulo = 'Excelente!';
-    subtitulo = 'Você arrasou neste desafio!';
-  } else if (percentual >= 40) {
-    emoji = '😎';
-    titulo = 'Muito bom!';
-    subtitulo = 'Você sabe bastante coisa. Dá para melhorar!';
-  } else if (percentual >= 10) {
-    emoji = '🙂';
-    titulo = 'Nada mal!';
-    subtitulo = 'Continue treinando, você vai longe!';
-  } else {
-    emoji = '🐣';
-    titulo = 'Tudo bem!';
-    subtitulo = 'Todo mundo começa assim. Tente de novo!';
-  }
-
-  emojiResultado.textContent = emoji;
-  tituloResultado.textContent = titulo;
-  subtituloResultado.textContent = subtitulo;
-
-  mostrarTela(telaResultado);
-}
-
-/* ------------------------------------------------------------
-   19) Ações: ligar os "ouvintes" (eventos) aos botões
-   ------------------------------------------------------------ */
-// Botão "Começar!" -> começa o jogo
-document.getElementById('botao-comecar').addEventListener('click', comecarQuiz);
-
-// Botão "Jogar novamente" -> volta para a tela inicial
-document.getElementById('botao-reiniciar').addEventListener('click', function () {
-  mostrarTela(telaInicio);
-});
-
-/* ------------------------------------------------------------
-   20) Iniciando a página
-   ------------------------------------------------------------ */
-carregarMelhorPontuacao();     // mostra o recorde salvo
-mostrarTela(telaInicio);       // começa na tela inicial
+document.addEventListener('DOMContentLoaded', iniciar);
