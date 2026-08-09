@@ -1,0 +1,22 @@
+# Dependências
+node_modules/
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cache e build
+.DS_Store
+dist/
+build/
+.cache/
+
+# Editor
+.vscode/
+.idea/
+*.swp

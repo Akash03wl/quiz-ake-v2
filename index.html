@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  QUIZ DE CONHECIMENTOS GERAIS - Trabalho de Programação Web
+  ============================================================
+  Agora o site está separado em 3 arquivos (mais organizado):
+
+    - index.html        -> a ESTRUTURA da página
+    - css/style.css     -> o ESTILO (cores, fontes, animações)
+    - js/script.js      -> a LÓGICA (o funcionamento do jogo)
+
+  O HTML é o "esqueleto": ele EXECUTA o CSS e o JS para deixar
+  a página bonita e funcional.
+  ============================================================
+-->
+<html lang="pt-BR">
+<head>
+  <!-- charset: faz os acentos (ç, ã, é) aparecerem corretamente -->
+  <meta charset="UTF-8">
+  <!-- Faz a página se adaptar ao tamanho da tela (celular, tablet, PC) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz de Conhecimentos Gerais</title>
+
+  <!-- Aqui indicamos o arquivo de ESTILO (CSS) -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ============ TELA INICIAL ============ -->
+  <div id="tela-inicio" class="container">
+    <span class="emoji-big">🧠</span>
+    <h1>Quiz de Conhecimentos Gerais</h1>
+    <p class="description">
+      Teste seus conhecimentos! As perguntas são <strong>escolhidas aleatoriamente</strong>.<br>
+      Você tem <strong>20 segundos</strong> por pergunta e ganha
+      <strong>bônus por respostas certas em sequência</strong>. 🚀<br>
+      Fique de olho: algumas perguntas são <strong class="bonus-text">PERGUNTAS PRÊMIO</strong> (valem mais pontos)!
+    </p>
+    <p class="description" id="melhor-pontuacao-inicio">✨ Sua melhor pontuação: <strong>0</strong></p>
+    <button id="botao-comecar">Começar!</button>
+  </div>
+
+  <!-- ============ TELA DO QUIZ (perguntas) ============ -->
+  <div id="tela-quiz" class="container hidden">
+    <!-- Barra de progresso -->
+    <div class="progress-bar">
+      <div class="progress-fill" id="barra-progresso"></div>
+    </div>
+    <div class="progress-text" id="texto-progresso">Pergunta 0 de 0</div>
+
+    <!-- Cronômetro -->
+    <div class="timer-area">
+      <div class="timer-number" id="numero-timer">20</div>
+      <div class="timer-bar">
+        <div class="timer-fill" id="barra-timer"></div>
+      </div>
+    </div>
+
+    <div class="question-number" id="numero-pergunta">Pergunta 1</div>
+
+    <!-- Selo que aparece se a pergunta for "prêmio" (vale mais pontos) -->
+    <div class="bonus-badge hidden" id="selo-bonus">⭐ PERGUNTA PRÊMIO</div>
+
+    <div class="question-text" id="texto-pergunta">...</div>
+
+    <div class="answers" id="area-respostas"></div>
+
+    <div class="scoreboard">
+      <span>⭐ Pontos: <span id="pontuacao">0</span></span>
+      <span class="streak">🔥 Sequência: <span id="sequencia">0</span></span>
+    </div>
+  </div>
+
+  <!-- ============ TELA DE RESULTADO ============ -->
+  <div id="tela-resultado" class="container hidden">
+    <div class="result-emoji" id="emoji-resultado">🏆</div>
+    <div class="result-title" id="titulo-resultado">Resultado</div>
+    <div class="result-subtitle" id="subtitulo-resultado"></div>
+
+    <div class="final-score" id="pontuacao-final">0 pontos</div>
+    <div class="best-score" id="melhor-pontuacao">🏅 Melhor pontuação: 0</div>
+
+    <button id="botao-reiniciar">Jogar novamente</button>
+  </div>
+
+  <!-- Aqui carregamos o arquivo de LÓGICA (JavaScript).
+       Colocamos no fim para a página já estar montada quando rodar. -->
+  <script src="js/script.js"></script>
+</body>
+</html>

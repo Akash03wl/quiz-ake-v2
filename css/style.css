@@ -1,0 +1,327 @@
+/* ==========================================================
+   ARQUIVO DE ESTILO (CSS) do Quiz
+   Aqui fica toda a parte VISUAL (cores, fontes, animações).
+   O HTML chama este arquivo usando a tag <link>.
+   ========================================================== */
+
+/* "reset" simples: remove espaço padrão que o navegador coloca */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Estilo do corpo da página (o fundo atrás do quadrinho branco) */
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;   /* fonte bonita e comum */
+  background: linear-gradient(135deg, #667eea, #764ba2); /* fundo em degrade */
+  min-height: 100vh;               /* ocupa a tela toda */
+  display: flex;                   /* centraliza o conteúdo */
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  margin: 0;
+}
+
+/* "container" = quadrinho branco que guarda o conteúdo do quiz */
+.container {
+  background: white;
+  border-radius: 20px;              /* cantos arredondados */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); /* sombra para profundidade */
+  width: 100%;
+  max-width: 620px;                 /* largura máxima no PC */
+  padding: 30px;
+  text-align: center;
+}
+
+/* Esconde um elemento. O JavaScript liga/desliga para trocar de tela */
+.hidden {
+  display: none;
+}
+
+/* Título principal */
+h1 {
+  font-size: 2.2em;
+  color: #764ba2;
+  margin-bottom: 10px;
+}
+
+/* Emoji grande (decorativo) */
+.emoji-big {
+  font-size: 3.5em;
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* Parágrafo de descrição */
+.description {
+  color: #666;
+  margin-bottom: 20px;
+  padding: 0 10px;
+  line-height: 1.4;
+}
+
+/* Texto de destaque (negrito) dentro da descrição */
+.bonus-text {
+  color: #e67e22;
+  background: #fdebd0;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+/* Botões em geral */
+button {
+  padding: 12px 30px;
+  font-size: 1em;
+  border: none;
+  border-radius: 50px;              /* formato de pílula */
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+  color: white;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  font-weight: bold;
+}
+
+/* Aumenta um pouco o botão quando o mouse passa por cima */
+button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+/* ---- Barra de progresso (quantas perguntas já foram) ---- */
+.progress-bar {
+  background: #eee;
+  border-radius: 50px;
+  height: 15px;
+  width: 100%;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+/* A parte colorida que cresce conforme avança */
+.progress-fill {
+  background: linear-gradient(90deg, #28e08a, #16c1f3);
+  height: 100%;
+  width: 0%;                /* começa vazia; o JS define a largura */
+  border-radius: 50px;
+  transition: width 0.5s ease;   /* anima o crescimento */
+}
+
+.progress-text {
+  font-size: 0.9em;
+  color: #777;
+  margin-bottom: 20px;
+}
+
+.question-number {
+  font-size: 0.9em;
+  color: #999;
+  margin-bottom: 5px;
+}
+
+/* ---- Selo da "pergunta prêmio" ---- */
+.bonus-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #ffd32a, #ff9f43);
+  color: #6d4c00;
+  font-weight: bold;
+  font-size: 0.85em;
+  padding: 5px 14px;
+  border-radius: 50px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 10px rgba(255, 159, 67, 0.5);
+  animation: shine 1.5s infinite alternate;
+}
+
+@keyframes shine {
+  from { transform: scale(1); }
+  to   { transform: scale(1.06); }
+}
+
+/* ---- Pergunta ---- */
+.question-text {
+  font-size: 1.3em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+  min-height: 60px;   /* reserva espaço para não "pular" ao trocar de pergunta */
+}
+
+/* ==== Cronômetro (timer) ==== */
+.timer-area {
+  margin-bottom: 20px;
+}
+
+/* Número grande do contador */
+.timer-number {
+  font-size: 2.4em;
+  font-weight: bold;
+  color: #28e78a;              /* verde enquanto sobra tempo */
+}
+
+/* Laranja quando o tempo está diminuindo */
+.timer-number.warning {
+  color: #f39c12;
+}
+
+/* Vermelho PISCANDO quando o tempo está quase no fim */
+.timer-number.danger {
+  color: #e74c3c;
+  animation: blink 0.5s infinite alternate;   /* animação "blink" */
+}
+
+.timer-bar {
+  background: #eee;
+  height: 6px;
+  border-radius: 50px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+/* A parte colorida que vai diminuindo com o tempo */
+.timer-fill {
+  height: 100%;
+  background: #28a745;
+  width: 100%;
+  transition: width 1s linear;
+}
+
+/* Animação de piscar (para o aviso de final de tempo) */
+@keyframes blink {
+  from { opacity: 1; }
+  to   { opacity: 0.2; }
+}
+
+/* ==== Botões de resposta ==== */
+.answers {
+  display: flex;
+  flex-direction: column;   /* um botão abaixo do outro */
+  gap: 10px;
+}
+
+.answer-btn {
+  background: #f4f4f8;
+  color: #333;
+  text-align: left;
+  border: 2px solid #e0e0e8;
+  font-weight: normal;
+}
+
+.answer-btn:hover {
+  background: #eef;
+  border-color: #667eea;
+}
+
+/* VERDE: resposta certa */
+.answer-btn.correct {
+  background: #28a745;
+  border-color: #1fb666;
+  color: white;
+  animation: pop 0.3s;    /* "salta" para dar ênfase */
+}
+
+/* VERMELHO: resposta errada escolhida */
+.answer-btn.wrong {
+  background: #e74c3c;
+  border-color: #c0392b;
+  color: white;
+  animation: shake 0.4s;  /* "treme" para indicar erro */
+}
+
+.answer-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* Animação "pop" - aumenta e volta ao normal */
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* Animação "shake" - mexe de um lado para o outro */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-8px); }
+  40%      { transform: translateX(8px); }
+  60%      { transform: translateX(-6px); }
+  80%      { transform: translateX(6px); }
+}
+
+/* ==== Placar (pontos e sequência) ==== */
+.scoreboard {
+  display: flex;
+  justify-content: space-between;   /* um item de cada lado */
+  margin-top: 25px;
+  font-weight: bold;
+  color: #555;
+}
+
+.streak {
+  color: #f39c12;
+}
+
+/* ==== Tela de resultado ==== */
+.result-emoji {
+  font-size: 4em;
+  margin-bottom: 10px;
+}
+
+.result-title {
+  font-size: 1.7em;
+  color: #764ba2;
+  margin-bottom: 10px;
+}
+
+.result-subtitle {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.final-score {
+  font-size: 2em;
+  font-weight: bold;
+  color: #333;
+  margin: 15px 0;
+}
+
+.best-score {
+  color: #28a745;
+  font-weight: bold;
+  margin-bottom: 22px;
+}
+
+/* ==== Confete (emojis caindo ao acertar) ==== */
+.confetti-piece {
+  position: fixed;         /* fixa na tela inteira */
+  top: -20px;
+  font-size: 20px;
+  z-index: 1000;
+  pointer-events: none;    /* não atrapalha os cliques */
+  animation: fall linear forwards;   /* animação de queda ativada via JS */
+}
+
+@keyframes fall {
+  to { transform: translateY(110vh) rotate(360deg); }  /* desce girando */
+}
+
+/* ==== Mensagem flutuante (criada pelo JS) ==== */
+.floating-msg {
+  position: fixed;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3em;
+  font-weight: bold;
+  z-index: 1000;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+  animation: pop 0.5s;
+}
+
+/* ==== Responsividade: em telas pequenas (celular) reduz o texto ==== */
+@media (max-width: 480px) {
+  h1 { font-size: 1.8em; }
+  .container { padding: 20px; }
+  .question-text { font-size: 1.1em; }
+}
