@@ -325,3 +325,109 @@ button:hover {
   .container { padding: 20px; }
   .question-text { font-size: 1.1em; }
 }
+
+/* ==========================================================
+   TELA INICIAL (home)
+   Estilos extras para deixar a primeira tela mais bonita
+   e informativa (título, cartões de regras, recorde, etc.)
+   ========================================================== */
+
+/* Para o emoji não congelar, damos a ele uma animação de flutuação */
+.home-header .emoji-big {
+  animation: float 2.5s ease-in-out infinite;   /* movimento para cima e para baixo */
+}
+
+/* Animação "float": sobe e desce suavemente */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+/* Subtítulo logo abaixo do título */
+.home-subtitle {
+  color: #666;
+  font-size: 1.05em;
+  margin-top: 8px;
+}
+
+/* O "heading" da home centraliza o cabeçalho */
+.home-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Caixão grande com o texto explicativo do quiz */
+.info-card {
+  background: #f4f4fb;
+  border: 2px solid #e0e0f0;
+  border-radius: 15px;
+  padding: 16px;
+  margin-bottom: 18px;
+  text-align: left;
+  color: #555;
+  line-height: 1.4;
+}
+
+.info-card p {
+  margin: 0;
+}
+
+/* Título interno dos cartões (ex.: "Sobre o Quiz") */
+.info-title {
+  font-size: 1.1em;
+  color: #764ba2;
+  margin-bottom: 6px;
+}
+
+/* Grade de cartões pequenos (regras do jogo) */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;   /* duas colunas lado a lado */
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+/* Cada caixinha individual */
+.info-box {
+  background: linear-gradient(145deg, #ffffff, #f3f3fb);
+  border: 2px solid #e0e0f0;
+  border-radius: 15px;
+  padding: 14px;
+  text-align: center;
+}
+
+/* Icone (emoji) de cada caixinha */
+.info-icon {
+  font-size: 2em;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.info-box h3 {
+  font-size: 0.95em;
+  color: #764ba2;
+  margin-bottom: 4px;
+}
+
+.info-box p {
+  font-size: 0.82em;
+  color: #666;
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* Cartão visual do recorde (dourado) */
+.home-best {
+  background: linear-gradient(135deg, #fff7d6, #ffe9a8);
+  border: 2px solid #ffd32a;
+  color: #8a6d00;
+  padding: 12px;
+  border-radius: 50px;
+  font-size: 1em;
+  margin-bottom: 20px;
+}
+
+/* Em telas bem pequenas, as caixinhas ficam uma embaixo da outra */
+@media (max-width: 420px) {
+  .info-grid { grid-template-columns: 1fr; }
+}

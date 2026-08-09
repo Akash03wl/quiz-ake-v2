@@ -118,7 +118,8 @@ function carregarMelhorPontuacao() {
   if (salvo !== null) {
     melhorPontuacao = Number(salvo);   // transforma texto em número
   }
-  textoMelhorInicio.innerHTML = '✨ Sua melhor pontuação: <strong>' + melhorPontuacao + '</strong>';
+  // Usa texto simples (textContent) pois o HTML já tem o emoji 🏅
+  textoMelhorInicio.textContent = '🏅 Melhor pontuação: ' + melhorPontuacao;
   textoMelhorResultado.textContent = '🏅 Melhor pontuação: ' + melhorPontuacao;
 }
 
@@ -131,7 +132,7 @@ function salvarMelhorPontuacao() {
     localStorage.setItem('melhorPontuacaoQuiz', melhorPontuacao);   // guarda no navegador
   }
   textoMelhorResultado.textContent = '🏅 Melhor pontuação: ' + melhorPontuacao;
-  textoMelhorInicio.innerHTML = '✨ Sua melhor pontuação: <strong>' + melhorPontuacao + '</strong>';
+  textoMelhorInicio.textContent = '🏅 Melhor pontuação: ' + melhorPontuacao;
 }
 
 /* ------------------------------------------------------------

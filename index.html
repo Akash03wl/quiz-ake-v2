@@ -27,17 +27,52 @@
 <body>
 
   <!-- ============ TELA INICIAL ============ -->
-  <div id="tela-inicio" class="container">
-    <span class="emoji-big">🧠</span>
-    <h1>Quiz de Conhecimentos Gerais</h1>
-    <p class="description">
-      Teste seus conhecimentos! As perguntas são <strong>escolhidas aleatoriamente</strong>.<br>
-      Você tem <strong>20 segundos</strong> por pergunta e ganha
-      <strong>bônus por respostas certas em sequência</strong>. 🚀<br>
-      Fique de olho: algumas perguntas são <strong class="bonus-text">PERGUNTAS PRÊMIO</strong> (valem mais pontos)!
-    </p>
-    <p class="description" id="melhor-pontuacao-inicio">✨ Sua melhor pontuação: <strong>0</strong></p>
-    <button id="botao-comecar">Começar!</button>
+  <div id="tela-inicio" class="container home">
+    <!-- Cabeçalho com emoji grande e animado -->
+    <div class="home-header">
+      <span class="emoji-big">🧠</span>
+      <h1>Quiz de Conhecimentos Gerais</h1>
+      <p class="home-subtitle">Teste sua mente com perguntas sobre <strong>ciência, história, geografia e muito mais!</strong></p>
+    </div>
+
+    <!-- Cartão de informação: o que é o quiz -->
+    <div class="info-card">
+      <h2 class="info-title">📖 Sobre o Quiz</h2>
+      <p>
+        A cada partida, <strong>10 perguntas</strong> são <strong>sorteadas aleatoriamente</strong> de um banco
+        com mais de 30 perguntas. Por isso, cada jogo é um desafio diferente!
+      </p>
+    </div>
+
+    <!-- Cartões das regras e recursos -->
+    <div class="info-grid">
+      <div class="info-box">
+        <span class="info-icon">⏱️</span>
+        <h3>20 segundos</h3>
+        <p>Você tem <strong>20s</strong> para responder cada pergunta. Cuidado com o relógio!</p>
+      </div>
+      <div class="info-box">
+        <span class="info-icon">🔥</span>
+        <h3>Bônus em sequência</h3>
+        <p>Acertos seguidos dão <strong>pontos extras</strong> (combo). Não deixe a sequência cair!</p>
+      </div>
+      <div class="info-box">
+        <span class="info-icon">⭐</span>
+        <h3>Perguntas prêmio</h3>
+        <p>Algumas perguntas aleatórias valem <strong>2x ou 3x</strong> os pontos. Fique de olho!</p>
+      </div>
+      <div class="info-box">
+        <span class="info-icon">🏆</span>
+        <h3>Recorde salvo</h3>
+        <p>Sua <strong>melhor pontuação</strong> fica salva no seu navegador e aparece aqui.</p>
+      </div>
+    </div>
+
+    <!-- Melhor pontuação (preenchida pelo JavaScript) -->
+    <div class="best-score home-best" id="melhor-pontuacao-inicio">🏅 Melhor pontuação: 0</div>
+
+    <!-- Botão para começar o jogo -->
+    <button id="botao-comecar">Começar! 🚀</button>
   </div>
 
   <!-- ============ TELA DO QUIZ (perguntas) ============ -->
