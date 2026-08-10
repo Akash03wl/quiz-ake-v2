@@ -3,7 +3,7 @@
 # Frontend estático + Pages Functions em /api/* + D1 + Workers AI
 # ============================================================
 
-name = "quiz-ake"
+name = "quiz-ake-v2"
 pages_build_output_dir = "."
 
 compatibility_date = "2024-11-01"
@@ -19,4 +19,4 @@ database_id = "b9df1729-4395-459a-a844-c948c684437e"
 [vars]
 ENVIRONMENT = "development"
 AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
-SITE_URL = "https://quiz-ake.pages.dev"
+SITE_URL = "https://quiz-ake-v2.pages.dev"
