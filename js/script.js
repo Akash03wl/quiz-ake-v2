@@ -1542,6 +1542,13 @@ function proximaPergunta() {
 }
 
 /* ---------- 24) FINAL DA PARTIDA (competitiva) ---------- */
+
+/* Total final considerado (Infinity vira acertos contados para exibição) */
+function totalInfinito() {
+  if (modoAtual === 'sobrevivencia' || modoAtual === 'contra-tempo') return acertos + (modoAtual === 'sobrevivencia' ? 1 : erros);
+  return perguntasSorteio.length || QUANTAS_PERGUNTAS;
+}
+
 function finalizarPartida() {
   pararTudo();
   var total = totalPerguntasPartida();
@@ -1630,14 +1637,9 @@ function finalizarPartida() {
     }
   }
 
-  montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecorde, totalInfinito);
+  montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecorde);
 }
 
-/* Total final considerado (Infinity vira acertos contados para exibição) */
-function totalInfinito() {
-  if (modoAtual === 'sobrevivencia' || modoAtual === 'contra-tempo') return acertos + (modoAtual === 'sobrevivencia' ? 1 : erros);
-  return perguntasSorteio.length || QUANTAS_PERGUNTAS;
-}
 function tituloPartida() {
   if (modoAtual === 'sobrevivencia') return 'Sobrevivência';
   if (modoAtual === 'blitz') return 'Blitz';
