@@ -13,7 +13,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "quiz-ake-db"
-database_id = "SUBSTITUIR_PELO_ID_DO_D1"
+database_id = "b9df1729-4395-459a-a844-c948c684437e"
 
 # --- Variáveis públicas (não secretas) ---
 [vars]
