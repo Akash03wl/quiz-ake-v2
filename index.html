@@ -51,9 +51,12 @@
         <a href="#" class="nav-link" data-navegar="salas">Salas</a>
         <a href="#" class="nav-link" data-navegar="conquistas">Conquistas</a>
         <a href="#" class="nav-link" data-navegar="perfil">Perfil</a>
+        <a href="#" class="nav-link" data-navegar="criar">Criar quiz</a>
+        <a href="#" class="nav-link hidden" id="nav-admin" data-navegar="admin">Admin</a>
 
         <div class="nav-actions">
           <button class="theme-toggle" id="botao-tema" aria-label="Alternar tema do site">🌙</button>
+          <div id="area-conta" class="area-conta" aria-live="polite"></div>
           <button class="btn btn-primary btn-nav" id="botao-comecar">Começar quiz</button>
         </div>
       </nav>
@@ -469,6 +472,40 @@
     </div>
   </main>
 
+  <!-- ==================== TELA: CONTA (Fase 4) ==================== -->
+  <main class="tela hidden" id="tela-conta">
+    <div class="container">
+      <div class="bloco-cabecalho">
+        <h2>🔐 Sua conta</h2>
+        <p class="descricao-bloco" id="conta-subtitulo">Entre para sincronizar seu progresso entre dispositivos.</p>
+      </div>
+      <div id="conta-card" class="card suave"></div>
+    </div>
+  </main>
+
+  <!-- ==================== TELA: CRIAR QUIZ (Fase 4) ==================== -->
+  <main class="tela hidden" id="tela-criar">
+    <div class="container">
+      <div class="bloco-cabecalho">
+        <h2>✍️ Criar quiz</h2>
+        <p class="descricao-bloco">Monte um quiz manualmente ou peça ajuda à IA para gerar as perguntas.</p>
+      </div>
+      <div id="criar-card" class="card suave"></div>
+    </div>
+  </main>
+
+  <!-- ==================== TELA: ADMIN (Fase 4) ==================== -->
+  <main class="tela hidden" id="tela-admin">
+    <div class="container">
+      <div class="bloco-cabecalho">
+        <h2>🛠️ Painel administrativo</h2>
+        <p class="descricao-bloco">Visão geral da plataforma, usuários e conteúdo.</p>
+      </div>
+      <div id="admin-avisos"></div>
+      <div id="admin-dashboard" class="card suave"></div>
+    </div>
+  </main>
+
   <!-- Overlay de subida de nível (Fase 2) -->
   <div class="overlay-nivel hidden" id="overlay-nivel" aria-live="assertive">
     <div class="overlay-nivel-bolha">
@@ -481,11 +518,13 @@
   <footer class="rodape">
     <div class="container">
       <p>🧠 Quiz AKE · Trabalho de Programação Web · JavaScript puro, sem bibliotecas</p>
+      <p class="rodape-link"><a href="README-DEPLOY.md" target="_blank" rel="noopener">Deploy e documentação técnica (Fase 4)</a></p>
     </div>
   </footer>
 
-  <!-- Arquivos JavaScript: dados primeiro, lógica depois -->
+  <!-- Arquivos JavaScript: dados primeiro, lógica depois, API por último -->
   <script src="js/data.js"></script>
   <script src="js/script.js"></script>
+  <script src="js/api.js"></script>
 </body>
 </html>

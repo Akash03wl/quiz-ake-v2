@@ -1,0 +1,14 @@
+# ============================================================
+# QUIZ AKE - variáveis de desenvolvimento local (NÃO versionar)
+# Copie para .dev.vars e preencha.
+# ============================================================
+
+# Em produção o wrangler.toml define ENVIRONMENT=production.
+# Localmente usamos "development" (cookie sem Secure, token de recuperação legível).
+ENVIRONMENT=development
+
+# Provedor de IA (Workers AI usa o binding automático "AI" + AI_MODEL no wrangler.toml).
+# Fallback OpenAI-compatível (opcional):
+# AI_API_KEY=chave-sua-aqui
+# AI_BASE_URL=https://api.openai.com/v1
+# AI_MODEL=gpt-4o-mini

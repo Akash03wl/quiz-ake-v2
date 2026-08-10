@@ -182,8 +182,13 @@ const BANCO_DE_PERGUNTAS = PERGUNTAS;
    ============================================================ */
 const TEMPO_RELAMPAGO = 12;   // segundos estimados por pergunta
 
-/* Retorna as perguntas de um quiz, respeitando categoria e filtros */
+/* Retorna as perguntas de um quiz, respeitando categoria e filtros.
+   Quizzes criados pelo usuário/IA trazem a propriedade 'perguntas'
+   própria (ignora o banco estático). */
 function perguntasDoQuiz(quiz) {
+  if (quiz && Array.isArray(quiz.perguntas) && quiz.perguntas.length) {
+    return quiz.perguntas;
+  }
   let base;
   if (!quiz.filtro || !quiz.filtro.dificuldade || quiz.categoria === 'geral') {
     base = PERGUNTAS.slice();

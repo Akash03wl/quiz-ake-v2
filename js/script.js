@@ -64,7 +64,10 @@ var TELAS = {
   ranking: 'tela-ranking',
   salas: 'tela-salas',
   conquistas: 'tela-conquistas',
-  perfil: 'tela-perfil'
+  perfil: 'tela-perfil',
+  conta: 'tela-conta',
+  criar: 'tela-criar',
+  admin: 'tela-admin'
 };
 
 /* ---------- 4) ESTADO DO JOGO ---------- */
@@ -291,6 +294,9 @@ function mostrarTela(nomeTela) {
   if (nomeTela === 'conquistas') renderizarConquistas();
   if (nomeTela === 'perfil') renderizarPerfil();
   if (nomeTela === 'inicio') renderizarHome();
+  if (nomeTela === 'conta') renderizarConta();
+  if (nomeTela === 'criar') renderizarCriar();
+  if (nomeTela === 'admin') renderizarAdmin();
 
   fecharMenu();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -371,8 +377,8 @@ function ehFavorito(id) { return lerLista(CHAVE.favoritos).indexOf(id) >= 0; }
 function alternarFavorito(id) {
   var lista = lerLista(CHAVE.favoritos);
   var i = lista.indexOf(id);
-  if (i >= 0) { lista.splice(i, 1); gravarTexto(CHAVE.favoritos, JSON.stringify(lista)); return false; }
-  lista.push(id); gravarTexto(CHAVE.favoritos, JSON.stringify(lista)); return true;
+  if (i >= 0) { lista.splice(i, 1); gravarTexto(CHAVE.favoritos, JSON.stringify(lista)); if (window.API && typeof window.API.agendarSincronizacao === 'function') window.API.agendarSincronizacao(); return false; }
+  lista.push(id); gravarTexto(CHAVE.favoritos, JSON.stringify(lista)); if (window.API && typeof window.API.agendarSincronizacao === 'function') window.API.agendarSincronizacao(); return true;
 }
 
 /* ---------- 11) HISTÓRICO ---------- */
@@ -395,6 +401,7 @@ function registrarPartida(rec) {
   var lista = lerPartidas();
   lista.unshift(rec);
   gravarTexto(CHAVE.partidas, JSON.stringify(lista.slice(0, LIMITE_PARTIDAS)));
+  if (window.API && typeof window.API.agendarSincronizacao === 'function') window.API.agendarSincronizacao();
 }
 function partidasNoPeriodo(periodo) {
   var lista = lerPartidas();
@@ -1778,7 +1785,598 @@ function iniciar() {
   renderizarPaginaQuizzes();
   renderizarRanking();
   renderizarSalas();
+  renderizarAreaConta();
+  iniciarBackend();
   mostrarTela('inicio');
+}
+
+/* ==========================================================
+   FASE 4 - INTEGRAÇÃO COM BACKEND
+   Conecta o front ao Pages Functions (/api/*) via js/api.js.
+   Defensivo: sem backend conectado, o jogo funciona offline.
+   ========================================================== */
+
+/* ---------- 27) BACKEND: CONEXÃO ---------- */
+function backendConectado() {
+  return !!(window.API && window.API.conectado);
+}
+
+function iniciarBackend() {
+  if (!window.API) return;
+  window.API.iniciar().then(function (estadoApi) {
+    renderizarAreaConta();
+    if (estadoApi.usuario) {
+      gravarTexto(CHAVE.nome, estadoApi.usuario.nome || '');
+      window.API.sincronizar();
+    }
+    mostrarLinkAdmin(!!(estadoApi.usuario && estadoApi.usuario.papel === 'admin'));
+  }).catch(function () { renderizarAreaConta(); });
+
+  window.addEventListener('qake:sessao', function () {
+    renderizarAreaConta();
+    var u = window.API ? window.API.usuario : null;
+    mostrarLinkAdmin(!!(u && u.papel === 'admin'));
+  });
+}
+
+function mostrarLinkAdmin(visivel) {
+  var link = q('nav-admin');
+  if (link) link.classList.toggle('hidden', !visivel);
+}
+
+/* ---------- 28) CONTA NA NAVBAR ---------- */
+function renderizarAreaConta() {
+  var area = q('area-conta');
+  if (!area) return;
+  var u = window.API ? window.API.usuario : null;
+  if (!u) {
+    area.innerHTML = '<a href="#" class="btn btn-ghost btn-nav" data-navegar="conta">Entrar</a>';
+    return;
+  }
+  area.innerHTML = '<a href="#" class="btn btn-ghost btn-nav" data-navegar="conta">👤 ' + esc(u.nome || u.email || 'Conta') + '</a>';
+}
+
+/* ---------- 29) TELA DE CONTA ---------- */
+function renderizarConta() {
+  var card = q('conta-card');
+  if (!card) return;
+  var sub = q('conta-subtitulo');
+  var u = window.API ? window.API.usuario : null;
+
+  if (!backendConectado()) {
+    if (sub) sub.textContent = 'Backend indisponível. Você joga offline com o progresso salvo neste dispositivo.';
+    card.innerHTML = '<div class="estado-vazio"><span class="emoji">📡</span>' +
+      '<p>Não conseguimos conectar ao servidor.</p>' +
+      '<p>Jogue normalmente: tudo continua salvo aqui e será sincronizado quando o servidor voltar.</p></div>';
+    return;
+  }
+
+  if (u) {
+    if (sub) sub.textContent = 'Conectado. Seu progresso é sincronizado automaticamente entre dispositivos.';
+    card.innerHTML =
+      '<div style="display:grid;gap:10px;">' +
+        '<p class="conta-intro">👤 <strong>' + esc(u.nome || 'Anônimo') + '</strong></p>' +
+        '<p class="descricao-bloco">' + esc(u.email || '') + '</p>' +
+        '<p class="descricao-bloco">XP, recorde, conquistas, favoritos e partidas ficam sincronizados.</p>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
+          '<button type="button" class="btn btn-ghost" data-conta="nome">✏️ Editar nome</button>' +
+          '<button type="button" class="btn btn-ghost" data-conta="sair">Sair</button>' +
+        '</div>' +
+      '</div>';
+  } else {
+    if (sub) sub.textContent = 'Entre para sincronizar seu progresso entre dispositivos.';
+    card.innerHTML = htmlFormConta();
+  }
+  anexarAcoesConta(card, u);
+}
+
+function entradaEstilo() {
+  return 'width:100%;padding:10px;border-radius:10px;border:1px solid rgba(127,127,127,.3);background:transparent;color:inherit;box-sizing:border-box;margin-top:4px;';
+}
+
+function htmlFormConta() {
+  return '<form id="form-conta" data-modo="registro" novalidate>' +
+    '<div style="display:grid;gap:10px;max-width:460px;">' +
+      '<label class="descricao-bloco">Nome de exibição' +
+        '<input type="text" id="conta-nome" placeholder="Como os outros vão te ver" style="' + entradaEstilo() + '"></label>' +
+      '<label class="descricao-bloco">E-mail' +
+        '<input type="email" id="conta-email" required placeholder="voce@email.com" style="' + entradaEstilo() + '"></label>' +
+      '<label class="descricao-bloco">Senha' +
+        '<input type="password" id="conta-senha" required minlength="6" placeholder="Mínimo 6 caracteres" style="' + entradaEstilo() + '"></label>' +
+    '</div>' +
+    '<p id="conta-msg" class="descricao-bloco" style="color:#e05a4f;display:none;"></p>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">' +
+      '<button type="submit" class="btn btn-primary">Criar conta e entrar</button>' +
+      '<button type="button" class="btn btn-ghost" data-conta="logar">Já tenho conta</button>' +
+    '</div>' +
+  '</form>';
+}
+
+function anexarAcoesConta(card, u) {
+  var bSair = card.querySelector('[data-conta="sair"]');
+  if (bSair) bSair.addEventListener('click', function () {
+    window.API.logout().then(function () {
+      renderizarAreaConta(); mostrarLinkAdmin(false); renderizarConta();
+      mostrarMensagem('Você saiu da conta.');
+    });
+  });
+
+  var bNome = card.querySelector('[data-conta="nome"]');
+  if (bNome) bNome.addEventListener('click', function () {
+    var nome = prompt('Seu nome de exibição:', (u && u.nome) || '');
+    if (nome === null) return;
+    nome = nome.trim();
+    if (!nome) { mostrarMsgConta('O nome não pode ser vazio.'); return; }
+    window.API.atualizarMe({ nome: nome }).then(function () {
+      renderizarAreaConta(); renderizarConta(); mostrarMensagem('Nome atualizado!');
+    }).catch(function () { mostrarMsgConta('Não foi possível atualizar. Tente de novo.'); });
+  });
+
+  var form = card.querySelector('#form-conta');
+  if (form) {
+    var bLogar = form.querySelector('[data-conta="logar"]');
+    if (bLogar) bLogar.addEventListener('click', function () {
+      form.setAttribute('data-modo', 'login');
+      var nome = form.querySelector('#conta-nome');
+      if (nome) nome.parentNode.style.display = 'none';
+      var btn = form.querySelector('button[type="submit"]');
+      if (btn) btn.textContent = 'Entrar na minha conta';
+      var rotulo = form.querySelector('#conta-msg');
+      if (rotulo) { rotulo.textContent = 'Digite e-mail e senha para entrar.'; rotulo.style.display = 'block'; rotulo.style.color = 'inherit'; }
+      bLogar.remove();
+      var extra = document.createElement('button');
+      extra.type = 'button'; extra.className = 'btn btn-ghost'; extra.textContent = 'Criar nova conta';
+      if (bLogar.parentNode) bLogar.parentNode.appendChild(extra);
+      extra.addEventListener('click', renderizarConta);
+    });
+
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var modo = form.getAttribute('data-modo') || 'registro';
+      var emailEl = form.querySelector('#conta-email');
+      var senhaEl = form.querySelector('#conta-senha');
+      var dados = { email: emailEl.value.trim(), senha: senhaEl.value };
+      if (modo === 'registro') {
+        var nomeEl = form.querySelector('#conta-nome');
+        dados.nome = (nomeEl && nomeEl.value.trim()) || 'Jogador AKE';
+      }
+      var acao = modo === 'login' ? window.API.login(dados) : window.API.registrar(dados);
+      acao.then(function (d) {
+        if (d && d.erro) { mostrarMsgConta(d.erro); return; }
+        gravarTexto(CHAVE.nome, (d.usuario && d.usuario.nome) || '');
+        renderizarAreaConta();
+        mostrarLinkAdmin(!!(d.usuario && d.usuario.papel === 'admin'));
+        renderizarConta();
+        mostrarMensagem('Conta conectada!');
+        if (window.API.sincronizar) window.API.sincronizar();
+      }).catch(function (err) {
+        mostrarMsgConta((err && err.erro) || 'Falha ao conectar. Confira os dados.');
+      });
+    });
+  }
+}
+
+function mostrarMsgConta(texto) {
+  var m = q('conta-msg');
+  if (m) { m.textContent = texto; m.style.display = 'block'; return; }
+  alert(texto);
+}
+
+/* ---------- 29b) UTILITÁRIOS DE HTML ---------- */
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* ---------- 30) CRIAR QUIZ (MANUAL + IA) ---------- */
+var rascunhoPerguntas = [];
+var rascunhoIAAtual = null;
+
+function opcoesComboItens(lista, campo, sel) {
+  return lista.map(function (item) {
+    return '<option value="' + item.id + '"' + (item.id === (sel || '') ? ' selected' : '') + '>' + esc(item[campo] || item.id) + '</option>';
+  }).join('');
+}
+
+function opcoesCategorias(sel) {
+  return opcoesComboItens(CATEGORIAS, 'nome', sel || 'geral');
+}
+
+function opcoesDificuldades(sel) {
+  return opcoesComboItens(DIFICULDADES, 'nome', sel || 'medio');
+}
+
+function renderizarCriar() {
+  var card = q('criar-card');
+  if (!card) return;
+  card.innerHTML =
+    '<div style="display:grid;gap:12px;max-width:560px;">' +
+      '<button type="button" class="card suave" data-criar="manual" style="text-align:left;cursor:pointer;border:0;width:100%;">' +
+        '<strong>✍️ Criar manualmente</strong>' +
+        '<p class="descricao-bloco" style="margin:0;">Escolha categoria e dificuldade e escreva suas próprias perguntas.</p></button>' +
+      '<button type="button" class="card suave" data-criar="ia" style="text-align:left;cursor:pointer;border:0;width:100%;">' +
+        '<strong>🤖 Gerar com IA</strong>' +
+        '<p class="descricao-bloco" style="margin:0;">Peça à IA perguntas sobre um tema. Você revisa antes de salvar.</p></button>' +
+    '</div>' +
+    '<div id="meus-quizzes" style="margin-top:24px;"></div>';
+  card.querySelector('[data-criar="manual"]').addEventListener('click', renderizarCriarManual);
+  card.querySelector('[data-criar="ia"]').addEventListener('click', renderizarCriarIA);
+  renderizarMeusQuizzes();
+}
+
+function renderizarMeusQuizzes() {
+  var area = q('meus-quizzes');
+  if (!area) return;
+  var meus = QUIZZES.filter(function (qz) { return qz.autor && qz.autor !== 'Equipe Quiz AKE'; });
+  if (!meus.length) { area.innerHTML = ''; return; }
+  area.innerHTML = '<h3 class="titulo-bloco">Meus quizzes</h3>' +
+    '<div style="display:grid;gap:10px;">' +
+    meus.map(function (qz) {
+      return '<div class="card suave" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;">' +
+        '<div><strong>' + esc(qz.titulo) + '</strong>' +
+        '<p class="descricao-bloco" style="margin:0;">' + qz.quantidade + ' perguntas · ' + esc(qz.categoria) + '</p></div>' +
+        '<button type="button" class="btn btn-primary btn-nav" data-jogar="' + esc(qz.id) + '">Jogar</button>' +
+      '</div>';
+    }).join('') + '</div>';
+  Array.prototype.forEach.call(area.querySelectorAll('[data-jogar]'), function (b) {
+    b.addEventListener('click', function () { entrarNoQuiz(b.getAttribute('data-jogar')); });
+  });
+}
+
+function renderizarCriarManual() {
+  var card = q('criar-card');
+  if (!card) return;
+  card.innerHTML =
+    '<button type="button" class="btn btn-ghost btn-nav" data-voltar-criar>← Voltar</button>' +
+    '<h3 style="margin:10px 0;">✍️ Criar quiz manual</h3>' +
+    '<form id="form-criar-manual" novalidate>' +
+      '<div style="display:grid;gap:10px;max-width:520px;">' +
+        '<label class="descricao-bloco">Título' +
+          '<input type="text" id="cm-titulo" required placeholder="Ex.: Quiz de Futebol" style="' + entradaEstilo() + '"></label>' +
+        '<label class="descricao-bloco">Descrição' +
+          '<textarea id="cm-descricao" rows="2" placeholder="Uma frase sobre o quiz" style="' + entradaEstilo() + '"></textarea></label>' +
+        '<label class="descricao-bloco">Categoria' +
+          '<select id="cm-categoria" style="' + entradaEstilo() + '">' + opcoesCategorias('geral') + '</select></label>' +
+        '<label class="descricao-bloco">Dificuldade' +
+          '<select id="cm-dificuldade" style="' + entradaEstilo() + '">' + opcoesDificuldades('medio') + '</select></label>' +
+      '</div>' +
+      '<div id="cm-lista" style="margin-top:16px;"></div>' +
+      '<button type="button" class="btn btn-ghost" id="cm-adicionar" style="margin-top:6px;">+ Adicionar pergunta</button>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">' +
+        '<button type="submit" class="btn btn-primary">Salvar e jogar</button>' +
+      '</div>' +
+    '</form>';
+  card.querySelector('[data-voltar-criar]').addEventListener('click', renderizarCriar);
+  q('cm-adicionar').addEventListener('click', function () {
+    rascunhoPerguntas.push({ pergunta: '', alt: ['', '', '', ''], correta: 0 });
+    renderizarListaPerguntas();
+  });
+  q('form-criar-manual').addEventListener('submit', salvarQuizManual);
+  renderizarListaPerguntas();
+}
+
+function renderizarListaPerguntas() {
+  var area = q('cm-lista');
+  if (!area) return;
+  area.innerHTML = rascunhoPerguntas.map(function (p, i) {
+    var selOpcoes = (p.alt || []).map(function (alt, j) {
+      return '<option value="' + j + '"' + (p.correta === j ? ' selected' : '') + '>' + (j + 1) + '</option>';
+    }).join('');
+    return '<div class="card suave" style="padding:12px;margin-bottom:10px;" data-qid="' + i + '">' +
+      '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">' +
+        '<strong>Pergunta ' + (i + 1) + '</strong>' +
+        '<button type="button" class="btn btn-ghost btn-nav" data-remover="' + i + '">✕</button>' +
+      '</div>' +
+      '<div style="display:grid;gap:8px;margin-top:8px;">' +
+        '<input type="text" placeholder="Escreva a pergunta" data-campo="pergunta" value="' + esc(p.pergunta) + '" style="' + entradaEstilo() + '">' +
+        (p.alt || []).map(function (alt, j) {
+          return '<input type="text" placeholder="Alternativa ' + (j + 1) + '" data-campo="alt_' + j + '" value="' + esc(alt) + '" style="' + entradaEstilo() + '">';
+        }).join('') +
+        '<label class="descricao-bloco">Correta: <select data-campo="correta" style="' + entradaEstilo() + '">' + selOpcoes + '</select></label>' +
+      '</div>' +
+    '</div>';
+  }).join('') ||
+    '<div class="estado-vazio"><span class="emoji">🧠</span><p>Nenhuma pergunta ainda. Adicione a primeira!</p></div>';
+
+  Array.prototype.forEach.call(area.querySelectorAll('[data-remover]'), function (b) {
+    b.addEventListener('click', function () {
+      rascunhoPerguntas.splice(Number(b.getAttribute('data-remover')), 1);
+      renderizarListaPerguntas();
+    });
+  });
+  Array.prototype.forEach.call(area.querySelectorAll('[data-campo]'), function (inp) {
+    inp.addEventListener('input', function () {
+      var host = inp.closest('[data-qid]');
+      if (!host) return;
+      var idx = Number(host.getAttribute('data-qid'));
+      var campo = inp.getAttribute('data-campo');
+      if (campo === 'correta') { rascunhoPerguntas[idx].correta = Number(inp.value); return; }
+      if (campo === 'pergunta') { rascunhoPerguntas[idx].pergunta = inp.value; return; }
+      rascunhoPerguntas[idx].alt[Number(campo.split('_')[1])] = inp.value;
+    });
+  });
+}
+
+function salvarQuizManual(ev) {
+  ev.preventDefault();
+  var titulo = q('cm-titulo').value.trim();
+  var descricao = q('cm-descricao').value.trim();
+  var categoria = q('cm-categoria').value;
+  var dificuldade = q('cm-dificuldade').value;
+  if (!titulo) { mostrarMensagem('Dê um título ao quiz.'); return; }
+  var boas = rascunhoPerguntas.filter(function (p) {
+    return p.pergunta.trim() && (p.alt || []).every(function (a) { return a.trim(); });
+  });
+  if (!boas.length) { mostrarMensagem('Complete todas as alternativas de pelo menos uma pergunta.'); return; }
+  var quiz = {
+    id: 'local_' + Date.now(),
+    titulo: titulo,
+    descricao: descricao || 'Criado no Quiz AKE.',
+    categoria: categoria,
+    dificuldade: dificuldade,
+    emoji: '✍️',
+    cor: '#7c6cf0',
+    tags: [categoria, 'criado'],
+    autor: lerNome(),
+    dataCriacao: iso(new Date()),
+    quantidade: boas.length,
+    duracao: Math.max(60, boas.length * 20),
+    status: 'ativo',
+    perguntas: boas.map(function (p) {
+      return {
+        tipo: 'multipla',
+        pergunta: p.pergunta.trim(),
+        alternativas: p.alt.map(function (a) { return a.trim(); }),
+        correta: p.correta,
+        explicacao: '',
+        dificuldade: dificuldade,
+        valor: 1
+      };
+    })
+  };
+  adicionarQuizLocal(quiz);
+  rascunhoPerguntas = [];
+  mostrarMensagem('Quiz criado!');
+  if (backendConectado() && window.API.criarQuiz) {
+    window.API.criarQuiz(quiz).then(function (d) {
+      if (d && d.id) {
+        quiz.id = d.id;
+        renderizarMeusQuizzes();
+      }
+    }).catch(function () {});
+  }
+  entrarNoQuiz(quiz.id);
+}
+
+function adicionarQuizLocal(quiz) {
+  var existente = buscarQuiz(quiz.id);
+  if (existente) {
+    QUIZZES[QUIZZES.indexOf(existente)] = quiz;
+  } else {
+    QUIZZES.push(quiz);
+  }
+  return quiz;
+}
+
+function renderizarCriarIA() {
+  var card = q('criar-card');
+  if (!card) return;
+  if (!backendConectado()) {
+    card.innerHTML =
+      '<button type="button" class="btn btn-ghost btn-nav" data-voltar-criar>← Voltar</button>' +
+      '<div class="estado-vazio"><span class="emoji">📡</span>' +
+      '<p>Gerar com IA precisa do backend conectado.</p>' +
+      '<p>Entre com uma conta e tente de novo.</p></div>';
+    card.querySelector('[data-voltar-criar]').addEventListener('click', renderizarCriar);
+    return;
+  }
+  card.innerHTML =
+    '<button type="button" class="btn btn-ghost btn-nav" data-voltar-criar>← Voltar</button>' +
+    '<h3 style="margin:10px 0;">🤖 Gerar quiz com IA</h3>' +
+    '<form id="form-criar-ia" novalidate>' +
+      '<div style="display:grid;gap:10px;max-width:520px;">' +
+        '<label class="descricao-bloco">Tema' +
+          '<input type="text" id="ia-tema" required maxlength="60" placeholder="Ex.: Futebol brasileiro" style="' + entradaEstilo() + '"></label>' +
+        '<label class="descricao-bloco">Categoria' +
+          '<select id="ia-categoria" style="' + entradaEstilo() + '">' + opcoesCategorias('geral') + '</select></label>' +
+        '<label class="descricao-bloco">Dificuldade' +
+          '<select id="ia-dificuldade" style="' + entradaEstilo() + '">' + opcoesDificuldades('medio') + '</select></label>' +
+        '<label class="descricao-bloco">Quantidade' +
+          '<select id="ia-quantidade" style="' + entradaEstilo() + '">' +
+            '<option value="5" selected>5 perguntas</option>' +
+            '<option value="8">8 perguntas</option>' +
+            '<option value="10">10 perguntas</option>' +
+          '</select></label>' +
+      '</div>' +
+      '<p id="ia-aviso" class="descricao-bloco" style="display:none;"></p>' +
+      '<button type="submit" class="btn btn-primary" id="ia-gerar-btn" style="margin-top:12px;">Gerar perguntas</button>' +
+    '</form>' +
+    '<div id="ia-resultado" style="margin-top:20px;"></div>';
+  card.querySelector('[data-voltar-criar]').addEventListener('click', renderizarCriar);
+  q('form-criar-ia').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var btn = q('ia-gerar-btn');
+    var aviso = q('ia-aviso');
+    btn.disabled = true;
+    btn.textContent = 'Gerando…';
+    aviso.style.display = 'none';
+    window.API.gerarQuizIA({
+      tema: q('ia-tema').value.trim(),
+      categoria: q('ia-categoria').value,
+      dificuldade: q('ia-dificuldade').value,
+      quantidade: Number(q('ia-quantidade').value)
+    }).then(function (d) {
+      btn.disabled = false;
+      btn.textContent = 'Gerar perguntas';
+      if (d && d.rascunho) {
+        if (d.aviso) { aviso.textContent = d.aviso; aviso.style.display = 'block'; }
+        renderizarRascunhoIA(d.rascunho);
+      } else if (d && d.erro) {
+        mostrarMensagem(d.erro);
+      } else {
+        mostrarMensagem('Não foi possível gerar. Tente de novo.');
+      }
+    }).catch(function (err) {
+      btn.disabled = false;
+      btn.textContent = 'Gerar perguntas';
+      mostrarMensagem((err && err.erro) || 'Falha na geração. Tente de novo.');
+    });
+  });
+}
+
+function renderizarRascunhoIA(rascunho) {
+  var area = q('ia-resultado');
+  if (!area) return;
+  var perg = rascunho.perguntas || [];
+  area.innerHTML =
+    '<div class="card suave" style="padding:16px;">' +
+      '<h3>' + esc(rascunho.titulo || 'Quiz gerado') + '</h3>' +
+      '<p class="descricao-bloco">' + perg.length + ' perguntas para você revisar.</p>' +
+      '<div style="display:grid;gap:10px;margin-top:10px;">' +
+        perg.map(function (p, i) {
+          return '<div style="padding:10px;border:1px solid rgba(127,127,127,.25);border-radius:10px;">' +
+            '<strong>' + (i + 1) + '. ' + esc(p.pergunta) + '</strong>' +
+            '<p style="margin:4px 0 0;">' + (p.alternativas || []).map(function (alt, j) {
+              return (j === p.correta ? '✅ ' : '• ') + esc(alt);
+            }).join('<br>') + '</p>' +
+            (p.explicacao ? '<p class="descricao-bloco" style="margin-top:4px;">' + esc(p.explicacao) + '</p>' : '') +
+          '</div>';
+        }).join('') +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">' +
+        '<button type="button" class="btn btn-primary" data-ia-salvar>Salvar quiz</button>' +
+        '<button type="button" class="btn btn-ghost" data-ia-refazer>Gerar de novo</button>' +
+      '</div>' +
+    '</div>';
+  rascunhoIAAtual = rascunho;
+  area.querySelector('[data-ia-salvar]').addEventListener('click', salvarRascunhoIA);
+  area.querySelector('[data-ia-refazer]').addEventListener('click', renderizarCriarIA);
+}
+
+function salvarRascunhoIA() {
+  var r = rascunhoIAAtual;
+  if (!r) return;
+  var promessa = window.API.salvarQuizIA ? window.API.salvarQuizIA({ quiz: r }) : Promise.reject({ erro: 'API indisponível' });
+  promessa.then(function (d) {
+    if (d && d.erro) { mostrarMensagem(d.erro); return; }
+    if (r.perguntas && r.perguntas.length) {
+      var id = (d && d.id) ? ('q_' + d.id) : ('local_' + Date.now());
+      adicionarQuizLocal({
+        id: id,
+        titulo: r.titulo || 'Quiz gerado',
+        descricao: r.descricao || 'Gerado com IA no Quiz AKE.',
+        categoria: r.categoria || 'geral',
+        dificuldade: r.dificuldade || 'medio',
+        emoji: r.emoji || '🤖',
+        cor: r.cor || '#7c6cf0',
+        tags: (r.tags && r.tags.length) ? r.tags : ['IA', 'gerado'],
+        autor: lerNome(),
+        dataCriacao: iso(new Date()),
+        quantidade: r.perguntas.length,
+        duracao: Math.max(60, r.perguntas.length * 12),
+        status: 'ativo',
+        perguntas: r.perguntas
+      });
+    }
+    rascunhoIAAtual = null;
+    mostrarMensagem('Quiz salvo!');
+    renderizarCriar();
+  }).catch(function (err) {
+    mostrarMensagem((err && err.erro) || 'Falha ao salvar.');
+  });
+}
+
+/* ---------- 31) ADMIN ---------- */
+function renderizarAdmin() {
+  var avisos = q('admin-avisos');
+  var dash = q('admin-dashboard');
+  if (!dash) return;
+  var u = window.API ? window.API.usuario : null;
+  if (!window.API || !u) {
+    if (avisos) avisos.innerHTML = '<div class="descricao-bloco">Para usar o painel, entre com uma conta de administrador.</div>';
+    dash.innerHTML = '';
+    return;
+  }
+  if (u.papel !== 'admin') {
+    if (avisos) avisos.innerHTML = '<div class="descricao-bloco" style="color:#e05a4f;">Você não tem permissão para o painel administrativo.</div>';
+    dash.innerHTML = '';
+    mostrarLinkAdmin(false);
+    return;
+  }
+  if (avisos) avisos.innerHTML = '';
+  dash.innerHTML = '<p id="admin-carregando" class="descricao-bloco">Carregando painel…</p>';
+  window.API.adminDashboard().then(function (d) {
+    renderizarAdminDashboard(d);
+  }).catch(function () {
+    dash.innerHTML = '<div class="estado-vazio"><span class="emoji">📡</span><p>Não foi possível carregar o painel.</p></div>';
+  });
+}
+
+function renderizarAdminDashboard(d) {
+  var dash = q('admin-dashboard');
+  if (!dash) return;
+  var cards = [
+    ['👥', 'Usuários', d.totalUsuarios],
+    ['🎮', 'Partidas', d.totalPartidas],
+    ['🧠', 'Quizzes', d.totalQuizzes],
+    ['✍️', 'Criados', d.criados],
+    ['⚡', 'Novos hoje', d.usuariosHoje],
+    ['🎯', 'Acerto médio', (d.taxaMedia || 0) + '%']
+  ];
+  var mais = (d.maisJogados || []).slice(0, 5).map(function (m) {
+    return '<li>' + esc(m.titulo || m.id) + ' — ' + m.vezes + 'x</li>';
+  }).join('');
+  dash.innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;">' +
+      cards.map(function (c) {
+        return '<div class="card" style="text-align:center;padding:14px;">' +
+          '<div style="font-size:22px;">' + c[0] + '</div>' +
+          '<div style="font-size:20px;font-weight:bold;">' + c[2] + '</div>' +
+          '<div class="descricao-bloco">' + c[1] + '</div></div>';
+      }).join('') +
+    '</div>' +
+    (mais ? '<h3 class="titulo-bloco" style="margin-top:20px;">Mais jogados</h3><ul style="display:grid;gap:6px;padding-left:20px;">' + mais + '</ul>' : '') +
+    '<div style="margin-top:16px;">' +
+      '<button type="button" class="btn btn-ghost" id="admin-ver-usuarios">Ver usuários</button>' +
+    '</div>' +
+    '<div id="admin-usuarios" style="margin-top:12px;"></div>';
+  q('admin-ver-usuarios').addEventListener('click', renderizarAdminUsuarios);
+}
+
+function renderizarAdminUsuarios() {
+  var area = q('admin-usuarios');
+  if (!area) return;
+  area.innerHTML = '<p class="descricao-bloco" id="admin-usr-carregando">Carregando usuários…</p>';
+  window.API.adminUsuarios().then(function (d) {
+    var lista = d && d.usuarios ? d.usuarios : [];
+    area.innerHTML =
+      '<h3 class="titulo-bloco">Usuários</h3>' +
+      '<div style="display:grid;gap:8px;">' +
+        (lista.map(function (usr) {
+          return '<div class="card suave" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;flex-wrap:wrap;">' +
+            '<div><strong>' + esc(usr.nome) + '</strong>' +
+            '<p class="descricao-bloco" style="margin:0;">' + esc(usr.email) + ' · ' + esc(usr.papel) + ' · ' + esc(usr.status) + '</p></div>' +
+            (usr.id !== (window.API.usuario && window.API.usuario.id) ?
+              '<button type="button" class="btn btn-ghost btn-nav" data-usr="toggle" data-id="' + esc(usr.id) + '">' + (usr.status === 'bloqueado' ? 'Ativar' : 'Bloquear') + '</button>' : '') +
+          '</div>';
+        }).join('') ||
+        '<div class="estado-vazio"><span class="emoji">👥</span><p>Nenhum usuário encontrado.</p></div>') +
+      '</div>';
+    Array.prototype.forEach.call(area.querySelectorAll('[data-usr="toggle"]'), function (b) {
+      b.addEventListener('click', function () {
+        var id = b.getAttribute('data-id');
+        var proximo = b.textContent.trim() === 'Bloquear' ? 'bloqueado' : 'ativo';
+        window.API.adminEditarUsuario(id, { status: proximo }).then(function (r2) {
+          if (r2 && r2.erro) { mostrarMensagem(r2.erro); return; }
+          mostrarMensagem(proximo === 'bloqueado' ? 'Usuário bloqueado.' : 'Usuário ativado.');
+          renderizarAdminUsuarios();
+        }).catch(function () { mostrarMensagem('Falha ao atualizar.'); });
+      });
+    });
+  }).catch(function () {
+    area.innerHTML = '<div class="descricao-bloco">Não foi possível carregar os usuários.</div>';
+  });
 }
 
 document.addEventListener('DOMContentLoaded', iniciar);

@@ -1,0 +1,22 @@
+# ============================================================
+# QUIZ AKE - configuração do Cloudflare Pages (Fase 4)
+# Frontend estático + Pages Functions em /api/* + D1 + Workers AI
+# ============================================================
+
+name = "quiz-ake"
+pages_build_output_dir = "."
+
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Banco de dados D1 (pré-criado: wrangler d1 create quiz-ake-db)
+[[d1_databases]]
+binding = "DB"
+database_name = "quiz-ake-db"
+database_id = "SUBSTITUIR_PELO_ID_DO_D1"
+
+# --- Variáveis públicas (não secretas) ---
+[vars]
+ENVIRONMENT = "development"
+AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+SITE_URL = "https://quiz-ake.pages.dev"
