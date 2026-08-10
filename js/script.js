@@ -303,13 +303,13 @@ function mostrarTela(nomeTela) {
 }
 
 function iniciarNavegacao() {
-  document.querySelectorAll('[data-navegar]').forEach(function (elem) {
-    elem.addEventListener('click', function (ev) {
-      ev.preventDefault();
-      var alvo = this.getAttribute('data-navegar');
-      if (alvo === 'quiz-dia') { iniciarDesafioDoDia(); return; }
-      mostrarTela(alvo);
-    });
+  document.addEventListener('click', function (ev) {
+    var elem = ev.target.closest ? ev.target.closest('[data-navegar]') : null;
+    if (!elem) return;
+    ev.preventDefault();
+    var alvo = elem.getAttribute('data-navegar');
+    if (alvo === 'quiz-dia') { iniciarDesafioDoDia(); return; }
+    mostrarTela(alvo);
   });
 
   q('botao-comecar').addEventListener('click', function () { entrarNoQuiz('quiz-geral'); });
