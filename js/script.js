@@ -1924,6 +1924,10 @@ function iniciar() {
   renderizarAreaConta();
   iniciarBackend();
   mostrarTela('inicio');
+
+  // Garantia: remove a tela de carregamento mesmo se alguma animação CSS falhar.
+  var pre = q('preloader');
+  if (pre) setTimeout(function () { pre.classList.add('done'); }, 3000);
 }
 
 /* ==========================================================

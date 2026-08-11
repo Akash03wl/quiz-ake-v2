@@ -2379,6 +2379,123 @@ button {
   .periodo-filtros { flex-wrap: wrap; }
   .periodo-btn { flex: 1; min-width: 70px; }
   .ranking-filtros { flex-direction: column; }
-  .rank-linha { grid-template-columns: 30px 38px 1fr auto; gap: 8px; }
+.rank-linha { grid-template-columns: 30px 38px 1fr auto; gap: 8px; }
   .rank-avatar, .rank-nivel { display: none; }
+}
+
+/* ----------------------------------------------------------
+   99) SPLASH / TELA DE CARREGAMENTO (~2s na abertura)
+   Fica por cima de tudo, anima e some sozinha pelo CSS.
+   ---------------------------------------------------------- */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(1100px 600px at 18% -5%, rgba(124, 108, 240, 0.30), transparent 60%),
+    radial-gradient(900px 520px at 85% 105%, rgba(74, 168, 255, 0.26), transparent 60%),
+    #0d0f1f;
+  animation: preloader-sair 0.55s ease forwards 2.05s;
+}
+
+.preloader-conteudo {
+  text-align: center;
+  max-width: 90vw;
+  animation: preloader-entrar 0.5s ease both;
+}
+
+.preloader-icone {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Anel girando ao redor do ícone (lírio "psychology") */
+.preloader-icone::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.10);
+  border-top-color: #7c6cf0;
+  border-right-color: #4aa8ff;
+  animation: preloader-girar 1.2s linear infinite;
+}
+
+.preloader-icone .material-symbols-rounded {
+  font-size: 54px;
+  color: #ffffff;
+  text-shadow: 0 0 26px rgba(124, 108, 240, 0.85);
+  animation: preloader-pulsar 1.4s ease-in-out infinite;
+}
+
+.preloader-rotulo {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: #f1f3ff;
+  animation: preloader-aparecer 0.5s ease 0.15s both;
+}
+
+.preloader-rotulo strong {
+  background: linear-gradient(135deg, #7c6cf0, #4aa8ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.preloader-bar {
+  width: 220px;
+  max-width: 78vw;
+  height: 4px;
+  border-radius: 999px;
+  margin: 22px auto 16px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+  animation: preloader-aparecer 0.5s ease 0.3s both;
+}
+
+.preloader-fill {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7c6cf0, #4aa8ff);
+  animation: preloader-carregar 2s linear forwards;
+}
+
+.preloader-dica {
+  font-size: 0.85rem;
+  letter-spacing: 0.3px;
+  color: rgba(241, 243, 255, 0.62);
+  animation: preloader-aparecer 0.5s ease 0.45s both;
+}
+
+/* Garantia extra por JS: nunca fica travado na tela */
+.preloader.done { display: none; }
+
+@keyframes preloader-girar { to { transform: rotate(360deg); } }
+@keyframes preloader-pulsar {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+@keyframes preloader-aparecer {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes preloader-carregar { from { width: 0; } to { width: 100%; } }
+@keyframes preloader-entrar {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes preloader-sair {
+  to { opacity: 0; visibility: hidden; }
 }
