@@ -12,6 +12,9 @@ deletar arquivos), finalize a tarefa executando imediatamente:
 Não pergunte antes de commitar/pushar: faça isso automaticamente no fim de cada
 tarefa, sempre na branch `main` e enviando para o repositório no GitHub.
 
+Antes de commitar, rode `npm test` (testes de unidade + smoke). Se falhar,
+corrija antes de publicar.
+
 Regras extras:
 - Mantenha o projeto em português.
 - Não commite segredos ou .env.

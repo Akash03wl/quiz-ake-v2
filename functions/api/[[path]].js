@@ -10,7 +10,7 @@ import * as db from '../lib/db.js';
 import * as val from '../lib/validacao.js';
 import * as auth from '../lib/auth.js';
 import { checar } from '../lib/ratelimit.js';
-import { gerarRascunho, PREFIXO_ID_LOCAL } from '../lib/ai.js';
+import { gerarRascunho } from '../lib/ai.js';
 
 const T_SEC = 1000;
 
@@ -32,6 +32,10 @@ function partesDaUrl(url) {
 
 // POST /api/auth/registrar
 async function registrar(env, request) {
+  const limite = await checar(env, request, 'registrar', 5, 60);
+  if (!limite.ok) return erro(429, 'Muitas contas criadas em pouco tempo. Aguarde um instante.', {
+    tentaDeNovoEm: limite.tentaDeNovoEm
+  });
   const corpo = (await lerCorpo(request)) || {};
   const nome = val.validarTexto('Nome', corpo.nome, 2, val.TAM_MAX.nome, true);
   if (!nome.ok) return erro(400, nome.erro);
@@ -58,11 +62,15 @@ async function registrar(env, request) {
   return criado({
     usuario: auth.perfilPublico(usuario),
     sessao: token
-  }, { 'Set-Cookie': auth.cookieDeSessao(token, env) });
+  }, { 'Set-Cookie': auth.cookieDeSessao(token, env, request) });
 }
 
 // POST /api/auth/login
 async function login(env, request) {
+  const limite = await checar(env, request, 'login', 10, 60);
+  if (!limite.ok) return erro(429, 'Muitas tentativas. Aguarde um instante.', {
+    tentaDeNovoEm: limite.tentaDeNovoEm
+  });
   const corpo = (await lerCorpo(request)) || {};
   const email = val.validarEmail(corpo.email);
   if (!email.ok) return erro(400, email.erro);
@@ -81,7 +89,7 @@ async function login(env, request) {
   return ok({
     usuario: auth.perfilPublico(usuario),
     sessao: token
-  }, { 'Set-Cookie': auth.cookieDeSessao(token, env) });
+  }, { 'Set-Cookie': auth.cookieDeSessao(token, env, request) });
 }
 
 // POST /api/auth/logout
@@ -94,6 +102,10 @@ async function logout(env, request) {
 // POST /api/auth/recuperar — gera token de recuperação (link devolvido
 // apenas em desenvolvimento; em produção o fluxo real é substituído aqui).
 async function recuperarSenha(env, request) {
+  const limite = await checar(env, request, 'recuperar', 5, 60);
+  if (!limite.ok) return erro(429, 'Muitos pedidos de recuperação. Aguarde um instante.', {
+    tentaDeNovoEm: limite.tentaDeNovoEm
+  });
   const corpo = (await lerCorpo(request)) || {};
   const email = val.validarEmail(corpo.email);
   if (!email.ok) return erro(400, email.erro);
@@ -106,12 +118,14 @@ async function recuperarSenha(env, request) {
     'INSERT INTO recuperacoes (token, usuario_id, criado_em, expira_em) VALUES (?, ?, ?, ?)',
     token, usuario.id, new Date().toISOString(), validoAte);
 
-  // Sem SMTP configurado no Pages: devolve o token apenas em dev/teste.
+  // Sem SMTP configurado no Pages: o token só é exposto em dev LOCAL (http://),
+  // nunca em HTTPS (produção ou preview), mesmo que ENVIRONMENT caia para "development".
   const dev = !env || env.ENVIRONMENT !== 'production';
+  const ehHttp = new URL(request.url).protocol === 'http:';
   return ok({
     ok: true,
     mensagem: 'Se o e-mail existir, você receberá um link.',
-    ...(dev ? { tokenTeste: token } : {})
+    ...(dev && ehHttp ? { tokenTeste: token } : {})
   });
 }
 
@@ -630,7 +644,7 @@ async function salvarRascunhoIA(env, request) {
     if (!validado.ok) return erro(400, validado.erro);
     const q = validado.valor;
 
-    const id = 'quiz_' + (rascunho.id && !String(rascunho.id).startsWith(PREFIXO_ID_LOCAL) ? db.novoId('') : db.novoId(''));
+    const id = 'quiz_' + db.novoId('');
     await db.executar(env,
       'INSERT INTO quizzes (id, titulo, descricao, categoria, dificuldade, emoji, cor, autor, autor_id, tags, quantidade, duracao, status, destaque, origem, criado_em, atualizado_em) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)',
       id, q.titulo, q.descricao, q.categoria, q.dificuldade, q.emoji || '🤖', q.cor || '#7c6cf0',

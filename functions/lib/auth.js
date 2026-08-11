@@ -71,8 +71,10 @@ function lerCookie(request, nome) {
   return null;
 }
 
-function cookieDeSessao(valor, env) {
-  const seguro = !env || env.ENVIRONMENT === 'production';
+function cookieDeSessao(valor, env, request) {
+  // Secure sempre em HTTPS (produção/preview); só fica sem Secure em dev local (http://).
+  const protocolo = request ? new URL(request.url).protocol : 'https:';
+  const seguro = (env && env.ENVIRONMENT === 'production') || protocolo === 'https:';
   return CHAVE_COOKIE + '=' + valor +
     '; Path=/; Max-Age=' + Math.floor(DURACAO_SESSAO_MS / 1000) +
     '; HttpOnly; SameSite=Lax' +

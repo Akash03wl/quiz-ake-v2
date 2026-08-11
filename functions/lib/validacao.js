@@ -46,7 +46,7 @@ function validarEmail(email) {
 }
 
 function validarSenha(senha) {
-  if (typeof senha !== 'string' || senha.length < 6) return { ok: false, erro: 'A senha deve ter pelo menos 6 caracteres.' };
+  if (typeof senha !== 'string' || senha.length < 8) return { ok: false, erro: 'A senha deve ter pelo menos 8 caracteres.' };
   if (senha.length > TAM_MAX.senha) return { ok: false, erro: 'Senha muito longa.' };
   return { ok: true, valor: senha };
 }

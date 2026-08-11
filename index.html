@@ -20,8 +20,23 @@
   <meta charset="UTF-8">
   <!-- Faz a página caber no celular, tablet e PC -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Quiz AKE - plataforma de quizzes de conhecimentos gerais">
-  <title>Quiz AKE</title>
+  <meta name="description" content="Quiz AKE - plataforma de quizzes de conhecimentos gerais: jogue no tempo, monte combos, ganhe XP e suba de nível.">
+  <title>Quiz AKE — Plataforma de Quizzes</title>
+
+  <!-- SEO / compartilhamento -->
+  <link rel="canonical" href="https://quiz-ake-v2.pages.dev/">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Quiz AKE">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Quiz AKE — Teste seus conhecimentos">
+  <meta property="og:description" content="Responda no tempo, monte combos, descubra perguntas prêmio, ganhe XP e suba de nível. Rápido, divertido e sem instalar nada.">
+  <meta property="og:url" content="https://quiz-ake-v2.pages.dev/">
+  <meta property="og:image" content="https://quiz-ake-v2.pages.dev/favicon.svg">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Quiz AKE — Teste seus conhecimentos">
+  <meta name="twitter:description" content="Responda no tempo, monte combos, ganhe XP e suba de nível.">
+  <meta name="twitter:image" content="https://quiz-ake-v2.pages.dev/favicon.svg">
 
   <!-- Caminho do CSS -->
   <link rel="stylesheet" href="css/style.css">
@@ -518,13 +533,13 @@
   <footer class="rodape">
     <div class="container">
       <p>🧠 Quiz AKE · Trabalho de Programação Web · JavaScript puro, sem bibliotecas</p>
-      <p class="rodape-link"><a href="README-DEPLOY.md" target="_blank" rel="noopener">Deploy e documentação técnica (Fase 4)</a></p>
+      <p class="rodape-link"><a href="https://github.com/Akash03wl/quiz-ake-v2" target="_blank" rel="noopener">Deploy e documentação técnica (Fase 4)</a></p>
     </div>
   </footer>
 
-  <!-- Arquivos JavaScript: dados primeiro, lógica depois, API por último -->
-  <script src="js/data.js"></script>
-  <script src="js/script.js"></script>
-  <script src="js/api.js"></script>
+  <!-- Arquivos JavaScript: dados primeiro, lógica depois, API por último (defer) -->
+  <script src="js/data.js" defer></script>
+  <script src="js/script.js" defer></script>
+  <script src="js/api.js" defer></script>
 </body>
 </html>

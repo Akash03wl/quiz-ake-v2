@@ -20,8 +20,10 @@ export function ok(corpo, extras) {
   return new Response(JSON.stringify(corpo), { status: 200, headers: cab });
 }
 
-export function criado(corpo) {
-  return json(corpo, 201);
+export function criado(corpo, extras) {
+  const cab = { ...CABEC };
+  if (extras) Object.assign(cab, extras);
+  return new Response(JSON.stringify(corpo), { status: 201, headers: cab });
 }
 
 export function erro(status, mensagem, extra) {

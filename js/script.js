@@ -1884,7 +1884,7 @@ function htmlFormConta() {
       '<label class="descricao-bloco">E-mail' +
         '<input type="email" id="conta-email" required placeholder="voce@email.com" style="' + entradaEstilo() + '"></label>' +
       '<label class="descricao-bloco">Senha' +
-        '<input type="password" id="conta-senha" required minlength="6" placeholder="Mínimo 6 caracteres" style="' + entradaEstilo() + '"></label>' +
+        '<input type="password" id="conta-senha" required minlength="8" placeholder="Mínimo 8 caracteres" style="' + entradaEstilo() + '"></label>' +
     '</div>' +
     '<p id="conta-msg" class="descricao-bloco" style="color:#e05a4f;display:none;"></p>' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">' +
