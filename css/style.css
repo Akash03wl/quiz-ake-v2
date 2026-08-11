@@ -159,6 +159,71 @@ button {
   left: 10px;
 }
 
+/* ----------------------------------------------------------
+   1.2) ÍCONES MATERIAL (interface) — emojis ficam no conteúdo
+   ---------------------------------------------------------- */
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  vertical-align: middle;
+}
+
+/* Ícone auxiliar dentro de títulos, botões e chips */
+.icone {
+  font-size: 1.2em;
+  margin-right: 4px;
+}
+
+.titulo-bloco .icone,
+.bloco-cabecalho h2 .icone,
+.bloco-cabecalho h3 .icone {
+  font-size: 1.15em;
+  color: var(--acento-2);
+  vertical-align: -0.2em;
+}
+
+.btn .icone {
+  font-size: 1.15em;
+  vertical-align: -0.18em;
+  margin-right: 3px;
+}
+
+.logo-icon {
+  color: var(--acento-2);
+  font-size: 1.5rem;
+}
+
+.menu-toggle .material-symbols-rounded {
+  font-size: 1.5rem;
+}
+
+.result-emoji .material-symbols-rounded {
+  color: var(--acento-2);
+}
+
+.overlay-nivel-emoji .material-symbols-rounded {
+  color: var(--acento-2);
+}
+
+.card-flutuante .material-symbols-rounded {
+  font-size: 1.6em;
+}
+
+.scoreboard .icone {
+  font-size: 1.1em;
+}
+
 /* Texto com gradiente roxo->azul */
 .texto-gradiente {
   background: var(--gradiente);
@@ -462,7 +527,8 @@ button {
 }
 
 .orcamento-quiz::after {
-  content: '❓';
+  content: 'help';
+  font-family: 'Material Symbols Rounded';
   font-size: 5rem;
 }
 
@@ -1055,7 +1121,6 @@ button {
 .confetti-piece {
   position: fixed;
   top: -20px;
-  font-size: 20px;
   z-index: 1000;
   pointer-events: none;
   animation: cair linear forwards;
@@ -1352,7 +1417,8 @@ button {
 }
 
 .desafio-card::after {
-  content: '🎯';
+  content: 'emoji_events';
+  font-family: 'Material Symbols Rounded';
   position: absolute;
   right: 18px;
   bottom: -16px;

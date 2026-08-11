@@ -40,6 +40,10 @@
 
   <!-- Caminho do CSS -->
   <link rel="stylesheet" href="css/style.css">
+  <!-- Ícones Material (ícones de interface; emojis ficam para conteúdo) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,200..500,0,0">
 </head>
 <body>
 
@@ -48,13 +52,13 @@
     <div class="nav-inner">
       <!-- Logo -->
       <a href="#" class="logo" data-navegar="inicio" aria-label="Quiz AKE - ir para o início">
-        <span class="logo-icon">🧠</span>
+        <span class="logo-icon material-symbols-rounded" aria-hidden="true">quiz</span>
         <span>Quiz <strong>AKE</strong></span>
       </a>
 
       <!-- Botão do menu no celular -->
       <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu de navegação" aria-expanded="false">
-        ☰
+        <span class="material-symbols-rounded" aria-hidden="true">menu</span>
       </button>
 
       <!-- Links de navegação + ações -->
@@ -70,7 +74,7 @@
         <a href="#" class="nav-link hidden" id="nav-admin" data-navegar="admin">Admin</a>
 
         <div class="nav-actions">
-          <button class="theme-toggle" id="botao-tema" aria-label="Alternar tema do site">🌙</button>
+          <button class="theme-toggle" id="botao-tema" aria-label="Alternar tema do site"></button>
           <div id="area-conta" class="area-conta" aria-live="polite"></div>
           <button class="btn btn-primary btn-nav" id="botao-comecar">Começar quiz</button>
         </div>
@@ -89,31 +93,31 @@
       <!-- ---------- HERO (destaque principal) ---------- -->
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-texto">
-          <span class="hero-badge">🎯 + de 30 perguntas e 12 categorias</span>
+          <span class="hero-badge">+ de 30 perguntas e 12 categorias</span>
           <h1 id="hero-title">Teste seus <span class="texto-gradiente">conhecimentos.</span></h1>
           <p class="hero-sub">
             O <strong>Quiz AKE</strong> é a sua plataforma de quizzes: responda no tempo,
             monte combos, descubra perguntas prêmio, ganhe XP e suba de nível.
           </p>
           <div class="hero-acoes">
-            <button class="btn btn-primary" id="botao-jogar-hero">▶ Jogar agora</button>
+            <button class="btn btn-primary" id="botao-jogar-hero"><span class="material-symbols-rounded icone" aria-hidden="true">play_arrow</span> Jogar agora</button>
             <button class="btn btn-ghost" data-navegar="quizzes">Explorar quizzes</button>
           </div>
           <div class="hero-slug">
             <span><strong id="hero-total-perguntas">30+</strong> perguntas</span>
             <span><strong id="hero-total-categorias">12</strong> categorias</span>
-            <span><strong>⏱️ 20s</strong> por pergunta</span>
+            <span><strong>20s</strong> por pergunta</span>
           </div>
         </div>
 
-        <!-- Ilustração visual (feita só com CSS/emoji, sem imagens pesadas) -->
+        <!-- Ilustração visual (CSS + algumas marcas, sem imagens pesadas) -->
         <div class="hero-visual" aria-hidden="true">
           <div class="orcamento-quiz">
-            <span class="card-flutuante f1">🧠</span>
-            <span class="card-flutuante f2">🔥 COMBO</span>
-            <span class="card-flutuante f3">⭐ x2</span>
-            <span class="card-flutuante f4">⏱️ 20s</span>
-            <span class="card-flutuante f5">✅</span>
+            <span class="card-flutuante f1"><span class="material-symbols-rounded">psychology</span></span>
+            <span class="card-flutuante f2"><span class="material-symbols-rounded">local_fire_department</span> COMBO</span>
+            <span class="card-flutuante f3"><span class="material-symbols-rounded">stars</span> x2</span>
+            <span class="card-flutuante f4"><span class="material-symbols-rounded">timer</span> 20s</span>
+            <span class="card-flutuante f5"><span class="material-symbols-rounded">check_circle</span></span>
           </div>
         </div>
       </section>
@@ -126,7 +130,7 @@
       <!-- ---------- DESTAQUES ---------- -->
       <section class="bloco" aria-labelledby="titulo-destaques">
         <div class="bloco-cabecalho">
-          <h2 class="titulo-bloco">🔥 Mais jogados</h2>
+          <h2 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">local_fire_department</span> Mais jogados</h2>
           <button class="link-mais" data-navegar="quizzes">Ver todas as categorias →</button>
         </div>
         <div id="destaques-grade" class="grade-quizzes"></div>
@@ -143,7 +147,7 @@
       <!-- ---------- MEUS FAVORITOS (Fase 2) ---------- -->
       <section class="bloco" id="area-favoritos" aria-labelledby="titulo-favoritos">
         <div class="bloco-cabecalho">
-          <h2 class="titulo-bloco">❤️ Meus favoritos</h2>
+          <h2 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">favorite</span> Meus favoritos</h2>
           <p class="descricao-bloco">Toque no coração de um quiz para guardá-lo aqui.</p>
         </div>
         <div id="favoritos-grade" class="grade-quizzes"></div>
@@ -181,7 +185,7 @@
 
       <!-- Barra de busca e filtros -->
       <div class="quiz-filtros">
-        <input type="search" id="busca-quizzes" class="busca-input" placeholder="🔍 Buscar por título, categoria ou tag..." aria-label="Buscar quizzes">
+        <input type="search" id="busca-quizzes" class="busca-input" placeholder="Buscar por título, categoria ou tag..." aria-label="Buscar quizzes">
         <div class="filtros-linha">
           <select id="filtro-categoria" aria-label="Filtrar por categoria">
             <option value="">Todas as categorias</option>
@@ -197,7 +201,7 @@
             <option value="duracao">Ordenar: duração</option>
           </select>
           <label class="favoritos-chk">
-            <input type="checkbox" id="so-favoritos"> ❤️ Só favoritos
+            <input type="checkbox" id="so-favoritos"> <span class="material-symbols-rounded icone" aria-hidden="true">favorite</span> Só favoritos
           </label>
         </div>
         <div class="contagem-quizzes" id="contagem-quizzes"></div>
@@ -205,19 +209,19 @@
 
       <!-- Sugestões: populares, recentes e recomendados -->
       <div class="bloco">
-        <h3 class="titulo-bloco">🔥 Populares</h3>
+        <h3 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">local_fire_department</span> Populares</h3>
         <div id="grade-populares" class="grade-quizzes"></div>
       </div>
       <div class="bloco">
-        <h3 class="titulo-bloco">🕒 Recentes</h3>
+        <h3 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">history</span> Recentes</h3>
         <div id="grade-recentes" class="grade-quizzes"></div>
       </div>
       <div class="bloco">
-        <h3 class="titulo-bloco">✨ Recomendados</h3>
+        <h3 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">auto_awesome</span> Recomendados</h3>
         <div id="grade-recomendados" class="grade-quizzes"></div>
       </div>
       <div class="bloco">
-        <h3 class="titulo-bloco">📚 Todos os quizzes</h3>
+        <h3 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">collections_bookmark</span> Todos os quizzes</h3>
         <div id="grade-todos" class="grade-quizzes"></div>
       </div>
     </div>
@@ -227,13 +231,13 @@
   <main class="tela hidden" id="tela-modos">
     <div class="container">
       <div class="bloco-cabecalho">
-        <h2 class="titulo-bloco">⚔️ Modos de jogo</h2>
+        <h2 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">sports_esports</span> Modos de jogo</h2>
         <p class="descricao-bloco">Regras especiais para variar a disputa. Cada modo tem seu próprio ranking.</p>
       </div>
       <div id="modos-grade" class="grade-modos"></div>
 
       <div class="bloco">
-        <h3 class="titulo-bloco">🛰️ Multiplayer</h3>
+        <h3 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">hub</span> Multiplayer</h3>
         <p class="descricao-bloco">Salas em tempo real para competir com outros jogadores.</p>
         <div id="modos-salas-card" class="card suave"></div>
       </div>
@@ -255,10 +259,10 @@
         <div class="quiz-hud">
           <!-- Combo -->
           <span class="chip-combo" id="chip-combo">
-            🔥 <span id="sequencia">0</span> combo
+            <span class="material-symbols-rounded icone" aria-hidden="true">local_fire_department</span> <span id="sequencia">0</span> combo
           </span>
           <!-- Multiplicador / prêmio -->
-          <span class="chip-premio hidden" id="chip-premio">⭐ x2</span>
+          <span class="chip-premio hidden" id="chip-premio"><span class="material-symbols-rounded icone" aria-hidden="true">stars</span> x2</span>
           <!-- Cronômetro -->
           <span class="timer-chip">
             <span class="timer-number" id="numero-timer">20</span>s
@@ -271,7 +275,7 @@
         </div>
       </div>
 
-      <div class="selo-bonus hidden" id="selo-bonus">⭐ PERGUNTA PRÊMIO</div>
+      <div class="selo-bonus hidden" id="selo-bonus"><span class="material-symbols-rounded icone" aria-hidden="true">stars</span> PERGUNTA PRÊMIO</div>
 
       <div class="question-number">
         <span id="numero-pergunta">Pergunta 1</span>
@@ -285,9 +289,9 @@
       <div class="area-explicacao hidden" id="area-explicacao" aria-live="polite"></div>
 
       <div class="scoreboard">
-        <span>⭐ Pontos: <strong id="pontuacao">0</strong></span>
-        <span>💀 Acertos: <strong id="acertos">0</strong></span>
-        <span>❌ Erros: <strong id="erros">0</strong></span>
+        <span><span class="material-symbols-rounded icone" aria-hidden="true">stars</span> Pontos: <strong id="pontuacao">0</strong></span>
+        <span><span class="material-symbols-rounded icone" aria-hidden="true">check_circle</span> Acertos: <strong id="acertos">0</strong></span>
+        <span><span class="material-symbols-rounded icone" aria-hidden="true">cancel</span> Erros: <strong id="erros">0</strong></span>
       </div>
     </div>
   </main>
@@ -295,12 +299,12 @@
   <!-- ==================== TELA: RESULTADO (Fase 2/3) ==================== -->
   <main class="tela hidden" id="tela-resultado">
     <div class="container">
-      <div class="result-emoji" id="emoji-resultado">🏆</div>
+      <div class="result-emoji" id="emoji-resultado"><span class="material-symbols-rounded" aria-hidden="true">emoji_events</span></div>
       <h2 class="result-title" id="titulo-resultado">Resultado</h2>
       <p class="result-subtitle" id="subtitulo-resultado"></p>
 
       <div class="final-score" id="pontuacao-final">0 pontos</div>
-      <div class="best-score" id="melhor-pontuacao">🏅 Melhor pontuação: 0</div>
+      <div class="best-score"><span class="material-symbols-rounded icone" aria-hidden="true">emoji_events</span> Melhor pontuação: 0</div>
 
       <!-- Grade de métricas do resultado -->
       <div class="grade-resultado">
@@ -358,7 +362,7 @@
 
       <div class="result-acoes">
         <button class="btn btn-primary" id="botao-reiniciar">Jogar novamente</button>
-        <button class="btn btn-ghost" id="botao-compartilhar">🔗 Compartilhar resultado</button>
+        <button class="btn btn-ghost" id="botao-compartilhar"><span class="material-symbols-rounded icone" aria-hidden="true">link</span> Compartilhar resultado</button>
         <button class="btn btn-ghost" data-navegar="quizzes">Escolher outro quiz</button>
         <button class="btn btn-ghost" data-navegar="inicio">Voltar para início</button>
       </div>
@@ -369,7 +373,7 @@
   <main class="tela hidden" id="tela-ranking">
     <div class="container">
       <div class="bloco-cabecalho">
-        <h2>🏆 Ranking</h2>
+        <h2><span class="material-symbols-rounded icone" aria-hidden="true">emoji_events</span> Ranking</h2>
         <p class="descricao-bloco" id="ranking-descricao">Rankings de pontuação, XP, sequência, quizzes e taxa de acerto.</p>
       </div>
 
@@ -384,11 +388,11 @@
         <div class="ranking-tipo-linha">
           <label class="ranking-tipo-label" for="ranking-tipo">Tipo:</label>
           <select id="ranking-tipo" aria-label="Tipo de ranking">
-            <option value="pontos">🏆 Maior pontuação</option>
-            <option value="xp">🧠 Maior XP</option>
-            <option value="sequencia">🔥 Maior sequência</option>
-            <option value="quizzes">🎮 Mais quizzes realizados</option>
-            <option value="taxa">🎯 Maior taxa de acerto</option>
+            <option value="pontos">Maior pontuação</option>
+            <option value="xp">Maior XP</option>
+            <option value="sequencia">Maior sequência</option>
+            <option value="quizzes">Mais quizzes realizados</option>
+            <option value="taxa">Maior taxa de acerto</option>
           </select>
         </div>
       </div>
@@ -408,7 +412,7 @@
   <main class="tela hidden" id="tela-salas">
     <div class="container">
       <div class="bloco-cabecalho">
-        <h2>🛰️ Salas Multiplayer</h2>
+        <h2><span class="material-symbols-rounded icone" aria-hidden="true">hub</span> Salas Multiplayer</h2>
         <p class="descricao-bloco">Compartilhe um código e dispute a mesma partida com outros jogadores.</p>
       </div>
       <div id="salas-card" class="card suave"></div>
@@ -419,7 +423,7 @@
   <main class="tela hidden" id="tela-conquistas">
     <div class="container">
       <div class="bloco-cabecalho">
-        <h2>🏅 Conquistas</h2>
+        <h2><span class="material-symbols-rounded icone" aria-hidden="true">workspace_premium</span> Conquistas</h2>
         <p class="descricao-bloco" id="conquistas-progresso">Medalhas que você desbloqueia jogando.</p>
       </div>
       <div id="conquistas-grade" class="grade-conquistas"></div>
@@ -430,7 +434,7 @@
   <main class="tela hidden" id="tela-perfil">
     <div class="container">
       <div class="bloco-cabecalho">
-        <h2>👤 Perfil</h2>
+        <h2><span class="material-symbols-rounded icone" aria-hidden="true">account_circle</span> Perfil</h2>
         <p class="descricao-bloco">Seu progresso, histórico, competição e sequência diária.</p>
       </div>
       <div class="card suave perfil">
@@ -453,19 +457,19 @@
 
       <!-- Fase 3: competição (recordes, medalhas, histórico competitivo) -->
       <div class="bloco">
-        <h3 class="titulo-bloco">🏅 Competição</h3>
+        <h3 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">workspace_premium</span> Competição</h3>
         <div class="card suave" id="perfil-competicao"></div>
       </div>
 
       <!-- Fase 3: recordes por modo -->
       <div class="bloco">
-        <h3 class="titulo-bloco">⚔️ Recordes por modo</h3>
+        <h3 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">sports_esports</span> Recordes por modo</h3>
         <div class="card suave" id="perfil-recordes"></div>
       </div>
 
       <!-- Fase 3: histórico competitivo -->
       <div class="bloco">
-        <h3 class="titulo-bloco">🏆 Histórico competitivo</h3>
+        <h3 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">emoji_events</span> Histórico competitivo</h3>
         <div class="card suave">
           <ul id="perfil-competitivo" class="lista-historico"></ul>
         </div>
@@ -473,13 +477,13 @@
 
       <!-- Sequência diária (Fase 2) -->
       <div class="bloco">
-        <h3 class="titulo-bloco">🔥 Sequência diária</h3>
+        <h3 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">local_fire_department</span> Sequência diária</h3>
         <div class="card suave" id="perfil-streak"></div>
       </div>
 
       <!-- Histórico (Fase 2) -->
       <div class="bloco">
-        <h3 class="titulo-bloco">🕒 Histórico de partidas</h3>
+        <h3 class="titulo-bloco"><span class="material-symbols-rounded icone" aria-hidden="true">history</span> Histórico de partidas</h3>
         <div class="card suave">
           <ul id="perfil-historico" class="lista-historico"></ul>
         </div>
@@ -491,7 +495,7 @@
   <main class="tela hidden" id="tela-conta">
     <div class="container">
       <div class="bloco-cabecalho">
-        <h2>🔐 Sua conta</h2>
+        <h2><span class="material-symbols-rounded icone" aria-hidden="true">lock</span> Sua conta</h2>
         <p class="descricao-bloco" id="conta-subtitulo">Entre para sincronizar seu progresso entre dispositivos.</p>
       </div>
       <div id="conta-card" class="card suave"></div>
@@ -502,7 +506,7 @@
   <main class="tela hidden" id="tela-criar">
     <div class="container">
       <div class="bloco-cabecalho">
-        <h2>✍️ Criar quiz</h2>
+        <h2><span class="material-symbols-rounded icone" aria-hidden="true">edit_note</span> Criar quiz</h2>
         <p class="descricao-bloco">Monte um quiz manualmente ou peça ajuda à IA para gerar as perguntas.</p>
       </div>
       <div id="criar-card" class="card suave"></div>
@@ -513,7 +517,7 @@
   <main class="tela hidden" id="tela-admin">
     <div class="container">
       <div class="bloco-cabecalho">
-        <h2>🛠️ Painel administrativo</h2>
+        <h2><span class="material-symbols-rounded icone" aria-hidden="true">admin_panel_settings</span> Painel administrativo</h2>
         <p class="descricao-bloco">Visão geral da plataforma, usuários e conteúdo.</p>
       </div>
       <div id="admin-avisos" aria-live="polite"></div>
@@ -524,7 +528,7 @@
   <!-- Overlay de subida de nível (Fase 2) -->
   <div class="overlay-nivel hidden" id="overlay-nivel" aria-live="assertive">
     <div class="overlay-nivel-bolha">
-      <div class="overlay-nivel-emoji">🎉</div>
+      <div class="overlay-nivel-emoji"><span class="material-symbols-rounded" aria-hidden="true">celebration</span></div>
       <div class="overlay-nivel-texto" id="overlay-nivel-texto">Você subiu de nível!</div>
     </div>
   </div>
@@ -532,7 +536,7 @@
   <!-- Rodapé -->
   <footer class="rodape">
     <div class="container">
-      <p>🧠 Quiz AKE · Trabalho de Programação Web · JavaScript puro, sem bibliotecas</p>
+      <p><span class="material-symbols-rounded icone" aria-hidden="true">quiz</span> Quiz AKE · Trabalho de Programação Web · JavaScript puro, sem bibliotecas</p>
       <p class="rodape-link"><a href="https://github.com/Akash03wl/quiz-ake-v2" target="_blank" rel="noopener">Deploy e documentação técnica (Fase 4)</a></p>
     </div>
   </footer>

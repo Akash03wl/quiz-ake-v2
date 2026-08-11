@@ -262,13 +262,16 @@ function inicioDoDia(ms) {
 
 /* ---------- 7) TEMA ---------- */
 var TEMAS = ['dark', 'light', 'system'];
-var ICONES_TEMA = { dark: '🌙', light: '☀️', system: '🖥️' };
+var ICONES_TEMA = { dark: 'dark_mode', light: 'light_mode', system: 'desktop_windows' };
 function temaAtual() { var t = lerTexto(CHAVE.tema); return TEMAS.indexOf(t) >= 0 ? t : 'system'; }
 function aplicarTema() {
   var t = temaAtual();
   document.documentElement.setAttribute('data-theme', t);
   var b = q('botao-tema');
-  if (b) { b.textContent = ICONES_TEMA[t]; b.setAttribute('aria-label', 'Tema: ' + t); }
+  if (b) {
+    b.innerHTML = ic(ICONES_TEMA[t], 'icone');
+    b.setAttribute('aria-label', 'Tema: ' + t);
+  }
 }
 function alternarTema() {
   var ordem = ['dark', 'light', 'system'];
@@ -497,7 +500,7 @@ function iniciarDesafioDoDia() {
   modoAtual = 'desafio';
   perguntasSorteio = perguntasDesafioHoje();
   prepararPartida(perguntasSorteio);
-  if (el.modoChip) { el.modoChip.textContent = '🎯 Desafio do Dia'; el.modoChip.classList.remove('hidden'); }
+  if (el.modoChip) { el.modoChip.innerHTML = ic('flag') + ' Desafio do Dia'; el.modoChip.classList.remove('hidden'); }
 }
 function dadosDesafioHoje() {
   // Estatísticas do desafio de hoje a partir das partidas competitivas.
@@ -534,12 +537,12 @@ function atualizarNotaDesafio(info) {
   var g = info && info.carregado ? info : null;
   if (!g || !g.minha) {
     el.resultadoNota.innerHTML =
-      '<div class="nota-linha"><span>🎯 Desafio do Dia</span><strong>Posição global indisponível — entre na sua conta.</strong></div>';
+      '<div class="nota-linha"><span>' + ic('flag') + ' Desafio do Dia</span><strong>Posição global indisponível — entre na sua conta.</strong></div>';
     return;
   }
   var m = g.minha;
   el.resultadoNota.innerHTML =
-    '<div class="nota-linha"><span>🎯 Desafio do Dia</span><strong>' +
+    '<div class="nota-linha"><span>' + ic('flag') + ' Desafio do Dia</span><strong>' +
     (m.jogou
       ? 'Sua posição hoje: #' + m.posicao + ' de ' + m.total + ' · melhor ' + m.melhor + ' pts'
       : 'Partida enviada. Continue tentando para entrar no ranking!') +
@@ -556,34 +559,34 @@ function renderizarDesafio() {
 
   if (!BACKEND.conectado) {
     // Offline: estatísticas locais e aviso.
-    blocos = '<p class="desafio-aviso">🧩 Offline — competindo contra seu histórico local. Conecte-se para o ranking global.</p>' +
+    blocos = '<p class="desafio-aviso">' + ic('cloud_off') + ' Offline — competindo contra seu histórico local. Conecte-se para o ranking global.</p>' +
       (info.jogado
-        ? '<div class="destaque-meta"><span>⭐ Melhor de hoje: <strong>' + info.melhor + ' pts</strong></span><span>📊 Sua média: <strong>' + info.media + ' pts</strong></span></div>'
-        : '<div class="destaque-meta"><span>❓ ' + qtd + ' perguntas</span>' +
-          (jogouHoje ? '<span>⭐ Melhor hoje: ' + desafio.melhor + ' pts</span>' : '<span>Você ainda não jogou hoje</span>') + '</div>');
+        ? '<div class="destaque-meta"><span>' + ic('stars') + ' Melhor de hoje: <strong>' + info.melhor + ' pts</strong></span><span>' + ic('monitoring') + ' Sua média: <strong>' + info.media + ' pts</strong></span></div>'
+        : '<div class="destaque-meta"><span>' + ic('help') + ' ' + qtd + ' perguntas</span>' +
+          (jogouHoje ? '<span>' + ic('stars') + ' Melhor hoje: ' + desafio.melhor + ' pts</span>' : '<span>Você ainda não jogou hoje</span>') + '</div>');
   } else if (!g || !g.carregado) {
-    blocos = '<p class="desafio-aviso">📡 Carregando ranking global…</p>' +
-      '<div class="destaque-meta"><span>❓ ' + qtd + ' perguntas</span>' +
-      (jogouHoje ? '<span>⭐ Melhor hoje: ' + desafio.melhor + ' pts</span>' : '<span>Você ainda não jogou hoje</span>') + '</div>';
+    blocos = '<p class="desafio-aviso">' + ic('cloud_sync') + ' Carregando ranking global…</p>' +
+      '<div class="destaque-meta"><span>' + ic('help') + ' ' + qtd + ' perguntas</span>' +
+      (jogouHoje ? '<span>' + ic('stars') + ' Melhor hoje: ' + desafio.melhor + ' pts</span>' : '<span>Você ainda não jogou hoje</span>') + '</div>';
   } else {
     var resumo = g.resumo || {};
     blocos = '<div class="destaque-meta">' +
-      '<span>🌍 ' + resumo.jogadores + ' jogadores</span>' +
-      '<span>📊 Média: <strong>' + resumo.media + ' pts</strong></span>' +
+      '<span>' + ic('public') + ' ' + resumo.jogadores + ' jogadores</span>' +
+      '<span>' + ic('monitoring') + ' Média: <strong>' + resumo.media + ' pts</strong></span>' +
       '</div>';
     if (g.minha && g.minha.jogou) {
       blocos += '<div class="destaque-meta">' +
-        '<span>⭐ Seu melhor: <strong>' + g.minha.melhor + ' pts</strong></span>' +
-        '<span>🏅 Posição: <strong>#' + g.minha.posicao + ' de ' + g.minha.total + '</strong></span>' +
+        '<span>' + ic('stars') + ' Seu melhor: <strong>' + g.minha.melhor + ' pts</strong></span>' +
+        '<span>' + ic('military_tech') + ' Posição: <strong>#' + g.minha.posicao + ' de ' + g.minha.total + '</strong></span>' +
         '</div>';
     } else if (g.minha) {
-      blocos += '<p class="desafio-aviso">👉 Jogue e entre no ranking de hoje!</p>';
+      blocos += '<p class="desafio-aviso">Jogue e entre no ranking de hoje!</p>';
     }
     if (g.top && g.top.length) {
-      blocos += '<div class="desafio-top-label">🏆 Top de hoje</div>' +
+      blocos += '<div class="desafio-top-label">' + ic('emoji_events') + ' Top de hoje</div>' +
         '<div class="podio desafio-podio">' + g.top.slice(0, 3).map(function (t, i) {
           return '<div class="podio-item' + (i === 0 ? ' primeiro' : '') + '">' +
-            '<span class="podio-medalha">' + ['🥇', '🥈', '🥉'][i] + '</span>' +
+            '<span class="podio-medalha">' + (i + 1) + 'º</span>' +
             '<span class="podio-avatar">' + esc(t.avatar || '🧑‍🚀') + '</span>' +
             '<span class="podio-nome">' + esc(t.nome || '?') + '</span>' +
             '<span class="podio-valor">' + t.pontos + ' pts</span>' +
@@ -593,7 +596,7 @@ function renderizarDesafio() {
   }
 
   el.desafioCard.innerHTML =
-    '<div class="destaque-badge">🎯 Desafio do Dia</div>' +
+    '<div class="destaque-badge">' + ic('flag') + ' Desafio do Dia</div>' +
     '<h3>' + new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) + '</h3>' +
     '<p>As mesmas ' + qtd + ' perguntas para todos. Dispute o ranking de hoje com jogadores do mundo todo.</p>' +
     blocos +
@@ -632,9 +635,9 @@ function htmlCard(quiz) {
       '<p class="quiz-desc">' + quiz.descricao + '</p>' +
       '<div class="quiz-tags">' + tags + '</div>' +
       '<div class="quiz-meta-row">' +
-        '<span>❓ ' + quiz.quantidade + ' questões</span>' +
-        '<span>⏱ ' + minutos + ' min</span>' +
-        '<span>👤 ' + quiz.autor + '</span>' +
+        '<span>' + ic('help') + ' ' + quiz.quantidade + ' questões</span>' +
+        '<span>' + ic('schedule') + ' ' + minutos + ' min</span>' +
+        '<span>' + ic('account_circle') + ' ' + quiz.autor + '</span>' +
       '</div>' +
     '</div>' +
   '</article>';
@@ -759,7 +762,7 @@ function renderizarEstatisticas() {
   if (!s.jogos) {
     if (el.statsVazio) {
       el.statsVazio.innerHTML =
-        '<span class="emoji">🎯</span>' +
+        '<span class="emoji">' + ic('emoji_events') + '</span>' +
         '<p><strong>Você ainda não jogou!</strong><br>Complete um quiz para ver suas estatísticas por aqui.</p>';
     }
     return;
@@ -809,7 +812,7 @@ function renderizarFavoritosHome() {
   var favs = lerLista(CHAVE.favoritos);
   var quizes = QUIZZES.filter(function (q) { return favs.indexOf(q.id) >= 0; }).slice(0, 3);
   if (quizes.length === 0) {
-    el.favoritosGrade.innerHTML = '<div class="estado-vazio"><span class="emoji">❤️</span><p>Nenhum favorito ainda. Toque no coração de um quiz!</p></div>';
+    el.favoritosGrade.innerHTML = '<div class="estado-vazio"><span class="emoji">' + ic('favorite') + '</span><p>Nenhum favorito ainda. Toque no coração de um quiz!</p></div>';
     return;
   }
   renderizarCards(el.favoritosGrade, quizes);
@@ -818,11 +821,11 @@ function renderizarRankingResumo() {
   if (!el.rankingResumo) return;
   var lista = lerLista(CHAVE.ranking);
   if (lista.length === 0) {
-    el.rankingResumo.innerHTML = '<div class="estado-vazio"><span class="emoji">🏆</span><p><strong>Nenhum registro ainda.</strong><br>Jogue para entrar no ranking.</p></div>';
+    el.rankingResumo.innerHTML = '<div class="estado-vazio"><span class="emoji">' + ic('emoji_events') + '</span><p><strong>Nenhum registro ainda.</strong><br>Jogue para entrar no ranking.</p></div>';
     return;
   }
   var itens = lista.slice(0, 3).map(function (r, i) {
-    return '<li><span class="pos">' + (i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉') + '</span><span class="nome">' + r.nome + '</span><span class="pts">' + r.pontos + ' pts</span></li>';
+    return '<li><span class="pos">' + (i === 0 ? '1º' : i === 1 ? '2º' : '3º') + '</span><span class="nome">' + r.nome + '</span><span class="pts">' + r.pontos + ' pts</span></li>';
   });
   el.rankingResumo.innerHTML = '<ul class="lista-ranking">' + itens.join('') + '</ul>';
 }
@@ -932,16 +935,16 @@ function renderizarRanking() {
 
   var aviso = '';
   if (!BACKEND.conectado) {
-    aviso = '<p class="ranking-aviso">🔒 Offline — exibindo apenas o seu histórico competitivo. Quando o backend estiver conectado, você verá os jogadores reais.</p>';
+    aviso = '<p class="ranking-aviso">' + ic('cloud_off') + ' Offline — exibindo apenas o seu histórico competitivo. Quando o backend estiver conectado, você verá os jogadores reais.</p>';
   }
 
   // Pódio top 3
   if (!lista.length) {
-    el.rankingPodio.innerHTML = '<div class="estado-vazio"><span class="emoji">🏆</span><p><strong>Sem registros ' + (rotuloPeriodo ? ' ' + rotuloPeriodo : '') + '.</strong><br>Jogue e volte para ver sua posição!</p></div>';
+    el.rankingPodio.innerHTML = '<div class="estado-vazio"><span class="emoji">' + ic('emoji_events') + '</span><p><strong>Sem registros ' + (rotuloPeriodo ? ' ' + rotuloPeriodo : '') + '.</strong><br>Jogue e volte para ver sua posição!</p></div>';
     el.rankingTabela.innerHTML = '';
   } else {
     var topo = lista.slice(0, 3);
-    var med = ['🥇', '🥈', '🥉'];
+    var med = ['1º', '2º', '3º'];
     el.rankingPodio.innerHTML = '<div class="podio">' + topo.map(function (p, i) {
       return '<div class="podio-item' + (i === 0 ? ' primeiro' : '') + '">' +
         '<span class="podio-medalha">' + med[i] + '</span>' +
@@ -986,7 +989,7 @@ function rotuloModoNome(modo) {
 function renderizarMinhaPosicao(lista) {
   if (!el.rankingMinhaPosicao) return;
   if (!lista.length) {
-    el.rankingMinhaPosicao.innerHTML = '<div class="card suave minhapos"><span>👤 Sua posição: <strong>—</strong></span></div>';
+    el.rankingMinhaPosicao.innerHTML = '<div class="card suave minhapos"><span>' + ic('account_circle') + ' Sua posição: <strong>—</strong></span></div>';
     return;
   }
   // Melhor resultado é sempre o 1º da lista local (todos os registros são seus).
@@ -1037,12 +1040,12 @@ var SalaTempoReal = {
 function renderizarCardSalas(container, resumido) {
   if (!container) return;
   if (BACKEND.conectado) {
-    container.innerHTML = '<div class="estado-vazio"><span class="emoji">🛰️</span><p>Backend conectado! A tela de salas será habilitada aqui.</p></div>';
+    container.innerHTML = '<div class="estado-vazio"><span class="emoji">' + ic('hub') + '</span><p>Backend conectado! A tela de salas será habilitada aqui.</p></div>';
     return;
   }
   container.innerHTML =
     '<div class="sala-offline">' +
-      '<span class="sala-offline-icone">🛰️</span>' +
+      '<span class="sala-offline-icone">' + ic('hub') + '</span>' +
       '<h3>Salas multiplayer em breve</h3>' +
       '<p>' + (resumido ? 'Crie uma sala, compartilhe o código e dispute a mesma partida em tempo real.' : '') + '</p>' +
       '<ol class="sala-fluxo">' +
@@ -1053,7 +1056,7 @@ function renderizarCardSalas(container, resumido) {
         '<li><strong>Ranking após cada rodada</strong> — tabela parcial ao vivo.</li>' +
         '<li><strong>Resultado final</strong> — pódio da sala.</li>' +
       '</ol>' +
-      '<p class="sala-aviso">🔧 Este modo precisa de um servidor WebSocket. A arquitetura está pronta em <code>BACKEND</code> e <code>SalaTempoReal</code> — basta plugar o servidor para ativar. Sem fake: nenhuma sala é simulada offline.</p>' +
+      '<p class="sala-aviso">' + ic('construction') + ' Este modo precisa de um servidor WebSocket. A arquitetura está pronta em <code>BACKEND</code> e <code>SalaTempoReal</code> — basta plugar o servidor para ativar. Sem fake: nenhuma sala é simulada offline.</p>' +
       (BACKEND.conectado ? '' : '<p class="sala-exemplo">Exemplo de sala (aguardando backend):</p><pre class="sala-pre">SALA #AKE492\n1. Willian — 920 pts\n2. João — 810 pts\n3. Pedro — 760 pts</pre>') +
     '</div>';
 }
@@ -1068,19 +1071,19 @@ function textoCompartilhamento() {
   if (!p) return '';
   var nome = lerNome();
   var tx = (p.taxa || 0);
-  return '🧠 Quiz AKE\n\n' +
+  return 'Quiz AKE\n\n' +
     nome + ' conseguiu ' + p.acertos + '/' + p.total + ' (' + tx + '%)!\n\n' +
-    '🔥 Combo máximo: ' + (p.maiorCombo || 0) + '\n' +
-    '🏆 Pontuação: ' + p.pontos.toLocaleString('pt-BR') + ' pts\n\n' +
+    'Combo máximo: ' + (p.maiorCombo || 0) + '\n' +
+    'Pontuação: ' + p.pontos.toLocaleString('pt-BR') + ' pts\n\n' +
     'Será que você consegue superar?';
 }
 function desenharShareCard() {
   if (!el.shareConteudo || !ultimaPartida) return;
   el.shareConteudo.innerHTML =
-    '<div class="share-head"><span>🧠</span> Quiz AKE</div>' +
+    '<div class="share-head"><span>' + ic('quiz') + '</span> Quiz AKE</div>' +
     '<div class="share-score">' + ultimaPartida.acertos + '/' + (ultimaPartida.total || 0) + '</div>' +
-    '<div class="share-linha">🔥 Combo máximo: <strong>' + (ultimaPartida.maiorCombo || 0) + '</strong></div>' +
-    '<div class="share-linha">🏆 Pontuação: <strong>' + ultimaPartida.pontos.toLocaleString('pt-BR') + '</strong></div>' +
+    '<div class="share-linha">' + ic('local_fire_department') + ' Combo máximo: <strong>' + (ultimaPartida.maiorCombo || 0) + '</strong></div>' +
+    '<div class="share-linha">' + ic('emoji_events') + ' Pontuação: <strong>' + ultimaPartida.pontos.toLocaleString('pt-BR') + '</strong></div>' +
     '<div class="share-challenge">Será que você consegue superar?</div>';
 }
 function compartilharResultado() {
@@ -1099,7 +1102,7 @@ function compartilharResultado() {
   copiarParaAreaDeTransferencia(texto);
 }
 function copiarParaAreaDeTransferencia(texto) {
-  var feito = function () { mostrarMensagem('🔗 Resultado copiado!', 'var(--ok)'); };
+  var feito = function () { mostrarMensagem(ic('content_copy') + ' Resultado copiado!', 'var(--ok)'); };
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(texto).then(feito).catch(function () { areaDeTransferenciaFallback(texto); feito(); });
     return;
@@ -1195,11 +1198,11 @@ function renderizarConquistas() {
     var d = document.createElement('div');
     d.className = 'conquista' + (ok ? '' : ' bloqueada');
     d.innerHTML =
-      '<div class="icone">' + (ok ? def.icone : '🔒') + '</div>' +
+      '<div class="icone">' + (ok ? def.icone : ic('lock')) + '</div>' +
       '<div class="nome">' + def.nome + '</div>' +
       '<div class="desc">' + def.desc + '</div>' +
       '<div class="conq-prog"><div class="conq-bar"><div class="conq-fill" style="width:' + pct + '%"></div></div>' +
-      '<span class="conq-count">' + (ok ? '✅' : p.valor + '/' + p.alvo) + '</span></div>';
+      '<span class="conq-count">' + (ok ? ic('check_circle') : p.valor + '/' + p.alvo) + '</span></div>';
     el.conquistas.appendChild(d);
   });
   if (el.conquistasProgresso)
@@ -1268,7 +1271,7 @@ function renderizarCompeticao() {
       '<div class="stat-card"><span class="stat-valor">' + mediaPontos + '</span><span class="stat-rotulo">Média de pontos</span></div>' +
       '<div class="stat-card"><span class="stat-valor">' + ganhas.length + '/' + CONQUISTAS_DEF.length + '</span><span class="stat-rotulo">Medalhas desbloqueadas</span></div>' +
     '</div>' +
-    (BACKEND.conectado ? '' : '<p class="descricao-bloco comp-aviso">🔒 Offline — posição e média consideram apenas o seu histórico local.</p>');
+    (BACKEND.conectado ? '' : '<p class="descricao-bloco comp-aviso">' + ic('cloud_off') + ' Offline — posição e média consideram apenas o seu histórico local.</p>');
 }
 
 function renderizarRecordes() {
@@ -1279,7 +1282,7 @@ function renderizarRecordes() {
     var ms = sDeModo(m.id);
     var qtd = partes.filter(function (p) { return p.modo === m.id; }).length;
     return '<div class="recorde-linha" style="--modo-cor:' + m.cor + '">' +
-      '<span class="recorde-icone">' + m.icone + '</span>' +
+      '<span class="recorde-icone">' + iconeModoHTML(m.id) + '</span>' +
       '<div class="recorde-info">' +
         '<strong>' + m.nome + '</strong>' +
         '<small>' + qtd + ' partida(s) · melhor ' + (ms ? ms.pontos : 0) + ' pts</small>' +
@@ -1306,7 +1309,7 @@ function renderizarCompetitivo() {
   el.perfilCompetitivo.innerHTML = partes.slice(0, 8).map(function (p) {
     var m = buscarModo(p.modo);
     return '<li class="hist-item">' +
-      '<span class="hist-icon">' + (m ? m.icone : p.modo === 'desafio' ? '🎯' : '🧠') + '</span>' +
+      '<span class="hist-icon">' + (m ? iconeModoHTML(m.id) : iconeModoHTML(p.modo)) + '</span>' +
       '<span class="hist-info"><strong>' + (m ? m.nome : 'Quiz') + '</strong><small>' + p.dataFmt + '</small></span>' +
       '<span class="hist-pct">' + (p.taxa || 0) + '%</span>' +
       '<span class="pts">' + p.pontos + ' pts</span></li>';
@@ -1321,7 +1324,7 @@ function renderizarHistorico() {
     return;
   }
   el.perfilHistorico.innerHTML = lista.slice(0, 8).map(function (h, i) {
-    return '<li class="hist-item"><span class="hist-icon">' + (h.icon || '🧠') + '</span>' +
+    return '<li class="hist-item"><span class="hist-icon">' + (h.icon || iconeModoHTML('normal')) + '</span>' +
       '<span class="hist-info"><strong>' + h.titulo + '</strong><small>' + h.quando + '</small></span>' +
       '<span class="hist-pct">' + h.pct + '%</span>' +
       '<span class="pts">' + h.pontos + ' pts</span></li>';
@@ -1344,10 +1347,10 @@ function renderizarCalendarioStreak() {
     });
   }
   el.perfilStreak.innerHTML =
-    '<div class="streak-topo">🔥 Desde ontem: <strong>' + seq.atual + '</strong> dias · Recorde: <strong>' + seq.maior + '</strong></div>' +
+    '<div class="streak-topo">' + ic('local_fire_department') + ' Desde ontem: <strong>' + seq.atual + '</strong> dias · Recorde: <strong>' + seq.maior + '</strong></div>' +
     '<div class="streak-semana">' + dias.map(function (d) {
       return '<div class="streak-dia' + (d.ativo ? ' ativo' : '') + (d.hoje ? ' hoje' : '') + '">' +
-        '<small>' + d.rotulo + '</small><b>' + (d.ativo ? '🔥' : d.iso.slice(8)) + '</b></div>';
+        '<small>' + d.rotulo + '</small><b>' + (d.ativo ? ic('local_fire_department') : d.iso.slice(8)) + '</b></div>';
     }).join('') + '</div>';
 }
 
@@ -1414,7 +1417,7 @@ function mostrarPergunta() {
   var total = totalPerguntasPartida();
   var infinito = (modoAtual === 'sobrevivencia' || modoAtual === 'contra-tempo');
 
-  el.textoProgresso.textContent = rotuloProgresso(total, infinito);
+  el.textoProgresso.innerHTML = rotuloProgresso(total, infinito);
   el.numeroPergunta.textContent = 'Pergunta ' + (indiceAtual + 1);
   if (infinito) {
     el.barraProgresso.style.width = Math.min(100, ((acertos) % 50) * 2) + '%';
@@ -1428,7 +1431,7 @@ function mostrarPergunta() {
   if (pergunta.valor > 1) {
     el.seloBonus.classList.remove('hidden');
     el.chipPremio.classList.remove('hidden');
-    el.chipPremio.textContent = '⭐ x' + pergunta.valor;
+    el.chipPremio.innerHTML = ic('stars') + ' x' + pergunta.valor;
   } else {
     el.seloBonus.classList.add('hidden');
     el.chipPremio.classList.add('hidden');
@@ -1456,9 +1459,9 @@ function totalPerguntasPartida() {
   return perguntasSorteio.length || QUANTAS_PERGUNTAS;
 }
 function rotuloProgresso(total, infinito) {
-  if (modoAtual === 'sobrevivencia') return '⚔️ Sobrevivência · Acerto ' + (indiceAtual + 1);
-  if (modoAtual === 'blitz') return '⚡ Blitz · Pergunta ' + (indiceAtual + 1) + ' de ' + QUANTAS_BLITZ;
-  if (modoAtual === 'contra-tempo') return '⏰ Contra o Tempo · Pergunta ' + (indiceAtual + 1);
+  if (modoAtual === 'sobrevivencia') return ic('shield_moon') + ' Sobrevivência · Acerto ' + (indiceAtual + 1);
+  if (modoAtual === 'blitz') return ic('bolt') + ' Blitz · Pergunta ' + (indiceAtual + 1) + ' de ' + QUANTAS_BLITZ;
+  if (modoAtual === 'contra-tempo') return ic('timer') + ' Contra o Tempo · Pergunta ' + (indiceAtual + 1);
   return 'Pergunta ' + (indiceAtual + 1) + ' de ' + total;
 }
 
@@ -1631,9 +1634,9 @@ function mostrarExplicacao(acertou, pergunta) {
   el.areaExplicacao.classList.remove('hidden');
   el.areaExplicacao.className = 'area-explicacao ' + (acertou ? 'certo' : 'erro');
   el.areaExplicacao.innerHTML =
-    '<div class="explicacao-status">' + (acertou ? '✅ Resposta correta!' : '❌ Você errou.') + '</div>' +
+    '<div class="explicacao-status">' + (acertou ? ic('check_circle') + ' Resposta correta!' : ic('cancel') + ' Você errou.') + '</div>' +
     '<div class="explicacao-resposta">Resposta certa: <strong>' + pergunta.alternativas[pergunta.correta] + '</strong></div>' +
-    (pergunta.explicacao ? '<div class="explicacao-texto">💡 ' + pergunta.explicacao + '</div>' : '');
+    (pergunta.explicacao ? '<div class="explicacao-texto">' + ic('lightbulb') + ' ' + pergunta.explicacao + '</div>' : '');
 }
 
 function proximaPergunta() {
@@ -1763,6 +1766,17 @@ function iconePartida() {
   if (modoAtual === 'desafio') return '🎯';
   return quizAtual && quizAtual.capa ? quizAtual.capa.emoji : '🧠';
 }
+function iconeModoHTML(modo) {
+  var mapa = {
+    sobrevivencia: 'shield_moon',
+    blitz: 'bolt',
+    'contra-tempo': 'timer',
+    desafio: 'flag',
+    normal: 'quiz',
+    competitivo: 'emoji_events'
+  };
+  return ic(mapa[modo] || 'quiz');
+}
 
 function montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecorde) {
   var totalFinal = totalInfinito();
@@ -1773,25 +1787,25 @@ function montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecord
   el.rCombo.textContent = 'x' + maiorCombo;
   el.rTempo.textContent = (tempoMedio || 0) + 's';
   el.rXp.textContent = '+' + xpGanho + ' XP';
-  el.melhorPontuacao.textContent = '🏅 Melhor pontuação: ' + lerRecorde();
+  el.melhorPontuacao.innerHTML = ic('emoji_events') + ' Melhor pontuação: ' + lerRecorde();
 
   // Nota competitiva (Fase 3)
   if (!BACKEND.conectado) {
     if (el.resultadoNota) {
       el.resultadoNota.classList.remove('hidden');
       el.resultadoNota.innerHTML =
-        '<div class="nota-linha"><span>🧩 Modo:</span><strong>' + tituloPartida() + '</strong></div>' +
-        '<div class="nota-linha"><span>👤 Posição no ranking (local):</span><strong>1º</strong></div>' +
+        '<div class="nota-linha"><span>' + ic('sports_esports') + ' Modo:</span><strong>' + tituloPartida() + '</strong></div>' +
+        '<div class="nota-linha"><span>' + ic('leaderboard') + ' Posição no ranking (local):</span><strong>1º</strong></div>' +
         (modoAtual === 'sobrevivencia' || modoAtual === 'blitz' || modoAtual === 'contra-tempo'
           ? '<div class="nota-linha"><span>Recorde do modo:</span><strong>' + (sRecordeModoDoJogador(modoAtual)) + ' pts</strong></div>'
           : '') +
-        '<p class="descricao-bloco comp-aviso">🔒 Offline — posição e recorde consideram apenas o seu histórico local.</p>';
+        '<p class="descricao-bloco comp-aviso">' + ic('cloud_off') + ' Offline — posição e recorde consideram apenas o seu histórico local.</p>';
     }
   } else if (el.resultadoNota) {
     if (modoAtual === 'desafio') {
       el.resultadoNota.classList.remove('hidden');
       el.resultadoNota.innerHTML =
-        '<div class="nota-linha"><span>🎯 Desafio do Dia</span><strong>calculando posição…</strong></div>';
+        '<div class="nota-linha"><span>' + ic('flag') + ' Desafio do Dia</span><strong>calculando posição…</strong></div>';
     } else {
       el.resultadoNota.classList.add('hidden');
     }
@@ -1804,31 +1818,31 @@ function montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecord
 
   if (el.rConquistas) {
     if (novas.length) {
-      el.rConquistas.innerHTML = '<h3>🏅 Novas conquistas!</h3><div class="resultado-conq">' +
+      el.rConquistas.innerHTML = '<h3>' + ic('workspace_premium') + ' Novas conquistas!</h3><div class="resultado-conq">' +
         novas.map(function (id) {
           var def = CONQUISTAS_DEF.find(function (x) { return x.id === id; });
           return '<span class="resultado-medalha">' + def.icone + ' ' + def.nome + '</span>';
         }).join('') + '</div>';
     } else {
-      el.rConquistas.innerHTML = '<h3>🏅 Conquistas</h3><p class="descricao-bloco">Complete objetivos para desbloquear medalhas.</p>';
+      el.rConquistas.innerHTML = '<h3>' + ic('workspace_premium') + ' Conquistas</h3><p class="descricao-bloco">Complete objetivos para desbloquear medalhas.</p>';
     }
   }
 
-  if (el.rStreak) el.rStreak.innerHTML = '<span>🔥 Sequência atual: <strong>' + seq.atual + '</strong> · Recorde: <strong>' + seq.maior + '</strong></span>';
+  if (el.rStreak) el.rStreak.innerHTML = '<span>' + ic('local_fire_department') + ' Sequência atual: <strong>' + seq.atual + '</strong> · Recorde: <strong>' + seq.maior + '</strong></span>';
 
   // Card de compartilhamento pronto para uso
   desenharShareCard();
   if (el.shareCard) el.shareCard.classList.remove('hidden');
 
-  var emoji = '🏆', titulo = 'Perfeito!', sub = '100% de acerto, que gênio!';
-  if (percentual >= 80) { emoji = '🎉'; titulo = 'Excelente!'; sub = 'Você arrasou!'; }
-  else if (percentual >= 60) { emoji = '😄'; titulo = 'Muito bom!'; sub = 'Continue treinando!'; }
-  else if (percentual >= 40) { emoji = '🙂'; titulo = 'Bom começo'; sub = 'Esforço sempre ajuda!'; }
-  else if (percentual >= 20) { emoji = '💪'; titulo = 'Não desista'; sub = 'Todo mestre já foi iniciante.'; }
-  else { emoji = '🔁'; titulo = 'Tente de novo'; sub = 'Você consegue evoluir!'; }
-  if (novoRecorde) sub += ' 🎊 Novo recorde!';
+  var emoji = 'emoji_events', titulo = 'Perfeito!', sub = '100% de acerto, que gênio!';
+  if (percentual >= 80) { emoji = 'celebration'; titulo = 'Excelente!'; sub = 'Você arrasou!'; }
+  else if (percentual >= 60) { emoji = 'sentiment_very_satisfied'; titulo = 'Muito bom!'; sub = 'Continue treinando!'; }
+  else if (percentual >= 40) { emoji = 'sentiment_satisfied'; titulo = 'Bom começo'; sub = 'Esforço sempre ajuda!'; }
+  else if (percentual >= 20) { emoji = 'fitness_center'; titulo = 'Não desista'; sub = 'Todo mestre já foi iniciante.'; }
+  else { emoji = 'replay'; titulo = 'Tente de novo'; sub = 'Você consegue evoluir!'; }
+  if (novoRecorde) sub += ' — Novo recorde!';
 
-  el.emojiResultado.textContent = emoji;
+  el.emojiResultado.innerHTML = ic(emoji);
   el.tituloResultado.textContent = titulo;
   el.subtituloResultado.textContent = sub;
 
@@ -1855,21 +1869,24 @@ function mostrarNivelUp(nivel) {
 function mostrarMensagem(texto, cor) {
   var m = document.createElement('div');
   m.className = 'floating-msg';
-  m.textContent = texto;
+m.innerHTML = texto;
   m.style.color = cor;
   document.body.appendChild(m);
   setTimeout(function () { if (m.parentNode) m.parentNode.removeChild(m); }, 900);
 }
 
 function criarConfete() {
-  var emojis = ['🎉', '💥', '✨', '🎊', '🌟'];
-  for (var i = 0; i < 24; i++) {
+  var cores = ['#7c6cf0', '#4aa8ff', '#ff5b6a', '#ffb020', '#2ed573'];
+  for (var i = 0; i < 26; i++) {
     var ped = document.createElement('div');
     ped.className = 'confetti-piece';
-    ped.textContent = emojis[Math.floor(Math.random() * emojis.length)];
     ped.style.left = Math.random() * 100 + 'vw';
-    ped.style.animationDuration = (1.5 + Math.random()) + 's';
-    ped.style.fontSize = (16 + Math.random() * 22) + 'px';
+    ped.style.top = -12 + 'px';
+    ped.style.animationDuration = (1.6 + Math.random() * 1.4) + 's';
+    ped.style.backgroundColor = cores[i % cores.length];
+    ped.style.width = (8 + Math.random() * 8) + 'px';
+    ped.style.height = ped.style.width;
+    ped.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
     document.body.appendChild(ped);
     (function (p) {
       setTimeout(function () { if (p.parentNode) p.parentNode.removeChild(p); }, 2800);
@@ -1957,7 +1974,7 @@ function renderizarAreaConta() {
     area.innerHTML = '<a href="#" class="btn btn-ghost btn-nav" data-navegar="conta">Entrar</a>';
     return;
   }
-  area.innerHTML = '<a href="#" class="btn btn-ghost btn-nav" data-navegar="conta">👤 ' + esc(u.nome || u.email || 'Conta') + '</a>';
+  area.innerHTML = '<a href="#" class="btn btn-ghost btn-nav" data-navegar="conta">' + ic('account_circle') + ' ' + esc(u.nome || u.email || 'Conta') + '</a>';
 }
 
 /* ---------- 29) TELA DE CONTA ---------- */
@@ -1969,7 +1986,7 @@ function renderizarConta() {
 
   if (!backendConectado()) {
     if (sub) sub.textContent = 'Backend indisponível. Você joga offline com o progresso salvo neste dispositivo.';
-    card.innerHTML = '<div class="estado-vazio"><span class="emoji">📡</span>' +
+    card.innerHTML = '<div class="estado-vazio"><span class="emoji">' + ic('cloud_off') + '</span>' +
       '<p>Não conseguimos conectar ao servidor.</p>' +
       '<p>Jogue normalmente: tudo continua salvo aqui e será sincronizado quando o servidor voltar.</p></div>';
     return;
@@ -1979,11 +1996,11 @@ function renderizarConta() {
     if (sub) sub.textContent = 'Conectado. Seu progresso é sincronizado automaticamente entre dispositivos.';
     card.innerHTML =
       '<div style="display:grid;gap:10px;">' +
-        '<p class="conta-intro">👤 <strong>' + esc(u.nome || 'Anônimo') + '</strong></p>' +
+        '<p class="conta-intro">' + ic('account_circle') + ' <strong>' + esc(u.nome || 'Anônimo') + '</strong></p>' +
         '<p class="descricao-bloco">' + esc(u.email || '') + '</p>' +
         '<p class="descricao-bloco">XP, recorde, conquistas, favoritos e partidas ficam sincronizados.</p>' +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">' +
-          '<button type="button" class="btn btn-ghost" data-conta="nome">✏️ Editar nome</button>' +
+          '<button type="button" class="btn btn-ghost" data-conta="nome">' + ic('edit') + ' Editar nome</button>' +
           '<button type="button" class="btn btn-ghost" data-conta="sair">Sair</button>' +
         '</div>' +
       '</div>';
@@ -2093,6 +2110,11 @@ function esc(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// Ícone Material de interface (emojis ficam só para conteúdo/dados).
+function ic(nome, ext) {
+  return '<span class="material-symbols-rounded icone' + (ext ? ' ' + ext : '') + '" aria-hidden="true">' + nome + '</span>';
+}
+
 /* ---------- 30) CRIAR QUIZ (MANUAL + IA) ---------- */
 var rascunhoPerguntas = [];
 var rascunhoIAAtual = null;
@@ -2117,10 +2139,10 @@ function renderizarCriar() {
   card.innerHTML =
     '<div style="display:grid;gap:12px;max-width:560px;">' +
       '<button type="button" class="card suave" data-criar="manual" style="text-align:left;cursor:pointer;border:0;width:100%;">' +
-        '<strong>✍️ Criar manualmente</strong>' +
+        '<strong>' + ic('edit_note') + ' Criar manualmente</strong>' +
         '<p class="descricao-bloco" style="margin:0;">Escolha categoria e dificuldade e escreva suas próprias perguntas.</p></button>' +
       '<button type="button" class="card suave" data-criar="ia" style="text-align:left;cursor:pointer;border:0;width:100%;">' +
-        '<strong>🤖 Gerar com IA</strong>' +
+        '<strong>' + ic('auto_awesome') + ' Gerar com IA</strong>' +
         '<p class="descricao-bloco" style="margin:0;">Peça à IA perguntas sobre um tema. Você revisa antes de salvar.</p></button>' +
     '</div>' +
     '<div id="meus-quizzes" style="margin-top:24px;"></div>';
@@ -2153,7 +2175,7 @@ function renderizarCriarManual() {
   if (!card) return;
   card.innerHTML =
     '<button type="button" class="btn btn-ghost btn-nav" data-voltar-criar>← Voltar</button>' +
-    '<h3 style="margin:10px 0;">✍️ Criar quiz manual</h3>' +
+    '<h3 style="margin:10px 0;">' + ic('edit_note') + ' Criar quiz manual</h3>' +
     '<form id="form-criar-manual" novalidate>' +
       '<div style="display:grid;gap:10px;max-width:520px;">' +
         '<label class="descricao-bloco">Título' +
@@ -2201,7 +2223,7 @@ function renderizarListaPerguntas() {
       '</div>' +
     '</div>';
   }).join('') ||
-    '<div class="estado-vazio"><span class="emoji">🧠</span><p>Nenhuma pergunta ainda. Adicione a primeira!</p></div>';
+    '<div class="estado-vazio"><span class="emoji">' + ic('quiz') + '</span><p>Nenhuma pergunta ainda. Adicione a primeira!</p></div>';
 
   Array.prototype.forEach.call(area.querySelectorAll('[data-remover]'), function (b) {
     b.addEventListener('click', function () {
@@ -2289,7 +2311,7 @@ function renderizarCriarIA() {
   if (!backendConectado()) {
     card.innerHTML =
       '<button type="button" class="btn btn-ghost btn-nav" data-voltar-criar>← Voltar</button>' +
-      '<div class="estado-vazio"><span class="emoji">📡</span>' +
+      '<div class="estado-vazio"><span class="emoji">' + ic('cloud_off') + '</span>' +
       '<p>Gerar com IA precisa do backend conectado.</p>' +
       '<p>Entre com uma conta e tente de novo.</p></div>';
     card.querySelector('[data-voltar-criar]').addEventListener('click', renderizarCriar);
@@ -2297,7 +2319,7 @@ function renderizarCriarIA() {
   }
   card.innerHTML =
     '<button type="button" class="btn btn-ghost btn-nav" data-voltar-criar>← Voltar</button>' +
-    '<h3 style="margin:10px 0;">🤖 Gerar quiz com IA</h3>' +
+    '<h3 style="margin:10px 0;">' + ic('auto_awesome') + ' Gerar quiz com IA</h3>' +
     '<form id="form-criar-ia" novalidate>' +
       '<div style="display:grid;gap:10px;max-width:520px;">' +
         '<label class="descricao-bloco">Tema' +
@@ -2362,7 +2384,7 @@ function renderizarRascunhoIA(rascunho) {
           return '<div style="padding:10px;border:1px solid rgba(127,127,127,.25);border-radius:10px;">' +
             '<strong>' + (i + 1) + '. ' + esc(p.pergunta) + '</strong>' +
             '<p style="margin:4px 0 0;">' + (p.alternativas || []).map(function (alt, j) {
-              return (j === p.correta ? '✅ ' : '• ') + esc(alt);
+              return (j === p.correta ? ic('check_circle') + ' ' : '• ') + esc(alt);
             }).join('<br>') + '</p>' +
             (p.explicacao ? '<p class="descricao-bloco" style="margin-top:4px;">' + esc(p.explicacao) + '</p>' : '') +
           '</div>';
@@ -2433,7 +2455,7 @@ function renderizarAdmin() {
   window.API.adminDashboard().then(function (d) {
     renderizarAdminDashboard(d);
   }).catch(function () {
-    dash.innerHTML = '<div class="estado-vazio"><span class="emoji">📡</span><p>Não foi possível carregar o painel.</p></div>';
+    dash.innerHTML = '<div class="estado-vazio"><span class="emoji">' + ic('cloud_off') + '</span><p>Não foi possível carregar o painel.</p></div>';
   });
 }
 
@@ -2441,12 +2463,12 @@ function renderizarAdminDashboard(d) {
   var dash = q('admin-dashboard');
   if (!dash) return;
   var cards = [
-    ['👥', 'Usuários', d.totalUsuarios],
-    ['🎮', 'Partidas', d.totalPartidas],
-    ['🧠', 'Quizzes', d.totalQuizzes],
-    ['✍️', 'Criados', d.criados],
-    ['⚡', 'Novos hoje', d.usuariosHoje],
-    ['🎯', 'Acerto médio', (d.taxaMedia || 0) + '%']
+    ['groups', 'Usuários', d.totalUsuarios],
+    ['sports_esports', 'Partidas', d.totalPartidas],
+    ['quiz', 'Quizzes', d.totalQuizzes],
+    ['add_box', 'Criados', d.criados],
+    ['bolt', 'Novos hoje', d.usuariosHoje],
+    ['check_circle', 'Acerto médio', (d.taxaMedia || 0) + '%']
   ];
   var mais = (d.maisJogados || []).slice(0, 5).map(function (m) {
     return '<li>' + esc(m.titulo || m.id) + ' — ' + m.vezes + 'x</li>';
@@ -2455,7 +2477,7 @@ function renderizarAdminDashboard(d) {
     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;">' +
       cards.map(function (c) {
         return '<div class="card" style="text-align:center;padding:14px;">' +
-          '<div style="font-size:22px;">' + c[0] + '</div>' +
+          '<div style="font-size:22px;">' + ic(c[0]) + '</div>' +
           '<div style="font-size:20px;font-weight:bold;">' + c[2] + '</div>' +
           '<div class="descricao-bloco">' + c[1] + '</div></div>';
       }).join('') +
@@ -2485,7 +2507,7 @@ function renderizarAdminUsuarios() {
               '<button type="button" class="btn btn-ghost btn-nav" data-usr="toggle" data-id="' + esc(usr.id) + '">' + (usr.status === 'bloqueado' ? 'Ativar' : 'Bloquear') + '</button>' : '') +
           '</div>';
         }).join('') ||
-        '<div class="estado-vazio"><span class="emoji">👥</span><p>Nenhum usuário encontrado.</p></div>') +
+        '<div class="estado-vazio"><span class="emoji">' + ic('group_off') + '</span><p>Nenhum usuário encontrado.</p></div>') +
       '</div>';
     Array.prototype.forEach.call(area.querySelectorAll('[data-usr="toggle"]'), function (b) {
       b.addEventListener('click', function () {
