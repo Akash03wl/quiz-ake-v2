@@ -2,7 +2,7 @@
    QUIZ AKE - CLIENTE DA API (js/api.js)
    Camada de integração com o backend Cloudflare Pages (Fase 4).
    - /api/health, /api/auth/*, /api/migrate, /api/me/progresso
-   - /api/quizzes, /api/ia/*, /api/ranking, /api/salas/*
+   - /api/quizzes, /api/ia/*, /api/ranking, /api/salas/*, /api/desafio
    - Admin: /api/admin/*
    Sincroniza o progresso local (localStorage) com a conta via
    POST /api/migrate (merge canônico, fonte de verdade no servidor).
@@ -245,6 +245,18 @@
     return garantir(r);
   }
 
+  // ---------- DESAFIO DO DIA ----------
+
+  async function desafioHoje() {
+    const r = await pedir('desafio');
+    return garantir(r);
+  }
+
+  async function enviarDesafio(dados) {
+    const r = await pedir('desafio/resultado', { metodo: 'POST', corpo: dados });
+    return garantir(r);
+  }
+
   // ---------- SALAS (multiplayer) ----------
 
   async function criarSala(quizId) {
@@ -347,6 +359,9 @@
     salvarQuizIA: salvarQuizIA,
     // ranking
     ranking: ranking,
+    // desafio do dia
+    desafioHoje: desafioHoje,
+    enviarDesafio: enviarDesafio,
     // salas
     criarSala: criarSala,
     entrarSala: entrarSala,

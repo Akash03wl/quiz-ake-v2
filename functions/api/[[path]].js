@@ -662,6 +662,90 @@ async function salvarRascunhoIA(env, request) {
   });
 }
 
+// ---------- DESAFIO DO DIA (competitivo global) ----------
+
+const DESAFIO_PERGUNTAS = 6;
+
+// Mesmo algoritmo de semente que o frontend usa (js/script.js -> sementeDia).
+function sementeDiaDesafio(texto) {
+  let h = 0;
+  for (let i = 0; i < texto.length; i++) h = (h * 31 + texto.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+// GET /api/desafio — seed, perguntas e ranking global de hoje (público).
+async function desafioDia(env, request) {
+  const hoje = isoHoje();
+  const top = await db.todas(env,
+    `SELECT u.id, u.nome, u.avatar, MAX(r.pontos) AS pontos
+     FROM resultados r JOIN usuarios u ON u.id = r.usuario_id
+     WHERE r.modo = 'desafio' AND date(r.criado_em) = date(?)  AND r.pontos > 0
+     GROUP BY u.id ORDER BY pontos DESC, u.nome ASC LIMIT 10`,
+    hoje);
+  const resumo = await db.primeira(env,
+    `SELECT COUNT(DISTINCT usuario_id) AS jogadores, ROUND(AVG(best)) AS media
+     FROM (SELECT usuario_id, MAX(pontos) AS best FROM resultados
+           WHERE modo = 'desafio' AND date(criado_em) = date(?) GROUP BY usuario_id)`,
+    hoje);
+
+  let minha = null;
+  const usuario = await auth.usuarioDaSessao(env, request);
+  if (usuario) {
+    const total = Number(resumo && resumo.jogadores) || 0;
+    const meu = await db.primeira(env,
+      `SELECT MAX(pontos) AS melhor FROM resultados
+       WHERE usuario_id = ? AND modo = 'desafio' AND date(criado_em) = date(?)`,
+      usuario.id, hoje);
+    if (meu && meu.melhor !== null && Number(meu.melhor) > 0) {
+      const acima = await db.primeira(env,
+        `SELECT COUNT(DISTINCT usuario_id) AS c FROM resultados
+         WHERE modo = 'desafio' AND date(criado_em) = date(?) AND pontos > ?`,
+        hoje, Number(meu.melhor));
+      minha = { jogou: true, melhor: Number(meu.melhor), posicao: (acima && acima.c ? acima.c : 0) + 1, total };
+    } else {
+      minha = { jogou: false, melhor: 0, posicao: null, total };
+    }
+  }
+
+  return ok({
+    data: hoje,
+    seed: sementeDiaDesafio(hoje),
+    perguntas: DESAFIO_PERGUNTAS,
+    resumo: {
+      jogadores: Number(resumo && resumo.jogadores) || 0,
+      media: Math.round(Number(resumo && resumo.media) || 0)
+    },
+    top: (top || []).map(function (r, i) {
+      return { posicao: i + 1, id: r.id, nome: r.nome, avatar: r.avatar, pontos: r.pontos };
+    }),
+    minha
+  });
+}
+
+// POST /api/desafio/resultado — registra a tentativa do dia (melhor pontuação vence).
+async function registrarResultadoDesafio(env, request) {
+  return auth.exigirAuth(env, request, async function (usuario) {
+    const limite = await checar(env, request, 'desafio', 10, 60);
+    if (!limite.ok) return erro(429, 'Muitos resultados enviados. Aguarde um instante.', {
+      tentaDeNovoEm: limite.tentaDeNovoEm
+    });
+    const corpo = (await lerCorpo(request)) || {};
+    const pontos = Math.max(0, Math.floor(Number(corpo.pontos) || 0));
+    const acertos = Math.max(0, Math.floor(Number(corpo.acertos) || 0));
+    const erros = Math.max(0, Math.floor(Number(corpo.erros) || 0));
+    const combo = Math.max(0, Math.floor(Number(corpo.combo) || 0));
+    const percentual = acertos + erros ? Math.round(100 * acertos / (acertos + erros)) : 0;
+
+    await db.executar(env,
+      'INSERT INTO resultados (id, usuario_id, quiz_id, quiz_titulo, modo, pontos, acertos, erros, tempo_medio, combo, percentual, xp_ganho, criado_em) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      db.novoId('r_'), usuario.id, 'desafio-dia', 'Desafio do Dia', 'desafio',
+      pontos, acertos, erros, Math.floor(Number(corpo.tempo) || 0), combo,
+      percentual, Math.floor(Number(corpo.xp) || 0), new Date().toISOString());
+
+    return await desafioDia(env, request);
+  });
+}
+
 // ---------- RANKING GLOBAL ----------
 
 // GET /api/ranking?tipo=&periodo=
@@ -885,6 +969,9 @@ export async function onRequest({ request, env }) {
       [caminho === 'ia/gerar/salvar' && metodo === 'POST', () => salvarRascunhoIA(env, request)],
       // ranking
       [caminho === 'ranking' && metodo === 'GET', () => rankingGlobal(env, request)],
+      // desafio do dia
+      [caminho === 'desafio' && metodo === 'GET', () => desafioDia(env, request)],
+      [caminho === 'desafio/resultado' && metodo === 'POST', () => registrarResultadoDesafio(env, request)],
       // salas
       [caminho === 'salas' && metodo === 'POST', () => criarSala(env, request)],
       [caminho === 'salas' && partes.length === 2 && metodo === 'GET', () => salaEstado(env, request, partes)],

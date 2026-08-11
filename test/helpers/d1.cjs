@@ -28,7 +28,7 @@ class Preparada {
     return linha[col] ?? null;
   }
   all() {
-    return this.db.prepare(this.sql).all(...this.parametros) || [];
+    return { results: this.db.prepare(this.sql).all(...this.parametros) || [] };
   }
   run() {
     const r = this.db.prepare(this.sql).run(...this.parametros);

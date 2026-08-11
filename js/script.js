@@ -222,6 +222,7 @@ var CHAVE = {
   conquistas: 'quizAKE_conquistas',
   streak: 'quizAKE_streak',
   desafio: 'quizAKE_desafio',
+  desafioInfo: 'quizAKE_desafioInfo',
   tema: 'quizAKE_tema',
   nome: 'quizAKE_nome',
   partidas: 'quizAKE_partidas'     // Fase 3: log competitivo (histórico oficial)
@@ -443,21 +444,53 @@ function registrarAtividade() {
   return calcularStreak();
 }
 
-/* ---------- 13) DESAFIO DO DIA (competitivo, Fase 3) ---------- */
+/* ---------- 13) DESAFIO DO DIA (competitivo GLOBAL, Fase 4) ---------- */
 function sementeDia(texto) {
   var h = 0;
   for (var i = 0; i < texto.length; i++) h = (h * 31 + texto.charCodeAt(i)) >>> 0;
   return h;
 }
+
+// ------------------------------------------------------------------
+// Informações globais do desafio (seed do dia, perguntas, ranking).
+// Fonte: GET /api/desafio. Cached por dia; offline usa o seed da data.
+// ------------------------------------------------------------------
+var desafioInfo = lerObjeto(CHAVE.desafioInfo, null);
+function cachearDesafioInfo(info) {
+  desafioInfo = info;
+  if (info) gravarTexto(CHAVE.desafioInfo, JSON.stringify(info));
+}
+function desafioInfoDeHoje() {
+  if (desafioInfo && desafioInfo.data === hojeISO()) return desafioInfo;
+  var cache = lerObjeto(CHAVE.desafioInfo, null);
+  if (cache && cache.data === hojeISO()) { desafioInfo = cache; return cache; }
+  return null;
+}
+function carregarDesafioGlobal(forcar) {
+  var cache = desafioInfoDeHoje();
+  if (cache && cache.carregado && !forcar) return Promise.resolve(cache);
+  if (!BACKEND.conectado || !window.API || typeof window.API.desafioHoje !== 'function') {
+    return Promise.resolve(desafioInfoDeHoje());
+  }
+  return window.API.desafioHoje().then(function (d) {
+    if (d && d.data === hojeISO()) cachearDesafioInfo(Object.assign({}, d, { carregado: true }));
+    else cachearDesafioInfo(null);
+    return desafioInfoDeHoje();
+  }).catch(function () { return desafioInfoDeHoje(); });
+}
+
+// Sorteio determinístico: o mesmo seed = as mesmas perguntas para todos.
 function perguntasDesafioHoje() {
-  var semente = sementeDia(hojeISO());
+  var info = desafioInfoDeHoje();
+  var semente = info && typeof info.seed === 'number' ? info.seed : sementeDia(hojeISO());
+  var qtd = (info && typeof info.perguntas === 'number' && info.perguntas > 0) ? info.perguntas : PERGUNTAS_DESAFIO;
   var pool = PERGUNTAS.slice();
   for (var i = pool.length - 1; i > 0; i--) {
     semente = (semente * 1103515245 + 12345) >>> 0;
     var j = semente % (i + 1);
     var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
   }
-  return pool.slice(0, PERGUNTAS_DESAFIO);
+  return pool.slice(0, qtd);
 }
 function iniciarDesafioDoDia() {
   pararTudo();
@@ -475,33 +508,108 @@ function dadosDesafioHoje() {
   partes.forEach(function (p) { soma += p.pontos; });
   return { jogado: true, melhor: melhores[0].pontos, media: Math.round(soma / partes.length), posicao: 1, qtd: partes.length };
 }
+// Envia a tentativa do desafio ao backend (global) e atualiza ranking + nota.
+function enviarDesafioGlobal() {
+  var p = ultimaPartida;
+  var nota = function (info) { atualizarNotaDesafio(info); };
+  if (!window.API || typeof window.API.enviarDesafio !== 'function' || !BACKEND.conectado) { nota(null); return; }
+  if (!window.API.usuarioLogado || !window.API.usuarioLogado()) { nota(null); return; }
+  window.API.enviarDesafio({
+    pontos: p.pontos || 0,
+    acertos: p.acertos || 0,
+    erros: p.erros || 0,
+    combo: p.maiorCombo || 0,
+    xp: p.xp || 0,
+    ts: p.ts || Date.now(),
+    dataISO: p.dataISO || hojeISO()
+  }).then(function (d) {
+    if (d && d.data === hojeISO()) cachearDesafioInfo(Object.assign({}, d, { carregado: true }));
+    nota(desafioInfoDeHoje());
+    if (el.desafioCard) renderizarDesafio();
+  }).catch(function () { nota(null); });
+}
+// Mostra a posição global na tela de resultado (pós-desafio).
+function atualizarNotaDesafio(info) {
+  if (!el.resultadoNota) return;
+  var g = info && info.carregado ? info : null;
+  if (!g || !g.minha) {
+    el.resultadoNota.innerHTML =
+      '<div class="nota-linha"><span>🎯 Desafio do Dia</span><strong>Posição global indisponível — entre na sua conta.</strong></div>';
+    return;
+  }
+  var m = g.minha;
+  el.resultadoNota.innerHTML =
+    '<div class="nota-linha"><span>🎯 Desafio do Dia</span><strong>' +
+    (m.jogou
+      ? 'Sua posição hoje: #' + m.posicao + ' de ' + m.total + ' · melhor ' + m.melhor + ' pts'
+      : 'Partida enviada. Continue tentando para entrar no ranking!') +
+    '</strong></div>';
+}
 function renderizarDesafio() {
   if (!el.desafioCard) return;
   var desafio = lerObjeto(CHAVE.desafio, { hoje: '', melhor: 0 });
   var info = dadosDesafioHoje();
   var jogouHoje = desafio.hoje === hojeISO();
-  var competitivo = '';
+  var g = desafioInfoDeHoje();
+  var qtd = (g && g.perguntas) ? g.perguntas : PERGUNTAS_DESAFIO;
+  var blocos = '';
+
   if (!BACKEND.conectado) {
-    competitivo = '<p class="desafio-aviso">🧩 Backend pendente — por enquanto você compete com o seu próprio histórico.</p>';
-  }
-  var statsHtml = info.jogado
-    ? '<div class="destaque-meta">' +
-        '<span>⭐ Melhor: <strong>' + info.melhor + ' pts</strong></span>' +
-        '<span>📊 Média: <strong>' + info.media + ' pts</strong></span>' +
-        '<span>👤 Você está em <strong>#1</strong> (local)</span>' +
-      '</div>'
-    : '<div class="destaque-meta"><span>❓ ' + PERGUNTAS_DESAFIO + ' perguntas</span>' +
+    // Offline: estatísticas locais e aviso.
+    blocos = '<p class="desafio-aviso">🧩 Offline — competindo contra seu histórico local. Conecte-se para o ranking global.</p>' +
+      (info.jogado
+        ? '<div class="destaque-meta"><span>⭐ Melhor de hoje: <strong>' + info.melhor + ' pts</strong></span><span>📊 Sua média: <strong>' + info.media + ' pts</strong></span></div>'
+        : '<div class="destaque-meta"><span>❓ ' + qtd + ' perguntas</span>' +
+          (jogouHoje ? '<span>⭐ Melhor hoje: ' + desafio.melhor + ' pts</span>' : '<span>Você ainda não jogou hoje</span>') + '</div>');
+  } else if (!g || !g.carregado) {
+    blocos = '<p class="desafio-aviso">📡 Carregando ranking global…</p>' +
+      '<div class="destaque-meta"><span>❓ ' + qtd + ' perguntas</span>' +
       (jogouHoje ? '<span>⭐ Melhor hoje: ' + desafio.melhor + ' pts</span>' : '<span>Você ainda não jogou hoje</span>') + '</div>';
+  } else {
+    var resumo = g.resumo || {};
+    blocos = '<div class="destaque-meta">' +
+      '<span>🌍 ' + resumo.jogadores + ' jogadores</span>' +
+      '<span>📊 Média: <strong>' + resumo.media + ' pts</strong></span>' +
+      '</div>';
+    if (g.minha && g.minha.jogou) {
+      blocos += '<div class="destaque-meta">' +
+        '<span>⭐ Seu melhor: <strong>' + g.minha.melhor + ' pts</strong></span>' +
+        '<span>🏅 Posição: <strong>#' + g.minha.posicao + ' de ' + g.minha.total + '</strong></span>' +
+        '</div>';
+    } else if (g.minha) {
+      blocos += '<p class="desafio-aviso">👉 Jogue e entre no ranking de hoje!</p>';
+    }
+    if (g.top && g.top.length) {
+      blocos += '<div class="desafio-top-label">🏆 Top de hoje</div>' +
+        '<div class="podio desafio-podio">' + g.top.slice(0, 3).map(function (t, i) {
+          return '<div class="podio-item' + (i === 0 ? ' primeiro' : '') + '">' +
+            '<span class="podio-medalha">' + ['🥇', '🥈', '🥉'][i] + '</span>' +
+            '<span class="podio-avatar">' + esc(t.avatar || '🧑‍🚀') + '</span>' +
+            '<span class="podio-nome">' + esc(t.nome || '?') + '</span>' +
+            '<span class="podio-valor">' + t.pontos + ' pts</span>' +
+          '</div>';
+        }).join('') + '</div>';
+    }
+  }
 
   el.desafioCard.innerHTML =
     '<div class="destaque-badge">🎯 Desafio do Dia</div>' +
     '<h3>' + new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) + '</h3>' +
-    '<p>As mesmas ' + PERGUNTAS_DESAFIO + ' perguntas para todos os jogadores. Com backend conectado, pontuação, posição e média são globais.</p>' +
-    competitivo +
-    statsHtml +
+    '<p>As mesmas ' + qtd + ' perguntas para todos. Dispute o ranking de hoje com jogadores do mundo todo.</p>' +
+    blocos +
     '<button class="btn btn-primary" id="btn-desafio-card">' + (info.jogado ? 'Melhorar resultado' : 'Jogar Desafio') + '</button>';
+
   var b = q('btn-desafio-card');
   if (b) b.addEventListener('click', iniciarDesafioDoDia);
+
+  // Garante o seed/perguntas em cache p/ o sorteio e o ranking frescos.
+  var antes = !!(g && g.carregado);
+  carregarDesafioGlobal(!antes).then(function (novo) {
+    var depois = !!(novo && novo.carregado);
+    if (depois === antes) return;
+    var visivel = !document.getElementById(TELAS.inicio).classList.contains('hidden');
+    if (visivel) renderizarDesafio();
+  });
 }
 
 /* ---------- 14) CARDS DE QUIZ ---------- */
@@ -1635,6 +1743,7 @@ function finalizarPartida() {
     if (venceuRecorde) {
       gravarTexto(CHAVE.desafio, JSON.stringify({ hoje: hojeISO(), melhor: pontuacao, acertos: acertos, total: PERGUNTAS_DESAFIO }));
     }
+    enviarDesafioGlobal();
   }
 
   montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecorde);
@@ -1678,7 +1787,15 @@ function montarResultado(percentual, tempoMedio, xpGanho, seq, novas, novoRecord
           : '') +
         '<p class="descricao-bloco comp-aviso">🔒 Offline — posição e recorde consideram apenas o seu histórico local.</p>';
     }
-  } else if (el.resultadoNota) el.resultadoNota.classList.add('hidden');
+  } else if (el.resultadoNota) {
+    if (modoAtual === 'desafio') {
+      el.resultadoNota.classList.remove('hidden');
+      el.resultadoNota.innerHTML =
+        '<div class="nota-linha"><span>🎯 Desafio do Dia</span><strong>calculando posição…</strong></div>';
+    } else {
+      el.resultadoNota.classList.add('hidden');
+    }
+  }
 
   var nv = calcularNivel(lerXpValido());
   el.rNivel.textContent = 'Nível ' + nv.nivel;
@@ -1818,6 +1935,11 @@ function iniciarBackend() {
     renderizarAreaConta();
     var u = window.API ? window.API.usuario : null;
     mostrarLinkAdmin(!!(u && u.papel === 'admin'));
+    // Reflete o novo usuário no ranking do desafio (minha posição).
+    var inicioVisivel = !document.getElementById(TELAS.inicio).classList.contains('hidden');
+    carregarDesafioGlobal(true).then(function () {
+      if (inicioVisivel && el.desafioCard) renderizarDesafio();
+    }).catch(function () {});
   });
 }
 

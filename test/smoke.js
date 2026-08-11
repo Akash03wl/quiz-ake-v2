@@ -65,6 +65,40 @@ console.log('> login');
   cookie = r.resp.headers.get('Set-Cookie') || '';
 }
 
+// ---------- desafio do dia (global) ----------
+console.log('> desafio do dia');
+let seedDesafio = null;
+{
+  let r = await requisicao(db, BASE + 'desafio', 'GET');
+  exigir(r.resp.status === 200, 'GET /api/desafio responde 200');
+  exigir(/^\d{4}-\d{2}-\d{2}$/.test(r.dados.data), 'desafio devolve data ISO de hoje');
+  exigir(r.dados.perguntas === 6, 'desafio devolve 6 perguntas');
+  exigir(typeof r.dados.seed === 'number', 'desafio devolve seed numérica');
+  seedDesafio = r.dados.seed;
+  exigir(r.dados.resumo && r.dados.resumo.jogadores === 0, 'antes de jogar: 0 jogadores');
+  exigir(r.dados.minha === null, 'sem sessão: minha é null');
+}
+{
+  let r2 = await requisicao(db, BASE + 'desafio', 'GET');
+  exigir(r2.dados.seed === seedDesafio, 'seed é determinística no mesmo dia');
+}
+{
+  let r = await requisicao(db, BASE + 'desafio/resultado', 'POST', { pontos: 120, acertos: 5, erros: 1, combo: 5 }, { headers: { Cookie: cookie } });
+  exigir(r.resp.status === 200, 'POST /api/desafio/resultado responde 200');
+  exigir(r.dados.resumo && r.dados.resumo.jogadores === 1, 'após resultado: 1 jogador hoje');
+  exigir(r.dados.minha && r.dados.minha.jogou && r.dados.minha.melhor === 120, 'minha: melhor 120 pts');
+  exigir(r.dados.minha.posicao === 1, 'minha posição é #1');
+  exigir(r.dados.top && r.dados.top.length === 1, 'top do dia tem 1 registro');
+}
+{
+  let r = await requisicao(db, BASE + 'desafio/resultado', 'POST', { pontos: 90, acertos: 4, erros: 2, combo: 2 }, { headers: { Cookie: cookie } });
+  exigir(r.dados.minha && r.dados.minha.melhor === 120, 'vale o melhor do dia (120, não 90)');
+}
+{
+  let r = await requisicao(db, BASE + 'desafio/resultado', 'POST', { pontos: 50, acertos: 2, erros: 4, combo: 1 });
+  exigir(r.resp.status === 401, 'sem sessão, enviar resultado retorna 401');
+}
+
 // ---------- logout ----------
 console.log('> logout');
 {

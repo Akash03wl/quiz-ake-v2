@@ -1397,6 +1397,35 @@ button {
   box-shadow: none;
 }
 
+/* Pódio global do Desafio do Dia dentro do card */
+.desafio-top-label {
+  font-weight: 800;
+  font-size: 0.85rem;
+  margin: 4px 0 8px;
+  letter-spacing: 0.4px;
+}
+
+.desafio-podio {
+  margin: 0 0 18px;
+  justify-content: flex-start;
+}
+
+.desafio-podio .podio-item {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.22);
+  padding: 12px 10px;
+  max-width: 190px;
+}
+
+.desafio-podio .podio-item.primeiro {
+  border-color: #ffd54f;
+  box-shadow: 0 0 0 1px #ffd54f;
+}
+
+.desafio-podio .podio-avatar { font-size: 1.9rem; }
+.desafio-podio .podio-nome { color: #fff; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.desafio-podio .podio-valor { color: #fff; }
+
 /* ---------- Barra de busca e filtros da página de quizzes ---------- */
 .quiz-filtros {
   background: var(--card);
