@@ -1,6 +1,6 @@
 /* ============================================================
-   NIVORA - CLIENTE DA API (js/api.js)
-   Camada de integração com o backend Cloudflare Pages.
+   QUIZ AKE - CLIENTE DA API (js/api.js)
+   Camada de integração com o backend Cloudflare Pages (Fase 4).
    - /api/health, /api/auth/*, /api/migrate, /api/me/progresso
    - /api/quizzes, /api/ia/*, /api/ranking, /api/salas/*, /api/desafio
    - Admin: /api/admin/*

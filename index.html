@@ -1,19 +1,18 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  NIVORA - Plataforma de Simulados e Estudos
-  Aprenda. Supere. Evolua.
+  QUIZ AKE - Plataforma de Quizzes
   ============================================================
   Estrutura:
     - index.html        -> a página (estrutura das telas)
-    - css/style.css     -> o visual (design system Nivora)
-    - js/brand.js       -> identidade central (APP_NAME/TAGLINE)
+    - css/style.css     -> o visual (design system, temas)
     - js/data.js        -> camada de dados (perguntas, quizzes, conquistas)
     - js/script.js      -> a lógica (motor do quiz e da plataforma)
 
   O site é de página única: as "telas" (Home, Quiz, Resultado,
   Ranking, Conquistas e Perfil) ficam todas neste arquivo e o
-  JavaScript mostra/esconde uma por vez.
+  JavaScript mostra/esconde uma por vez. Fase 2: busca, filtros,
+  favoritos, XP/níveis, streak, desafio do dia e explicações.
   ============================================================
 -->
 <html lang="pt-BR" data-theme="system">
@@ -21,58 +20,52 @@
   <meta charset="UTF-8">
   <!-- Faz a página caber no celular, tablet e PC -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Nivora — Plataforma de estudos e simulados com foco em conhecimento, desempenho e evolução.">
-  <title>Nivora — Aprenda. Supere. Evolua.</title>
-  <meta name="theme-color" content="#0B1220">
-  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Quiz AKE - plataforma de quizzes de conhecimentos gerais: jogue no tempo, monte combos, ganhe XP e suba de nível.">
+  <title>Quiz AKE — Plataforma de Quizzes</title>
 
   <!-- SEO / compartilhamento -->
   <link rel="canonical" href="https://quiz-ake-v2.pages.dev/">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Nivora">
+  <meta property="og:site_name" content="Quiz AKE">
   <meta property="og:locale" content="pt_BR">
-  <meta property="og:title" content="Nivora — Aprenda. Supere. Evolua.">
-  <meta property="og:description" content="Plataforma de estudos e simulados com foco em conhecimento, desempenho e evolução. Simulados inteligentes, ranking e estatísticas.">
+  <meta property="og:title" content="Quiz AKE — Teste seus conhecimentos">
+  <meta property="og:description" content="Responda no tempo, monte combos, descubra perguntas prêmio, ganhe XP e suba de nível. Rápido, divertido e sem instalar nada.">
   <meta property="og:url" content="https://quiz-ake-v2.pages.dev/">
   <meta property="og:image" content="https://quiz-ake-v2.pages.dev/favicon.svg">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Nivora — Aprenda. Supere. Evolua.">
-  <meta name="twitter:description" content="Plataforma de estudos e simulados. Conhecimento → Prática → Desempenho → Evolução.">
+  <meta name="twitter:title" content="Quiz AKE — Teste seus conhecimentos">
+  <meta name="twitter:description" content="Responda no tempo, monte combos, ganhe XP e suba de nível.">
   <meta name="twitter:image" content="https://quiz-ake-v2.pages.dev/favicon.svg">
 
-  <!-- Tipografia Nivora: Inter + Plus Jakarta Sans -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap">
-  <!-- Ícones Material (interface) -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,200..500,0,0">
   <!-- Caminho do CSS -->
   <link rel="stylesheet" href="css/style.css">
+  <!-- Ícones Material (ícones de interface; emojis ficam para conteúdo) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,200..500,0,0">
 </head>
 <body>
 
   <!-- ============ TELA DE CARREGAMENTO (splash inicial, ~2s) ============ -->
-  <div class="preloader" id="preloader" role="status" aria-label="Carregando Nivora">
+  <div class="preloader" id="preloader" role="status" aria-label="Carregando Quiz AKE">
     <div class="preloader-conteudo">
       <div class="preloader-icone">
-        <svg width="42" height="42" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" fill="#0B1220"/><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 72 L22 28 L48 62 L48 28" stroke="#2D7FF9" stroke-width="10"/><path d="M52 58 L72 32" stroke="#0EA67B" stroke-width="8"/><path d="M72 32 L72 52" stroke="#0EA67B" stroke-width="8"/></g></svg>
+        <span class="material-symbols-rounded" aria-hidden="true">psychology</span>
       </div>
-      <div class="preloader-rotulo">NIVORA</div>
+      <div class="preloader-rotulo">Quiz <strong>AKE</strong></div>
       <div class="preloader-bar"><div class="preloader-fill"></div></div>
-      <div class="preloader-dica">Aprenda. Supere. Evolua.</div>
+      <div class="preloader-dica">Teste seus conhecimentos…</div>
     </div>
   </div>
 
   <!-- ============ NAVBAR (menu do topo) ============ -->
   <header class="navbar" role="banner">
     <div class="nav-inner">
-      <!-- Logo Nivora -->
-      <a href="#" class="logo logo-nivora" data-navegar="inicio" aria-label="Nivora - ir para o início">
-        <span class="logo-mark" aria-hidden="true">
-          <svg viewBox="0 0 100 100"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 72 L22 28 L48 62 L48 28" stroke="white" stroke-width="10"/><path d="M52 58 L72 32" stroke="white" stroke-width="8" opacity="0.95"/><path d="M72 32 L72 52" stroke="white" stroke-width="8" opacity="0.95"/></g></svg>
-        </span>
-        <span class="logo-wordmark">NIVORA<span style="color:var(--texto-suave); font-weight:600; font-size:0.72rem; display:block; letter-spacing:0.14em; margin-top:2px;">Aprenda. Supere. Evolua.</span></span>
+      <!-- Logo -->
+      <a href="#" class="logo" data-navegar="inicio" aria-label="Quiz AKE - ir para o início">
+        <span class="logo-icon">🧠</span>
+        <span>Quiz <strong>AKE</strong></span>
       </a>
 
       <!-- Botão do menu no celular -->
@@ -112,15 +105,15 @@
       <!-- ---------- HERO (destaque principal) ---------- -->
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-texto">
-          <span class="hero-badge">NIVORA — Plataforma de simulados</span>
-          <h1 id="hero-title">Aprenda.<br>Supere. <span class="texto-gradiente">Evolua.</span></h1>
+          <span class="hero-badge">+ de 30 perguntas e 12 categorias</span>
+          <h1 id="hero-title">Teste seus <span class="texto-gradiente">conhecimentos.</span></h1>
           <p class="hero-sub">
-            <strong>Nivora</strong> é a plataforma de estudos baseada em simulados, desempenho e evolução do conhecimento.
-            Pratique, acompanhe seu desempenho e evolua a cada tentativa.
+            O <strong>Quiz AKE</strong> é a sua plataforma de quizzes: responda no tempo,
+            monte combos, descubra perguntas prêmio, ganhe XP e suba de nível.
           </p>
           <div class="hero-acoes">
-            <button class="btn btn-primary" id="botao-jogar-hero"><span class="material-symbols-rounded icone" aria-hidden="true">play_arrow</span> Começar agora</button>
-            <button class="btn btn-ghost" data-navegar="quizzes">Explorar simulados</button>
+            <button class="btn btn-primary" id="botao-jogar-hero"><span class="material-symbols-rounded icone" aria-hidden="true">play_arrow</span> Jogar agora</button>
+            <button class="btn btn-ghost" data-navegar="quizzes">Explorar quizzes</button>
           </div>
           <div class="hero-slug">
             <span><strong id="hero-total-perguntas">30+</strong> perguntas</span>
@@ -460,10 +453,10 @@
         <div class="perfil-topo">
           <div class="avatar" id="avatar-perfil">🧑‍🚀</div>
           <div class="perfil-dados">
-            <div class="perfil-nome" id="perfil-nome">Estudante Nivora</div>
+            <div class="perfil-nome" id="perfil-nome">Jogador AKE</div>
             <label class="perfil-edicao">
               <span>Nome</span>
-              <input type="text" id="input-nome" value="Estudante Nivora" maxlength="24">
+              <input type="text" id="input-nome" value="Jogador AKE" maxlength="24">
             </label>
             <div class="perfil-nivel">Nível <strong id="perfil-nivel">1</strong> · <span id="perfil-xp">0 XP</span></div>
           </div>
@@ -555,13 +548,12 @@
   <!-- Rodapé -->
   <footer class="rodape">
     <div class="container">
-      <p><span class="material-symbols-rounded icone" aria-hidden="true">school</span> <strong>NIVORA</strong> — Aprenda. Supere. Evolua. · Plataforma de estudos e simulados</p>
-      <p class="rodape-link"><a href="https://github.com/Akash03wl/quiz-ake-v2" target="_blank" rel="noopener">Deploy e documentação técnica</a> · Conhecimento → Prática → Desempenho → Evolução</p>
+      <p><span class="material-symbols-rounded icone" aria-hidden="true">quiz</span> Quiz AKE · Trabalho de Programação Web · JavaScript puro, sem bibliotecas</p>
+      <p class="rodape-link"><a href="https://github.com/Akash03wl/quiz-ake-v2" target="_blank" rel="noopener">Deploy e documentação técnica (Fase 4)</a></p>
     </div>
   </footer>
 
-  <!-- Arquivos JavaScript: brand primeiro, depois dados/lógica/API (defer) -->
-  <script src="js/brand.js" defer></script>
+  <!-- Arquivos JavaScript: dados primeiro, lógica depois, API por último (defer) -->
   <script src="js/data.js" defer></script>
   <script src="js/script.js" defer></script>
   <script src="js/api.js" defer></script>

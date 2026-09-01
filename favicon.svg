@@ -1,14 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Nivora">
-  <!-- Fundo escuro arredondado -->
-  <rect width="100" height="100" rx="22" fill="#0B1220"/>
-  <!-- Símbolo Nivora: N com seta de evolução (subindo) -->
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Letra N estilizada -->
-    <path d="M22 72 L22 28 L48 62 L48 28" stroke="#2D7FF9" stroke-width="10" />
-    <!-- Barra ascendente / crescimento -->
-    <path d="M52 58 L72 32 L72 52" stroke="#0EA67B" stroke-width="8" stroke-linecap="round"/>
-    <path d="M52 58 L72 32" stroke="#0EA67B" stroke-width="8"/>
-    <!-- Ponto de partida -->
-    <circle cx="78" cy="28" r="3.5" fill="#0EA67B" stroke="none"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="22" fill="#7c6cf0"/>
+  <text x="50" y="70" font-size="56" text-anchor="middle">🧠</text>
 </svg>

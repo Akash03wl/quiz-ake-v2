@@ -1,5 +1,5 @@
 /* ============================================================
-   NIVORA BACKEND - lib/respostas.js
+   QUIZ AKE BACKEND - lib/respostas.js
    Helpers de Response JSON com CORS básico (mesmo domínio) e
    cabeçalhos de segurança.
    ============================================================ */

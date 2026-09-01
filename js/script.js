@@ -1,5 +1,5 @@
 /* ==========================================================
-   Nivora - LÓGICA DO SITE (JavaScript)
+   QUIZ AKE - LÓGICA DO SITE (JavaScript)
    Fase 1: motor do quiz, ranking local, conquistas e perfil.
    Fase 2: XP/níveis, favoritos, histórico, streak, desafio do
            dia, busca/filtros, conquistas com progresso.
@@ -241,7 +241,7 @@ function lerStats() {
   return lerObjeto(CHAVE.stats, { jogos: 0, acertos: 0, erros: 0, rapidas: 0, maiorCombo: 0, perfeitos: 0, desafios: 0, maiorPontos: 0, sobrevSeq: 0, blitzPontos: 0, contraPontos: 0, modosDistintos: 0 });
 }
 function salvarStats(s) { gravarTexto(CHAVE.stats, JSON.stringify(s)); }
-function lerNome() { var n = lerTexto(CHAVE.nome); return (n && n.trim()) ? n : 'Estudante Nivora'; }
+function lerNome() { var n = lerTexto(CHAVE.nome); return (n && n.trim()) ? n : 'Jogador AKE'; }
 
 function lerRecorde() { return lerNumero(CHAVE.recorde); }
 
@@ -1071,7 +1071,7 @@ function textoCompartilhamento() {
   if (!p) return '';
   var nome = lerNome();
   var tx = (p.taxa || 0);
-  return 'Nivora\n\n' +
+  return 'Quiz AKE\n\n' +
     nome + ' conseguiu ' + p.acertos + '/' + p.total + ' (' + tx + '%)!\n\n' +
     'Combo máximo: ' + (p.maiorCombo || 0) + '\n' +
     'Pontuação: ' + p.pontos.toLocaleString('pt-BR') + ' pts\n\n' +
@@ -1080,7 +1080,7 @@ function textoCompartilhamento() {
 function desenharShareCard() {
   if (!el.shareConteudo || !ultimaPartida) return;
   el.shareConteudo.innerHTML =
-    '<div class="share-head"><span>' + ic('quiz') + '</span> Nivora</div>' +
+    '<div class="share-head"><span>' + ic('quiz') + '</span> Quiz AKE</div>' +
     '<div class="share-score">' + ultimaPartida.acertos + '/' + (ultimaPartida.total || 0) + '</div>' +
     '<div class="share-linha">' + ic('local_fire_department') + ' Combo máximo: <strong>' + (ultimaPartida.maiorCombo || 0) + '</strong></div>' +
     '<div class="share-linha">' + ic('emoji_events') + ' Pontuação: <strong>' + ultimaPartida.pontos.toLocaleString('pt-BR') + '</strong></div>' +
@@ -1095,7 +1095,7 @@ function compartilharResultado() {
   }
   // Web Share API
   if (typeof navigator !== 'undefined' && navigator.share) {
-    navigator.share({ title: 'Nivora', text: texto, url: location.href })
+    navigator.share({ title: 'Quiz AKE', text: texto, url: location.href })
       .catch(function () { copiarParaAreaDeTransferencia(texto); });
     return;
   }
@@ -1135,7 +1135,7 @@ function baixarImagemShare() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#7c6cf0';
   ctx.font = 'bold 96px Segoe UI, sans-serif';
-  ctx.fillText('🧠 Nivora', 540, 260);
+  ctx.fillText('🧠 Quiz AKE', 540, 260);
 
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 200px Segoe UI, sans-serif';
@@ -1152,7 +1152,7 @@ function baixarImagemShare() {
   ctx.fillText('Será que você consegue superar?', 540, 1100);
 
   var a = document.createElement('a');
-  a.download = 'nivora-resultado.png';
+  a.download = 'quiz-ake-resultado.png';
   a.href = canvas.toDataURL('image/png');
   document.body.appendChild(a);
   a.click();
@@ -2083,7 +2083,7 @@ function anexarAcoesConta(card, u) {
       var dados = { email: emailEl.value.trim(), senha: senhaEl.value };
       if (modo === 'registro') {
         var nomeEl = form.querySelector('#conta-nome');
-        dados.nome = (nomeEl && nomeEl.value.trim()) || 'Estudante Nivora';
+        dados.nome = (nomeEl && nomeEl.value.trim()) || 'Jogador AKE';
       }
       var acao = modo === 'login' ? window.API.login(dados) : window.API.registrar(dados);
       acao.then(function (d) {
@@ -2158,7 +2158,7 @@ function renderizarCriar() {
 function renderizarMeusQuizzes() {
   var area = q('meus-quizzes');
   if (!area) return;
-  var meus = QUIZZES.filter(function (qz) { return qz.autor && qz.autor !== 'Equipe Nivora'; });
+  var meus = QUIZZES.filter(function (qz) { return qz.autor && qz.autor !== 'Equipe Quiz AKE'; });
   if (!meus.length) { area.innerHTML = ''; return; }
   area.innerHTML = '<h3 class="titulo-bloco">Meus quizzes</h3>' +
     '<div style="display:grid;gap:10px;">' +
@@ -2262,7 +2262,7 @@ function salvarQuizManual(ev) {
   var quiz = {
     id: 'local_' + Date.now(),
     titulo: titulo,
-    descricao: descricao || 'Criado no Nivora.',
+    descricao: descricao || 'Criado no Quiz AKE.',
     categoria: categoria,
     dificuldade: dificuldade,
     emoji: '✍️',
@@ -2415,7 +2415,7 @@ function salvarRascunhoIA() {
       adicionarQuizLocal({
         id: id,
         titulo: r.titulo || 'Quiz gerado',
-        descricao: r.descricao || 'Gerado com IA no Nivora.',
+        descricao: r.descricao || 'Gerado com IA no Quiz AKE.',
         categoria: r.categoria || 'geral',
         dificuldade: r.dificuldade || 'medio',
         emoji: r.emoji || '🤖',

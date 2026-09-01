@@ -1,5 +1,5 @@
 -- ============================================================
--- NIVORA - Migração 0003: PLATAFORMA DE SIMULADOS COM IA
+-- QUIZ AKE - Migração 0003: PLATAFORMA DE SIMULADOS COM IA
 -- Entidades exigidas no prompt mestre: subjects, rooms/simulados,
 -- questions, options, attempts, answers, ai_generations, admin_logs
 -- Compatível com Cloudflare D1. NÃO quebra schema existente.

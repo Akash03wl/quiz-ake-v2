@@ -1,5 +1,5 @@
 /* ============================================================
-   NIVORA BACKEND - functions/api/[[path]].js
+   QUIZ AKE BACKEND - functions/api/[[path]].js
    Router principal da API (Pages Functions catch-all em /api/*).
    Estratégia: um único ponto de entrada que despacha para os
    controllers por método + caminho. Retorna sempre JSON.
@@ -811,7 +811,7 @@ async function gerarCodigoSala(env) {
     const existente = await db.primeira(env, 'SELECT codigo FROM salas WHERE codigo = ? AND estado != "finalizada"', codigo);
     if (!existente) return codigo;
   }
-  return 'NIV' + Math.floor(100 + Math.random() * 900);
+  return 'AKE' + Math.floor(100 + Math.random() * 900);
 }
 
 // POST /api/salas — criar sala
@@ -926,7 +926,7 @@ async function finalizarSala(env, request, params) {
 // GET /api/health
 async function health(env) {
   await db.primeira(env, 'SELECT 1 AS ok');
-  return ok({ ok: true, nome: 'nivora', tempo: new Date().toISOString() });
+  return ok({ ok: true, nome: 'quiz-ake', tempo: new Date().toISOString() });
 }
 
 // ---------- ROTEAMENTO ----------

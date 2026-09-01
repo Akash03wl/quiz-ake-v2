@@ -1,5 +1,5 @@
 /* ============================================================
-   NIVORA BACKEND - lib/validacao.js
+   QUIZ AKE BACKEND - lib/validacao.js
    Validação e saneamento de entradas. Todas as funções retornam
    { ok: true, valor } ou { ok: false, erro }.
    Segurança: remove tags HTML/scripts e limita tamanho.

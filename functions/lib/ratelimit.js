@@ -1,5 +1,5 @@
 /* ============================================================
-   NIVORA BACKEND - lib/ratelimit.js
+   QUIZ AKE BACKEND - lib/ratelimit.js
    Limitação de taxa baseada em D1. Cada chave (IP+rota) tem uma
    contagem dentro de uma janela inteira de segundos.
    ============================================================ */

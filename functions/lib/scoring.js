@@ -1,5 +1,5 @@
 /* ============================================================
-   NIVORA - Motor de pontuação (Fase 1)
+   QUIZ AKE - Motor de pontuação (Fase 1)
    Regras centralizadas, testáveis e sem dependência de frontend.
    Garante: mais acertos NUNCA fica abaixo de menos acertos,
    mesmo com bônus de velocidade.

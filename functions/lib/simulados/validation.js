@@ -1,5 +1,5 @@
 /* ============================================================
-   NIVORA - Validação de simulados/questões (Fase 1)
+   QUIZ AKE - Validação de simulados/questões (Fase 1)
    Validação de schema antes de salvar. Nunca confia em IA.
    ============================================================ */
 

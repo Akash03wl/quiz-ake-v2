@@ -1,7 +1,7 @@
 {
-  "name": "nivora",
+  "name": "quiz-ake",
   "version": "1.0.0",
-  "description": "Nivora — Aprenda. Supere. Evolua. Plataforma de estudos e simulados (Cloudflare Pages + Functions + D1 + Workers AI)",
+  "description": "Quiz AKE - plataforma de quizzes (Cloudflare Pages + Functions + D1 + Workers AI)",
   "private": true,
   "type": "module",
   "scripts": {
