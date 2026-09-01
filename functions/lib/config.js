@@ -1,5 +1,5 @@
 /* ============================================================
-   QUIZ AKE - Configuração central (Fase 1)
+   NIVORA - Configuração central (Fase 1)
    Todas as constantes de pontuação, tempo e limites ficam aqui.
    Evita valores espalhados pelo código (regra #15 do prompt).
    ============================================================ */

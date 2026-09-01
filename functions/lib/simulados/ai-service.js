@@ -1,5 +1,5 @@
 /* ============================================================
-   QUIZ AKE - Camada de IA (Fase 1 - abstração)
+   NIVORA - Camada de IA (Fase 1 - abstração)
    AIService com providers trocáveis. Resto da app não depende
    de um único provedor.
    - AIService

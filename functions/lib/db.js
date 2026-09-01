@@ -1,5 +1,5 @@
 /* ============================================================
-   QUIZ AKE BACKEND - lib/db.js
+   NIVORA BACKEND - lib/db.js
    Helpers de acesso ao banco D1. Sempre usa prepared statements
    com parâmetros (nunca concatena SQL).
    ============================================================ */

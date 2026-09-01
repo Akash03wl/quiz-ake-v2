@@ -1,5 +1,5 @@
 /* ==========================================================
-   QUIZ AKE - CAMADA DE DADOS (data.js)
+   NIVORA - CAMADA DE DADOS (data.js)
    Arquivo separado de dados, organizado para migração futura
    para um backend. Contém: categorias, dificuldades, tipos de
    pergunta, banco de perguntas, quizzes e conquistas.
@@ -316,13 +316,13 @@ function montarQuizzes() {
   lista.push({
     id: 'quiz-geral',
     titulo: 'Conhecimentos Gerais',
-    descricao: 'O desafio completo do Quiz AKE, com perguntas de todas as áreas.',
-    capa: { emoji: '🧠', cor: '#7c6cf0' },
+    descricao: 'O desafio completo da Nivora, com simulados de todas as áreas.',
+    capa: { emoji: '🧠', cor: '#2D7FF9' },
     categoria: 'geral',
     dificuldade: 'medio',
     quantidade: PERGUNTAS.length,
     duracao: Math.max(60, PERGUNTAS.length * TEMPO_RELAMPAGO),
-    autor: 'Equipe Quiz AKE',
+    autor: 'Equipe Nivora',
     dataCriacao: '2026-01-01',
     tags: ['gerais', 'variedades', 'todas as áreas'],
     status: 'ativo',
@@ -338,13 +338,13 @@ function montarQuizzes() {
     lista.push({
       id: 'quiz-' + cat.id,
       titulo: cat.nome,
-      descricao: 'Quiz oficial de ' + cat.nome.toLowerCase() + ' do Quiz AKE. Teste seus conhecimentos!',
+      descricao: 'Simulado oficial de ' + cat.nome.toLowerCase() + ' da Nivora. Teste seus conhecimentos!',
       capa: { emoji: cat.emoji, cor: cat.cor },
       categoria: cat.id,
       dificuldade: dif.id,
       quantidade: perguntas.length,
       duracao: Math.max(60, perguntas.length * TEMPO_RELAMPAGO),
-      autor: 'Equipe Quiz AKE',
+      autor: 'Equipe Nivora',
       dataCriacao: '2026-01-01',
       tags: [cat.nome, dif.nome, 'quiz oficial'],
       status: 'ativo',
@@ -359,13 +359,13 @@ function montarQuizzes() {
     lista.push({
       id: 'quiz-dif-' + dif.id,
       titulo: 'Desafio ' + dif.nome,
-      descricao: 'Um quiz-chegada com perguntas ' + dif.nome.toLowerCase() + ' de todas as categorias.',
+      descricao: 'Um simulado com perguntas ' + dif.nome.toLowerCase() + ' de todas as categorias.',
       capa: { emoji: dif.icone, cor: '#ffffff' },
       categoria: 'geral',
       dificuldade: dif.id,
       quantidade: perguntas.length,
       duracao: Math.max(60, perguntas.length * TEMPO_RELAMPAGO),
-      autor: 'Equipe Quiz AKE',
+      autor: 'Equipe Nivora',
       dataCriacao: '2026-01-01',
       tags: [dif.nome, 'desafio', 'misturado'],
       status: 'ativo',

@@ -1,5 +1,5 @@
 -- ============================================================
--- QUIZ AKE - Migração 0001: schema base (Cloudflare D1)
+-- NIVORA - Migração 0001: schema base (Cloudflare D1)
 -- ============================================================
 
 -- ---------- CONTAS ----------
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS quizzes (
   dificuldade TEXT NOT NULL DEFAULT 'medio',
   emoji       TEXT NOT NULL DEFAULT '@',
   cor         TEXT NOT NULL DEFAULT '#7c6cf0',
-  autor       TEXT NOT NULL DEFAULT 'Quiz AKE',
+  autor       TEXT NOT NULL DEFAULT 'Nivora',
   autor_id    TEXT REFERENCES usuarios(id) ON DELETE SET NULL,
   tags        TEXT NOT NULL DEFAULT '[]',
   quantidade  INTEGER NOT NULL DEFAULT 0,

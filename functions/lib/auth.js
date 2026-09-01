@@ -1,5 +1,5 @@
 /* ============================================================
-   QUIZ AKE BACKEND - lib/auth.js
+   NIVORA BACKEND - lib/auth.js
    Autenticação: hash de senha (PBKDF2 via WebCrypto), tokens,
    sessões em cookie e RBAC básico (usuario/moderador/admin).
    ============================================================ */

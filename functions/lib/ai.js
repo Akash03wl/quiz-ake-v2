@@ -1,5 +1,5 @@
 /* ============================================================
-   QUIZ AKE BACKEND - lib/ai.js
+   NIVORA BACKEND - lib/ai.js
    Geração de quizzes com IA.
    - Provedor default: Workers AI (binding "AI", modelo via AI_MODEL).
    - Fallback: endpoint OpenAI-compatível via AI_BASE_URL/AI_API_KEY.

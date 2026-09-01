@@ -1,9 +1,10 @@
 # ============================================================
-# QUIZ AKE - configuração do Cloudflare Pages (Fase 4)
+# NIVORA - configuração do Cloudflare Pages
 # Frontend estático + Pages Functions em /api/* + D1 + Workers AI
+# Marca: Aprenda. Supere. Evolua.
 # ============================================================
 
-name = "quiz-ake-v2"
+name = "nivora"
 pages_build_output_dir = "."
 
 compatibility_date = "2024-11-01"

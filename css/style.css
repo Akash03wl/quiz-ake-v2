@@ -1,76 +1,105 @@
 /* ==========================================================
-   QUIZ AKE - DESIGN SYSTEM (CSS)
-   Todas as cores, fontes, espaços e animações da plataforma.
+   NIVORA - DESIGN SYSTEM (CSS)
+   Marca: Aprenda. Supere. Evolua.
+   Conceito: CONHECIMENTO → PRÁTICA → DESEMPENHO → EVOLUÇÃO
+   Paleta profissional: ink + emerald + electric (confiança + evolução)
 
    TEMAS:
-   - data-theme="dark"   -> padrão (escuro)
-   - data-theme="light"  -> claro
+   - data-theme="dark"   -> padrão (escuro, foco, tecnologia)
+   - data-theme="light"  -> claro (leitura, educação)
    - data-theme="system" -> segue o sistema operacional
+   Tokens centralizados: primary/secondary/accent/bg/surface/text/muted/border
    ========================================================== */
 
 /* ----------------------------------------------------------
-   0) VARIÁVEIS DE COR (design tokens)
-   Um "token" é um nome que guarda uma cor/valor para reutilizar.
-   Trocando aqui, muda o site inteiro de forma consistente.
+   0) DESIGN TOKENS — NIVORA
+   Primary = confiança/educação (ink/blue), Secondary = evolução (emerald),
+   Accent = tecnologia. Evita hex espalhado no código.
    ---------------------------------------------------------- */
 
 /* Tema ESCURO (padrão) */
 :root,
 html[data-theme="dark"] {
-  --bg: #0e1020;
-  --bg-suave: #151833;
-  --card: #1a1e3d;
-  --card-2: #232750;
+  --bg: #0B1220;
+  --bg-suave: #111C2E;
+  --card: #16213A;
+  --card-2: #1E2E4A;
   --borda: rgba(255, 255, 255, 0.08);
-  --texto: #f1f3ff;
-  --texto-suave: #a9b0d8;
-  --acento: #7c6cf0;
-  --acento-2: #4aa8ff;
-  --gradiente: linear-gradient(135deg, #7c6cf0, #4aa8ff);
-  --ok: #2ed573;
-  --erro: #ff5b6a;
-  --aviso: #ffb020;
-  --sombra: 0 12px 34px rgba(0, 0, 0, 0.35);
-  --raio: 18px;
+  --texto: #EEF2FF;
+  --texto-suave: #94A3B8;
+  /* Nivora tokens (compat: acento=primary, acento-2=secondary) */
+  --primary: #2D7FF9;
+  --primary-hover: #1C6AE0;
+  --secondary: #0EA67B;
+  --accent: #2D7FF9;
+  --acento: #2D7FF9;
+  --acento-2: #0EA67B;
+  --gradiente: linear-gradient(135deg, #2D7FF9 0%, #0EA67B 100%);
+  --gradiente-suave: linear-gradient(135deg, rgba(45,127,249,0.15), rgba(14,166,123,0.12));
+  --ok: #10B981;
+  --erro: #EF4444;
+  --aviso: #F59E0B;
+  --sombra: 0 14px 40px rgba(0, 0, 0, 0.42);
+  --sombra-suave: 0 8px 24px rgba(0, 0, 0, 0.30);
+  --raio: 16px;
+  --raio-grande: 20px;
+  --fonte-titulo: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --fonte-corpo: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 /* Tema CLARO */
 html[data-theme="light"] {
-  --bg: #eef1fb;
-  --bg-suave: #ffffff;
-  --card: #ffffff;
-  --card-2: #f1f3fc;
-  --borda: rgba(30, 34, 80, 0.12);
-  --texto: #202342;
-  --texto-suave: #5a5f86;
-  --acento: #7c6cf0;
-  --acento-2: #2a8bff;
-  --gradiente: linear-gradient(135deg, #7c6cf0, #4aa8ff);
-  --ok: #1fa85c;
-  --erro: #e04a5a;
-  --aviso: #d98f00;
-  --sombra: 0 12px 34px rgba(40, 45, 120, 0.12);
-  --raio: 18px;
+  --bg: #F1F5F9;
+  --bg-suave: #FFFFFF;
+  --card: #FFFFFF;
+  --card-2: #F8FAFC;
+  --borda: rgba(15, 42, 68, 0.10);
+  --texto: #0F172A;
+  --texto-suave: #64748B;
+  --primary: #1E4A8A;
+  --primary-hover: #183E73;
+  --secondary: #0E9F6E;
+  --accent: #2D7FF9;
+  --acento: #1E4A8A;
+  --acento-2: #0E9F6E;
+  --gradiente: linear-gradient(135deg, #1E4A8A 0%, #0E9F6E 100%);
+  --gradiente-suave: linear-gradient(135deg, rgba(30,74,138,0.08), rgba(14,159,110,0.08));
+  --ok: #059669;
+  --erro: #DC2626;
+  --aviso: #D97706;
+  --sombra: 0 14px 40px rgba(15, 23, 42, 0.10);
+  --sombra-suave: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --raio: 16px;
+  --raio-grande: 20px;
+  --fonte-titulo: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --fonte-corpo: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 /* Quando o tema é "system", usamos a preferência do aparelho */
 @media (prefers-color-scheme: light) {
   html[data-theme="system"] {
-    --bg: #eef1fb;
-    --bg-suave: #ffffff;
-    --card: #ffffff;
-    --card-2: #f1f3fc;
-    --borda: rgba(30, 34, 80, 0.12);
-    --texto: #202342;
-    --texto-suave: #5a5f86;
-    --acento: #7c6cf0;
-    --acento-2: #2a8bff;
-    --gradiente: linear-gradient(135deg, #7c6cf0, #4aa8ff);
-    --ok: #1fa85c;
-    --erro: #e04a5a;
-    --aviso: #d98f00;
-    --sombra: 0 12px 34px rgba(40, 45, 120, 0.12);
-    --raio: 18px;
+    --bg: #F1F5F9;
+    --bg-suave: #FFFFFF;
+    --card: #FFFFFF;
+    --card-2: #F8FAFC;
+    --borda: rgba(15, 42, 68, 0.10);
+    --texto: #0F172A;
+    --texto-suave: #64748B;
+    --primary: #1E4A8A;
+    --primary-hover: #183E73;
+    --secondary: #0E9F6E;
+    --accent: #2D7FF9;
+    --acento: #1E4A8A;
+    --acento-2: #0E9F6E;
+    --gradiente: linear-gradient(135deg, #1E4A8A 0%, #0E9F6E 100%);
+    --gradiente-suave: linear-gradient(135deg, rgba(30,74,138,0.08), rgba(14,159,110,0.08));
+    --ok: #059669;
+    --erro: #DC2626;
+    --aviso: #D97706;
+    --sombra: 0 14px 40px rgba(15, 23, 42, 0.10);
+    --sombra-suave: 0 8px 24px rgba(15, 23, 42, 0.08);
+    --raio: 16px;
+    --raio-grande: 20px;
   }
 }
 
@@ -88,7 +117,7 @@ html {
 }
 
 body {
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: var(--fonte-corpo);
   background: var(--bg);
   color: var(--texto);
   min-height: 100vh;
@@ -96,17 +125,66 @@ body {
   flex-direction: column;
   align-items: center;
   transition: background 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Fundo decorativo com brilhos discretos (gradientes) */
+/* Fundo decorativo Nivora — evolução sutil (primary → secondary) */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(600px 400px at 10% 0%, rgba(124, 108, 240, 0.18), transparent 60%),
-    radial-gradient(600px 400px at 90% 10%, rgba(74, 168, 255, 0.15), transparent 60%);
+    radial-gradient(700px 420px at 10% 0%, rgba(45, 127, 249, 0.14), transparent 60%),
+    radial-gradient(600px 380px at 90% 8%, rgba(14, 166, 123, 0.12), transparent 60%),
+    radial-gradient(500px 300px at 50% 100%, rgba(45, 127, 249, 0.06), transparent 60%);
+}
+
+/* Tipografia Nivora — títulos com Plus Jakarta Sans */
+h1, h2, h3, .logo-text, .hero h1, .titulo-bloco {
+  font-family: var(--fonte-titulo);
+  letter-spacing: -0.02em;
+}
+
+/* Logo Nivora */
+.logo-nivora {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--fonte-titulo);
+}
+.logo-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--gradiente);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(45,127,249,0.30);
+  flex-shrink: 0;
+}
+.logo-mark svg {
+  width: 22px;
+  height: 22px;
+}
+.logo-wordmark {
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.logo-wordmark span {
+  font-weight: 800;
+}
+.logo-tagline {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  margin-top: 1px;
 }
 
 a {
