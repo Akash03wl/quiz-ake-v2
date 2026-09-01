@@ -12,3 +12,16 @@ ENVIRONMENT=development
 # AI_API_KEY=chave-sua-aqui
 # AI_BASE_URL=https://api.openai.com/v1
 # AI_MODEL=gpt-4o-mini
+# Para simulados com Gemini via OpenRouter (recomendado):
+# AI_API_KEY=sk-or-...
+# AI_BASE_URL=https://openrouter.ai/api/v1
+# AI_MODEL=google/gemini-2.0-flash-001
+
+# Autenticação
+# AUTH_SECRET=gere-um-hex-64-caracteres-com-openssl-rand-hex-32
+# ADMIN_EMAIL=admin@exemplo.com
+# ADMIN_PASSWORD=senha-forte-12+
+
+# Pontuação (opcional, usa defaults de functions/lib/config.js se ausente)
+# SCORING_CORRECT=100
+# SCORING_SPEED_MAX=20

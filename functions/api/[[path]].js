@@ -675,17 +675,18 @@ function sementeDiaDesafio(texto) {
 
 // GET /api/desafio — seed, perguntas e ranking global de hoje (público).
 async function desafioDia(env, request) {
-  const hoje = isoHoje();
+  // Usa UTC para coincidir com criado_em armazenado via toISOString() (evita divergência BRT vs UTC).
+  const hoje = new Date().toISOString().slice(0, 10);
   const top = await db.todas(env,
     `SELECT u.id, u.nome, u.avatar, MAX(r.pontos) AS pontos
      FROM resultados r JOIN usuarios u ON u.id = r.usuario_id
-     WHERE r.modo = 'desafio' AND date(r.criado_em) = date(?)  AND r.pontos > 0
+     WHERE r.modo = 'desafio' AND substr(r.criado_em, 1, 10) = ?  AND r.pontos > 0
      GROUP BY u.id ORDER BY pontos DESC, u.nome ASC LIMIT 10`,
     hoje);
   const resumo = await db.primeira(env,
     `SELECT COUNT(DISTINCT usuario_id) AS jogadores, ROUND(AVG(best)) AS media
      FROM (SELECT usuario_id, MAX(pontos) AS best FROM resultados
-           WHERE modo = 'desafio' AND date(criado_em) = date(?) GROUP BY usuario_id)`,
+           WHERE modo = 'desafio' AND substr(criado_em, 1, 10) = ? GROUP BY usuario_id)`,
     hoje);
 
   let minha = null;
@@ -694,12 +695,12 @@ async function desafioDia(env, request) {
     const total = Number(resumo && resumo.jogadores) || 0;
     const meu = await db.primeira(env,
       `SELECT MAX(pontos) AS melhor FROM resultados
-       WHERE usuario_id = ? AND modo = 'desafio' AND date(criado_em) = date(?)`,
+       WHERE usuario_id = ? AND modo = 'desafio' AND substr(criado_em, 1, 10) = ?`,
       usuario.id, hoje);
     if (meu && meu.melhor !== null && Number(meu.melhor) > 0) {
       const acima = await db.primeira(env,
         `SELECT COUNT(DISTINCT usuario_id) AS c FROM resultados
-         WHERE modo = 'desafio' AND date(criado_em) = date(?) AND pontos > ?`,
+         WHERE modo = 'desafio' AND substr(criado_em, 1, 10) = ? AND pontos > ?`,
         hoje, Number(meu.melhor));
       minha = { jogou: true, melhor: Number(meu.melhor), posicao: (acima && acima.c ? acima.c : 0) + 1, total };
     } else {

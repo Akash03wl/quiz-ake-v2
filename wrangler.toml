@@ -20,3 +20,9 @@ database_id = "b9df1729-4395-459a-a844-c948c684437e"
 ENVIRONMENT = "development"
 AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 SITE_URL = "https://quiz-ake-v2.pages.dev"
+SCORING_CORRECT = "100"
+SCORING_SPEED_MAX = "20"
+
+# Workers AI (opcional, usado pela camada AIService em simulados)
+# [ai]
+# binding = "AI"
